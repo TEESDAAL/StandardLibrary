@@ -1,0 +1,21 @@
+<testcase classname="MyTests" name="imm .tests(_)#5" file="_hello/_rank_app.fear" line="5">
+<failure>
+<expected>3</expected>
+<actual>1</actual>
+Assertion failure.
+Expected: 3
+Actual: 1
+Error error line:  in file errors.fear
+Assert error line:  in file assertions.fear
+False error line:  in file bools.fear
+Bool error line:  in file bools.fear
+Assert error line:  in file assertions.fear
+OrderHash[_] error line:  in file comparators.fear
+OrderHash[_] error line:  in file comparators.fear
+_CapTry error line:  in file _CapTry$0.java
+_AddToLog error line:  in file testing.fear
+Block[_] error line:  in file blocks.fear
+Block[_] error line:  in file blocks.fear
+UnitTests error line:  in file testing.fear
+</failure>
+</testcase>

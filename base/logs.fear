@@ -1,1 +1,2 @@
 Log: { .log(s: read ToStr): Void -> Magic! }
+UnitTestLog: { .log(s: read ToStr): Void -> Magic! }

@@ -1,0 +1,21 @@
+<testcase classname="MyTests" name="imm .tests(_)#5" file="_hello/_rank_app.fear" line="5">
+<failure>
+<expected>3</expected>
+<actual>1</actual>
+Assertion failure.
+Expected: 3
+Actual: 1
+
+
+
+
+
+
+
+
+
+
+
+
+</failure>
+</testcase>

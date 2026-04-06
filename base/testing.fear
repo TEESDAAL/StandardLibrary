@@ -1,6 +1,23 @@
-StackFrame:{ .fileName: Str; .typeName: Str; .methodName: Str; .lineNumber: Nat; }
+StackFrame:DataType[StackFrame,StackFrame]{
+  .fileName: Str; .typeName: Str; .methodName: Str; .lineNumber: Nat;
+  .close -> this; .close -> ::;
+  .cmp a, b, m -> a.str<=>(b.str,m);
+  .hash -> this.str.hash;
+  .str -> 
+    `StackFrame[` + (this.imm.fileName)
+    + `, ` + (this.imm.typeName)
+    + `, ` + (this.imm.methodName)
+    + `, ` + (this.imm.lineNumber)
+    +`]`;
+  .info -> Infos.map(
+    `fileName`, this.imm.fileName,
+    `typeName`, this.imm.typeName,
+    `methodName`, this.imm.methodName,
+    `lineNumber`, this.imm.lineNumber,
+    );
+  }
 StackFrames:F[Str,Str,Str,Nat,StackFrame]{ fn,tn,mn,ln -> 
-  { .fileName->fn; .typeName->tn; .methodName->mn; .lineNumber->ln;} }
+  {'self .fileName->fn; .typeName->tn; .methodName->mn; .lineNumber->ln; .imm->self} }
 
 UnitTests: Main{
   .main sys->Block#
@@ -25,7 +42,8 @@ _TestCaps: {
     .check c -> Block#(
       ts.add(CheckInfos#(c,c._fetchTrace{ try.currentStackTrace })),
       self);
-    mut .run: Void -> Void;//TODO:later
+    mut .run: Void -> 
+      ts.flow.forEach{ ci->UnitTestLog.log(_AddToLog#(ci.stackTrace,try#{ci.check#},1)) }
     }
   }
 Check:{ #:Void; ._fetchTrace(f: mut MF[List[StackFrame]]): List[StackFrame]->f#;}
@@ -33,6 +51,84 @@ CheckInfos:F[Check,List[StackFrame],CheckInfo]{c,st->CheckInfo:{
   .check:Check->c; .stackTrace:List[StackFrame]->st;}}
 Test: { .tests(t: mut TestCap): mut TestCap; }
 
+_AddToLog:{
+  #(st: List[StackFrame], a: mut Action[Void], dept: Nat): Str ->
+    a.run{
+      .ok _ ->
+        `<testcase classname="` + (st.get(dept).typeName)
+        + `" name="` + (st.get(dept).methodName) + `#` + (st.get(dept).lineNumber)
+        + `" file="` + (st.get(dept).fileName)
+        + `" line="` + (st.get(dept).lineNumber)
+        + `"/>`;
+      .info i ->
+        `<testcase classname="` + (st.get(dept).typeName)
+        + `" name="` + (st.get(dept).methodName) + `#` + (st.get(dept).lineNumber)
+        + `" file="` + (st.get(dept).fileName)
+        + `" line="` + (st.get(dept).lineNumber)
+        + `">`
+        | (_FormatFailure#i)
+        | `</testcase>`;
+    };
+  }
+_FailureMsg:{
+  #(i: Info): Str ->
+    i.msg.isEmpty ? {
+      .then -> i.map.opt(`msg`).match{
+        .some e -> e.msg;
+        .empty -> i.str;
+      };
+      .else -> i.msg;
+    };
+  }
+_FailureExpected:{
+  #(i: Info): Str ->
+    i.map.opt(`expected`).match{
+      .some e -> `<expected>` + (e.msg) + `</expected>`;
+      .empty -> ``;
+    };
+  }
+_FailureActual:{
+  #(i: Info): Str ->
+    i.map.opt(`actual`).match{
+      .some e -> `<actual>` + (e.msg) + `</actual>`;
+      .empty -> ``;
+    };
+  }
+_FailureList:{
+  #(i: Info): Str ->
+    i.map.opt(`list`).match{
+      .some e -> `` | (e.list.flow.map{_FailureTrace#::}.join (`` |));
+      .empty -> ``;
+    };
+  }
+_FormatFailure:{
+  #(i: Info): Str ->
+    `<failure>`
+    | (_FailureExpected#i)
+    | (_FailureActual#i)
+    | (_FailureMsg#i)
+    + (_FailureList#i)
+    | `</failure>`;
+  }
+_FrameField:{ #(i: Info, k: Str): Str -> 
+  (i.map.opt(k) || {Error.msg(`Malformed stack frame info, missing key: ` + k)}).msg
+  }
+
+_FailureTrace:{ #(i: Info): Str -> Block#
+  .let[Str] fn = {_FrameField#(i, `fileName`)}
+  .let[Str] tn = {_FrameField#(i, `typeName`)}
+  .let[Str] mn = {_FrameField#(i, `methodName`)}
+  .let[Str] ln = {_FrameField#(i, `lineNumber`)}
+  .let[Nat] sp = {mn.indexOf(` `)||{Error.msg(`Malformed stack frame methodName: ` + mn)}}
+  .return {
+    mn.sub(0,sp + 1)
+    + tn
+    + (mn.sub(sp + 1,mn.size))
+    + ` error line: ` + ln
+    + ` in file ` + fn
+    }
+  }
+//TODO: xmlEscape all inserted text for element text and attributes.
 //-----------example usage
 /*
 MyTests: UnitTests{::

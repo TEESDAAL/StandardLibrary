@@ -1,7 +1,7 @@
 _Throw:{
   .deterministic[R:**](info:Info):R ->Magic!;
   .nonDeterministic[R:**](info:Info):R ->Magic!;
-  .stackTrace:Info->Magic!
+  .stackTrace:Info->Magic!//TODO: is this used?
   }
 
 /// Exception classes (observability):
@@ -16,8 +16,9 @@ _Throw:{
 /// them with no-ops.
 Error: {
   ![R:**](info: Info): R -> _Throw.deterministic(info);
-  .msg[R:**](msg: Str): R -> _Throw.deterministic(Infos.msg msg + (_Throw.stackTrace));
-  .nonDeterministic[R:**](msg: Str): R -> _Throw.nonDeterministic(Infos.msg msg + (_Throw.stackTrace));
+  .msg[R:**](msg: Str): R -> _Throw.deterministic(Infos.msg msg);
+  .nonDeterministic[R:**](msg: Str): R -> _Throw.nonDeterministic(Infos.msg msg);
+  .nonDeterministicInfo[R:**](i: Info): R -> _Throw.nonDeterministic(i);
   }
 Todo: {
   ![R:**]: R -> Error.msg `TODO: Implement this code.`;

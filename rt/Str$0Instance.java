@@ -47,6 +47,27 @@ public record Str$0Instance(String val) implements Str$0{
     try{ return optSome(Int$0Instance.instance(Integer.parseInt(no_(val)))); }
     catch(NumberFormatException e){ return optEmpty(); }
   }
+  @Override public Object imm$indexOf$1(Object p1){//: Opt[Nat];          /// index of the first occourence of the parameter. Returns 0 if the parameter is ``
+    String text= ((Str$0Instance)p1).val();
+    var res= val.indexOf(text);
+    return res==-1? optEmpty(): optSome(Nat$0Instance.instance(res));
+  }
+  @Override public Object imm$sub$2(Object p1, Object p2){//: Str;    /// substring [from,to); throws on from/to out of the string boundaries
+    long from= ((Nat$0Instance)p1).val();
+    long to= ((Nat$0Instance)p2).val();
+    int size= val.length();
+    if (Long.compareUnsigned(from,to) > 0){
+      throw Util.err("Str.sub invalid range: from > to; from="+Long.toUnsignedString(from)+" to="+Long.toUnsignedString(to));
+    }
+    if (Long.compareUnsigned(from,size) > 0){
+      throw Util.err("Str.sub invalid range: from out of bounds; from="+Long.toUnsignedString(from)+" size="+size);
+    }
+    if (Long.compareUnsigned(to,size) > 0){
+      throw Util.err("Str.sub invalid range: to out of bounds; to="+Long.toUnsignedString(to)+" size="+size);
+    }
+    return new Str$0Instance(val.substring((int)from,(int)to));
+  }
+  
   static final Pattern ieeeFloatText= Pattern.compile(
     "(?:NaN|[+-]?Infinity|[+-]?(?:\\d+(?:\\.\\d*)?|\\.\\d+)(?:[eE][+-]?\\d+)?)");
   @Override public Object imm$ieeeFloat$0(){

@@ -1,0 +1,69 @@
+<testcase classname="MyTests" name="imm .tests(_)#5" file="_hello/_rank_app.fear" line="5">
+<failure>
+<expected>3</expected>
+<actual>1</actual>
+Assertion failure.
+Expected: 3
+Actual: 1
+<failure>
+
+
+{fileName: `errors.fear`, typeName: `Error`, methodName: `imm .nonDeterministicInfo(_)`, lineNumber: EmptyInfo}
+</failure>
+<failure>
+
+
+{fileName: `assertions.fear`, typeName: `Assert`, methodName: `imm ._fail(_)`, lineNumber: EmptyInfo}
+</failure>
+<failure>
+
+
+{fileName: `bools.fear`, typeName: `False`, methodName: `imm .if(_)`, lineNumber: EmptyInfo}
+</failure>
+<failure>
+
+
+{fileName: `bools.fear`, typeName: `Bool`, methodName: `imm ?(_)`, lineNumber: EmptyInfo}
+</failure>
+<failure>
+
+
+{fileName: `assertions.fear`, typeName: `Assert`, methodName: `imm .expectedActual(_,_,_,_)`, lineNumber: EmptyInfo}
+</failure>
+<failure>
+
+
+{fileName: `comparators.fear`, typeName: `OrderHash[_]`, methodName: `read .assertEq(_,_)`, lineNumber: EmptyInfo}
+</failure>
+<failure>
+
+
+{fileName: `comparators.fear`, typeName: `OrderHash[_]`, methodName: `read .assertEq(_)`, lineNumber: EmptyInfo}
+</failure>
+<failure>
+
+
+{fileName: `_CapTry$0.java`, typeName: `_CapTry`, methodName: `lambda .mut$$hash$1`, lineNumber: EmptyInfo}
+</failure>
+<failure>
+
+
+{fileName: `testing.fear`, typeName: `_AddToLog`, methodName: `imm #(_,_,_)`, lineNumber: EmptyInfo}
+</failure>
+<failure>
+
+
+{fileName: `blocks.fear`, typeName: `Block[_]`, methodName: `mut .return(_)`, lineNumber: EmptyInfo}
+</failure>
+<failure>
+
+
+{fileName: `blocks.fear`, typeName: `Block[_]`, methodName: `mut .let(_,_)`, lineNumber: EmptyInfo}
+</failure>
+<failure>
+
+
+{fileName: `testing.fear`, typeName: `UnitTests`, methodName: `imm .main(_)`, lineNumber: EmptyInfo}
+</failure>
+</failure>
+</testcase>

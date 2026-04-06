@@ -10,6 +10,9 @@ Infos:Sealed {
   .list(i1: read ToInfo, i2: read ToInfo): Info -> Lists#(i1.info,i2.info).info{::};
   .map(k1: Str, e1: read ToInfo): Info-> Maps#({::},k1,e1.info).info{::};
   .map(k1: Str, e1: read ToInfo,k2: Str, e2: read ToInfo): Info-> Maps#({::},k1,e1.info,k2,e2.info).info{::};
+  .map(k1: Str, e1: read ToInfo,k2: Str, e2: read ToInfo,k3: Str, e3: read ToInfo): Info-> Maps#({::},k1,e1.info,k2,e2.info,k3,e3.info).info{::};
+  .map(k1: Str, e1: read ToInfo,k2: Str, e2: read ToInfo,k3: Str, e3: read ToInfo,k4: Str, e4: read ToInfo): Info-> Maps#({::},k1,e1.info,k2,e2.info,k3,e3.info,k4,e4.info).info{::};
+  .map(k1: Str, e1: read ToInfo,k2: Str, e2: read ToInfo,k3: Str, e3: read ToInfo,k4: Str, e4: read ToInfo,k5: Str, e5: read ToInfo): Info-> Maps#({::},k1,e1.info,k2,e2.info,k3,e3.info,k4,e4.info,k5,e5.info).info{::};
   }
 //To make an info from arbitrary map/list, just do myList.info{::} or myMap.info{::}
 //how to turn keys into string is part of the key datatype of map

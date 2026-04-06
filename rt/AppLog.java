@@ -29,12 +29,15 @@ public final class AppLog{
   private static final ConcurrentLinkedQueue<AppLog> all= new ConcurrentLinkedQueue<>();
   private static final AtomicBoolean hookInstalled= new AtomicBoolean();
   private static final AtomicBoolean closing= new AtomicBoolean();
-  public static AppLog open(Path path){
-    var p= path.toAbsolutePath().normalize();
+  public static AppLog open(Path path, boolean raw){
+    String rootStr= System.getProperty("fearlessUser.dir");
+    if (rootStr == null){ rootStr = System.getProperty("user.dir"); }//can happen when building base alone
+    var root= Path.of(rootStr);
+    var p= root.resolve(path).normalize();
     startupFor(errPath, keepErrLogs);
     startupFor(p, keepLogs);
     installHook();
-    var log= new AppLog(p);
+    var log= new AppLog(p,raw);
     all.add(log);
     return log;
   }
@@ -57,12 +60,14 @@ public final class AppLog{
   private final Path path;
   private final Object lock= new Object();
   private final BufferedWriter out;
-  private AppLog(Path path){
+  private final boolean raw;
+  private AppLog(Path path, boolean raw){
     this.path= path;
+    this.raw= raw;
     this.out= openWriterTruncate(path);
   }
   public void append(String msg){
-    var line= stampNow()+" "+msg+"\n";
+    var line= raw ? msg : stampNow()+" "+msg+"\n";
     synchronized(lock){
       if (closing.get()){ err("append during shutdown for "+path+": "+msg, null); return; }
       try {
@@ -175,6 +180,6 @@ public final class AppLog{
         w.flush();
       }
     }
-    catch(Throwable _){}// best effort only
+    catch(Throwable tt){ System.err.println("Loggers failure via "+tt); }// best effort only
   }
 }

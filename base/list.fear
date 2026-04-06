@@ -22,8 +22,7 @@ List[E:*]:_List[E],_AssertEmpty,_AssertSize{
   read +> e->Lists.singletonRead[E](e);
   
   .subList(start,end)->Block#(
-    Assert!(start==0 && {end==0},
-      {`.subList(`+start+`, `+end+`) called on empty list`}),
+    Assert!(start==0 && {end==0},{`.subList(`+start+`, `+end+`) called on empty list`}),
     {});
   .subList(start)->this.subList(start,this.size);
 
