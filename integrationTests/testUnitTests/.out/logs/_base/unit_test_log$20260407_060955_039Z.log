@@ -1,0 +1,22 @@
+PLAN|RUN|blocks.fear|Block[_]|Block[_] at line: 23|23
+<testcase classname="Block[_]" name="Block[_] at line: 23" file="blocks.fear" line="23">
+<failure>
+<expected>3</expected>
+<actual>1</actual>
+Assertion failure.
+Expected: 3
+Actual: 1
+imm Error.nonDeterministicInfo(_) error line:  in file errors.fear
+imm Assert._fail(_) error line:  in file assertions.fear
+imm False.if(_) error line:  in file bools.fear
+imm Bool?(_) error line:  in file bools.fear
+imm Assert.expectedActual(_,_,_,_) error line:  in file assertions.fear
+read OrderHash[_].assertEq(_,_) error line:  in file comparators.fear
+read OrderHash[_].assertEq(_) error line:  in file comparators.fear
+lambda _CapTry.mut$$hash$1 error line:  in file _CapTry$0.java
+imm _AddToLog#(_,_,_) error line:  in file testing.fear
+mut Block[_].return(_) error line:  in file blocks.fear
+mut Block[_].let(_,_) error line:  in file blocks.fear
+imm UnitTests.main(_) error line:  in file testing.fear
+</failure>
+</testcase>

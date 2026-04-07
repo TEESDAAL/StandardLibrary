@@ -31,19 +31,26 @@ TestCap: Sealed{//by making it sealed we can guaranteed the output of the functi
   mut .let[T](f:F[T],c:TestCont[T]): mut TestCap -> c#(f#,this);
   //so .let must be just imm stuff, nothing else makes sense.
   mut .test(t: Test): mut TestCap -> t.tests this;
-  mut .disabledTest(Test): mut TestCap -> this;
+  mut .disabledTest(Test): mut TestCap;
   mut .check(Check): mut TestCap;
-  mut .disabledCheck(Check): mut TestCap -> this;
+  mut .disabledCheck(Check): mut TestCap;
   }
 TestCont[T]: { #(t: T, self: mut TestCap): mut TestCap }
-
 _TestCaps: {
   #(try: mut CapTry, ts: mut EList[CheckInfo]): mut RTestCap -> mut RTestCap:TestCap{'self
-    .check c -> Block#(
-      ts.add(CheckInfos#(c,c._fetchTrace{ try.currentStackTrace })),
+    .check c -> Block#
+      .let[List[StackFrame]] st = {c._fetchTrace{ try.currentStackTrace }}
+      .do {UnitTestLog.log(_PlanLine#(`RUN`,st,2))}
+      .do {ts.add(CheckInfos#(c,st))}
+      .return {self};
+    .disabledCheck c -> Block#(
+      UnitTestLog.log(_PlanLine#(`DISABLED`,c._fetchTrace{ try.currentStackTrace },1)),
       self);
-    mut .run: Void -> 
-      ts.flow.forEach{ ci->UnitTestLog.log(_AddToLog#(ci.stackTrace,try#{ci.check#},1)) }
+    .disabledTest _ -> Block#(
+      UnitTestLog.log(_PlanLine#(`DISABLED`,try.currentStackTrace,1)),
+      self);
+    mut .run: Void ->
+      ts.flow.forEach{ ci->UnitTestLog.log(_AddToLog#(ci.stackTrace,try#{ci.check#},2)) }
     }
   }
 Check:{ #:Void; ._fetchTrace(f: mut MF[List[StackFrame]]): List[StackFrame]->f#;}
@@ -59,7 +66,7 @@ _AddToLog:{
         + `" name="` + (st.get(dept).typeName) + ` at line: ` + (st.get(dept).lineNumber)
         + `" file="` + (st.get(dept).fileName)
         + `" line="` + (st.get(dept).lineNumber)
-        + `"></testcase>`;
+        + `"></testcase>` |;
       .info i ->
         `<testcase classname="` + (st.get(dept).typeName)
         + `" name="` + (st.get(dept).typeName) + ` at line: ` + (st.get(dept).lineNumber)
@@ -67,7 +74,7 @@ _AddToLog:{
         + `" line="` + (st.get(dept).lineNumber)
         + `">`
         | (_FormatFailure#i)
-        | `</testcase>`;
+        | `</testcase>` |;
     };
   }
 _FailureMsg:{
@@ -128,6 +135,20 @@ _FailureTrace:{ #(i: Info): Str -> Block#
     + ` in file ` + fn
     }
   }
+_PlanLine:{
+  #(kind: Str, st: List[StackFrame], dept: Nat): Str ->
+    `PLAN|`
+    + kind
+    + `|`
+    + (st.get(dept).fileName)
+    + `|`
+    + (st.get(dept).typeName)
+    + `|`
+    + (st.get(dept).typeName) + ` at line: ` + (st.get(dept).lineNumber)
+    + `|`
+    + (st.get(dept).lineNumber)|;//| to end in new line
+  }
+
 //TODO: xmlEscape all inserted text for element text and attributes.
 //-----------example usage
 /*
