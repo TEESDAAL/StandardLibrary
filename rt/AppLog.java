@@ -31,7 +31,6 @@ public final class AppLog{
   private static final AtomicBoolean closing= new AtomicBoolean();
   public static AppLog open(Path path, boolean raw){
     String rootStr= System.getProperty("fearlessUser.dir");
-    if (rootStr == null){ rootStr = System.getProperty("user.dir"); }//can happen when building base alone
     var root= Path.of(rootStr);
     var p= root.resolve(path).normalize();
     startupFor(errPath, keepErrLogs);

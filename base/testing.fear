@@ -56,13 +56,13 @@ _AddToLog:{
     a.run{
       .ok _ ->
         `<testcase classname="` + (st.get(dept).typeName)
-        + `" name="` + (st.get(dept).methodName) + `#` + (st.get(dept).lineNumber)
+        + `" name="` + (st.get(dept).typeName) + ` at line: ` + (st.get(dept).lineNumber)
         + `" file="` + (st.get(dept).fileName)
         + `" line="` + (st.get(dept).lineNumber)
-        + `"/>`;
+        + `"></testcase>`;
       .info i ->
         `<testcase classname="` + (st.get(dept).typeName)
-        + `" name="` + (st.get(dept).methodName) + `#` + (st.get(dept).lineNumber)
+        + `" name="` + (st.get(dept).typeName) + ` at line: ` + (st.get(dept).lineNumber)
         + `" file="` + (st.get(dept).fileName)
         + `" line="` + (st.get(dept).lineNumber)
         + `">`
