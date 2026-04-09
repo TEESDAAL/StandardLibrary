@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
+import java.util.List;
 
 public record Str$0Instance(String val) implements Str$0{
   public static Str$0 instance(String val){ return new Str$0Instance(val); }
@@ -66,6 +67,18 @@ public record Str$0Instance(String val) implements Str$0{
       throw Util.err("Str.sub invalid range: to out of bounds; to="+Long.toUnsignedString(to)+" size="+size);
     }
     return new Str$0Instance(val.substring((int)from,(int)to));
+  }
+  @Override public Object imm$replaceSimultaneousOrdered$1(Object p1){
+    if (!(p1 instanceof List$1Instance repl)){ return this; }
+    @SuppressWarnings("unchecked")
+    String res= Replacements.replaceSimultaneousOrdered((List<Str$0Instance>)(Object)repl.val(),val);
+    return new Str$0Instance(res);
+  }
+  @Override public Object imm$replaceSimultaneous$1(Object p1){
+    if (!(p1 instanceof List$1Instance repl)){ return this; }
+    @SuppressWarnings("unchecked")
+    String res= Replacements.replaceSimultaneous((List<Str$0Instance>)(Object)repl.val(),val);
+    return new Str$0Instance(res);
   }
   
   static final Pattern ieeeFloatText= Pattern.compile(

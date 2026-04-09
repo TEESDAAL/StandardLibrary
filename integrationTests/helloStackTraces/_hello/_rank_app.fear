@@ -1,0 +1,8 @@
+use base.Main as Main;
+use base.Lists as L;
+use base.Error as Error;
+use base.Void as Void;
+
+Hello:Main{s->Foo.foo}
+Foo:{.foo:Void->Bar.bar}
+Bar:{.bar:Void->Error.msg`AAAAh`}

@@ -62,15 +62,15 @@ _AddToLog:{
   #(st: List[StackFrame], a: mut Action[Void], dept: Nat): Str ->
     a.run{
       .ok _ ->
-        `<testcase classname="` + (st.get(dept).typeName)
-        + `" name="` + (st.get(dept).typeName) + ` at line: ` + (st.get(dept).lineNumber)
-        + `" file="` + (st.get(dept).fileName)
+        `<testcase classname="` + (_XmlEscape#(st.get(dept).typeName))
+        + `" name="` + (_XmlEscape#(st.get(dept).typeName)) + ` at line: ` + (st.get(dept).lineNumber)
+        + `" file="` + (_XmlEscape#(st.get(dept).fileName))
         + `" line="` + (st.get(dept).lineNumber)
         + `"></testcase>` |;
       .info i ->
-        `<testcase classname="` + (st.get(dept).typeName)
-        + `" name="` + (st.get(dept).typeName) + ` at line: ` + (st.get(dept).lineNumber)
-        + `" file="` + (st.get(dept).fileName)
+        `<testcase classname="` + (_XmlEscape#(st.get(dept).typeName))
+        + `" name="` + (_XmlEscape#(st.get(dept).typeName)) + ` at line: ` + (st.get(dept).lineNumber)
+        + `" file="` + (_XmlEscape#(st.get(dept).fileName))
         + `" line="` + (st.get(dept).lineNumber)
         + `">`
         | (_FormatFailure#i)
@@ -90,14 +90,14 @@ _FailureMsg:{
 _FailureExpected:{
   #(i: Info): Str ->
     i.map.opt(`expected`).match{
-      .some e -> `<expected>` + (e.msg) + `</expected>`;
+      .some e -> `<expected>` + (_XmlEscape#(e.msg)) + `</expected>`;
       .empty -> ``;
     };
   }
 _FailureActual:{
   #(i: Info): Str ->
     i.map.opt(`actual`).match{
-      .some e -> `<actual>` + (e.msg) + `</actual>`;
+      .some e -> `<actual>` + (_XmlEscape#(e.msg)) + `</actual>`;
       .empty -> ``;
     };
   }
@@ -113,8 +113,8 @@ _FormatFailure:{
     `<failure>`
     | (_FailureExpected#i)
     | (_FailureActual#i)
-    | (_FailureMsg#i)
-    + (_FailureList#i)
+    | (_XmlEscape#(_FailureMsg#i))
+    + (_XmlEscape#(_FailureList#i))
     | `</failure>`;
   }
 _FrameField:{ #(i: Info, k: Str): Str -> 
@@ -148,8 +148,13 @@ _PlanLine:{
     + `|`
     + (st.get(dept).lineNumber)|;//| to end in new line
   }
-
-//TODO: xmlEscape all inserted text for element text and attributes.
+_XmlEscape:{
+  #(s: Str): Str ->
+    s.replaceSimultaneous(Lists#(
+      `&`, `&amp;`,
+      `<`, `&lt;`,
+      `"`, `&quot;`,
+      ));}
 //-----------example usage
 /*
 MyTests: UnitTests{::

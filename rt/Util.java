@@ -1,6 +1,50 @@
 package base;
-
+import java.util.concurrent.atomic.AtomicBoolean;
 public class Util{
+  private static final AtomicBoolean parentLifelineStarted= new AtomicBoolean();
+  public static void installParentLifeline(){
+    //This allows to 'disable' this check if there is no master process
+    if (!"stdin".equals(System.getProperty("fearless.parentLifeline"))){ return; }
+    //makes sure this truly happens only one time
+    if (!parentLifelineStarted.compareAndSet(false,true)){ return; }
+    var t= new Thread(Util::watchParentLifeline,"FearlessParentLifeline");
+    t.setDaemon(true);
+    t.start();
+  }
+  private static void watchParentLifeline(){
+    try{
+      while(System.in.read()!=-1){}
+      parentGone();
+    }
+    catch(java.io.IOException _){ parentGone(); }
+  }
+  private static void parentGone(){
+    int code= 121;
+    long haltMs= 2000L;
+    var halter= new Thread(() -> {
+      sleepUninterruptibly(haltMs);
+      Runtime.getRuntime().halt(code);
+    },"FearlessParentLifelineHalt");
+    halter.setDaemon(true);
+    halter.start();
+    Runtime.getRuntime().exit(code);
+  }
+  private static void sleepUninterruptibly(long millis){
+    boolean interrupted= false;
+    try{
+      long end= System.nanoTime()+java.util.concurrent.TimeUnit.MILLISECONDS.toNanos(millis);
+      for(;;){
+        long left= end-System.nanoTime();
+        if (left<=0){ return; }
+        try{
+          Thread.sleep(java.util.concurrent.TimeUnit.NANOSECONDS.toMillis(left));
+          return;
+        }
+        catch(InterruptedException e){ interrupted= true; }
+      }
+    }
+    finally{ if (interrupted){ Thread.currentThread().interrupt(); } }
+  }
   public static Bool$0 bool(boolean b){ return b ? True$0.instance : False$0.instance; }
   public static boolean isTrue(Object b){ return b == True$0.instance; }
   public static Object ord(int i, Object mm){
@@ -61,21 +105,26 @@ public class Util{
   }
   public static MapKey mapKey(OrderHashBy$2 oh,Object k){ return new MapKey(oh,k); }
   
-  public static RuntimeException deterministic(Info$0 i){ return new Deterministic(i); }
-  public static Error nonDeterministic(Info$0 i){ return new NonDeterministic(i); }
+  public static Deterministic deterministic(Info$0 i){ return new Deterministic(i); }
+  public static NonDeterministic nonDeterministic(Info$0 i){ return new NonDeterministic(i); }
   public static void topLevel(Runnable r){
     try{r.run();}
-    catch(Deterministic d){ printInfo(d.i); }
-    catch(NonDeterministic d){ printInfo(d.i); }
+    catch(Deterministic d){ printInfo(d.i,d); }
+    catch(NonDeterministic d){ printInfo(d.i,d); }
     catch(Throwable t){ t.printStackTrace();}
   }
-  public static void printInfo(Info$0 i){
+  public static void printInfo(Info$0 i, RuntimeException d){
+    printInfoMsg("","",i);
     var map= ((Map$2Instance)i.imm$map$0()).elems();
     map.entrySet().stream()
       .filter(e->is(e.getKey(),"msg")).forEach(e->printInfoMsg("","",(Info$0)e.getValue()));
-    map.entrySet().stream()
-      .filter(e->is(e.getKey(),"list")).forEach(e->printInfoList((Info$0)e.getValue()));
-
+    //map.entrySet().stream()
+    //  .filter(e->is(e.getKey(),"list")).forEach(e->printInfoList((Info$0)e.getValue()));
+    var st= d.getStackTrace();
+    for(int j= 3; j < st.length; j += 1){
+      var stj= _Throw$0.frameData(st[j]);
+      if (stj != null){ System.err.println(_Throw$0.fmtFrame(stj)); }
+    }
   }
   public static boolean is(MapKey k,String label){
     return k.key instanceof Str$0Instance s && s.val().equals(label);
@@ -101,6 +150,6 @@ class Deterministic extends RuntimeException{
   Info$0 i;Deterministic(Info$0 i){this.i= i;}
 }
 @SuppressWarnings("serial")
-class NonDeterministic extends Error{
+class NonDeterministic extends RuntimeException{
   Info$0 i;NonDeterministic(Info$0 i){this.i= i;}
 }
