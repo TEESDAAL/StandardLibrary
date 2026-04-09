@@ -1,0 +1,6 @@
+TestInt:Test{::
+  .check{+1.assertEq +1}
+  .check{+2.assertEq +2}
+  .check{+2.assertEq -2}
+
+  }

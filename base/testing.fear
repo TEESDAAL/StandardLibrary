@@ -67,14 +67,19 @@ _AddToLog:{
         + `" file="` + (_XmlEscape#(st.get(dept).fileName))
         + `" line="` + (st.get(dept).lineNumber)
         + `"></testcase>` |;
-      .info i ->
+      .info i ->Block#(
+        Debug#(`Test failure`
+          + (st.get(dept).typeName) + ` at line: ` 
+          + (st.get(dept).lineNumber) + ` in file: `+ (st.get(dept).fileName)
+          ),
         `<testcase classname="` + (_XmlEscape#(st.get(dept).typeName))
         + `" name="` + (_XmlEscape#(st.get(dept).typeName)) + ` at line: ` + (st.get(dept).lineNumber)
         + `" file="` + (_XmlEscape#(st.get(dept).fileName))
         + `" line="` + (st.get(dept).lineNumber)
         + `">`
         | (_FormatFailure#i)
-        | `</testcase>` |;
+        | `</testcase>` |
+        );
     };
   }
 _FailureMsg:{
