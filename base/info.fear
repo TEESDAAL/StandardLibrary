@@ -40,9 +40,6 @@ Info: Sealed,DataType[Info,Info],_AssertImmEmpty {
       };
     .list(l1) -> other.match {
       .empty   -> this;
-      .msg(s2) -> Infos.map(`msg`,s2,`list`,l1.info{::});
-      .list(l2)-> l1 ++ l2 .info{::};
-      .map(_)  -> Infos.map(`list`,l1.info{::}) + other;
       .msg(s2) -> Infos.map(`msg`,s2,`list`,l1.info {::});
       .list(l2)-> l1 ++ l2 .info {::};
       .map(_)  -> Infos.map(`list`,l1.info {::}) + other;
