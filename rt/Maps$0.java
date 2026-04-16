@@ -198,10 +198,10 @@ record Map$2Instance(OrderHashBy$1 keyOh, LinkedHashMap<MapKey,Object> elems) im
   @Override public Object read$with$2(Object p0,Object p1){ return mut$with$2(p0,p1); }
   @Override public Object read$hash$1(Object p0){
     var byE= (base.OrderHashBy$2)p0;
-    int h= 0;
+    long h= 0;
     for(var e: elems.entrySet()){
-      int kh= e.getKey().hashCode();
-      int vh= natToInt(((base.OrderHash$1)byE.imm$$hash$1(e.getValue())).read$hash$0());
+      long kh= e.getKey().hashCode();
+      long vh= natToInt(((base.OrderHash$1)byE.imm$$hash$1(e.getValue())).read$hash$0());
       h += kh ^ vh;
     }
     return new Nat$0Instance(h);

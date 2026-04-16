@@ -21,9 +21,10 @@ final class EList$1Instance implements EList$1{
     return r;
   }
   private int idx(Object p0){
-    int i= natToInt(p0);
+    long i= natToInt(p0);
+    // Lists cannot get larger than an int
     check(0 <= i && i < xs.size(), "EList index out of range");
-    return i;
+    return (int) i;
   }
   @Override public Object mut$add$1(Object p0){ xs.add(p0); return Void$0.instance; }
   @Override public Object mut$addAnd$1(Object p0){ xs.add(p0); return this; }

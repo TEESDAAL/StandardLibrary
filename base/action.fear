@@ -4,6 +4,7 @@ Actions: {
   .ok[T:*](x: T): mut Action[T] -> {::.ok(x)};
   .info[T:*](info: Info): mut Action[T] -> {::.info(info)};
   }
+
 Action[T:*]: {
   mut .run[R:*](m: mut ActionMatch[T,R]): R;
   mut .map[R:*](f: mut MF[T,R]): mut Action[R] -> {m -> this.run{
@@ -34,6 +35,7 @@ Action[T:*]: {
   //  .info _->{};//checking containmenet is not obvious
   //  };//TODO: this can be a good exercise to implement this directl in Fearless
   }
+
 ActionMatch[T:*,R:*]: {
   mut .ok(x: T): R;
   mut .info(info: Info): R;

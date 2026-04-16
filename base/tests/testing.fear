@@ -1,4 +1,4 @@
-StackFrame:DataType[StackFrame,StackFrame]{
+StackFrame: DataType[StackFrame,StackFrame] {
   .fileName: Str; .typeName: Str; .methodName: Str; .lineNumber: Nat;
   .close -> this; .close -> ::;
   .cmp a, b, m -> a.str<=>(b.str,m);
@@ -16,51 +16,58 @@ StackFrame:DataType[StackFrame,StackFrame]{
     `lineNumber`, this.imm.lineNumber,
     );
   }
-StackFrames:F[Str,Str,Str,Nat,StackFrame]{ fn,tn,mn,ln -> 
+
+StackFrames: F[Str,Str,Str,Nat,StackFrame] { fn,tn,mn,ln ->
   {'self .fileName->fn; .typeName->tn; .methodName->mn; .lineNumber->ln; .imm->self} }
 
-UnitTests: Main{
+UnitTests: Main {
   .main sys->Block#
-    .let[mut RTestCap] ts={_TestCaps#(sys.try,ELists#)}
+    .let[mut RTestCap] ts= {_TestCaps#(sys.try,ELists#)}
     .do {Block#(this.tests(ts),Void)}
     .return {ts.run};
   .tests(t: mut TestCap): mut TestCap;
   }
-TestCap: Sealed{//by making it sealed we can guaranteed the output of the function is the same of the original input
+
+TestCap: Sealed {//by making it sealed we can guaranteed the output of the function is the same of the original input
   //so we can use subtyping to get more methods on that object/rely on the injected EList
-  mut .let[T](f:F[T],c:TestCont[T]): mut TestCap -> c#(f#,this);
+  mut .let[T](f: F[T],c: TestCont[T]): mut TestCap -> c#(f#,this);
   //so .let must be just imm stuff, nothing else makes sense.
   mut .test(t: Test): mut TestCap -> t.tests this;
   mut .disabledTest(Test): mut TestCap;
   mut .check(Check): mut TestCap;
   mut .disabledCheck(Check): mut TestCap;
   }
+
 TestCont[T]: { #(t: T, self: mut TestCap): mut TestCap }
+
 _TestCaps: {
-  #(try: mut CapTry, ts: mut EList[CheckInfo]): mut RTestCap -> mut RTestCap:TestCap{'self
+  #(try: mut CapTry, ts: mut EList[CheckInfo]): mut RTestCap -> mut RTestCap: TestCap {'self
     .check c -> Block#
-      .let[List[StackFrame]] st = {c._fetchTrace{ try.currentStackTrace }}
+      .let[List[StackFrame]] st = {c._fetchTrace { try.currentStackTrace }}
       .do {UnitTestLog.log(_PlanLine#(`RUN`,st,2))}
       .do {ts.add(CheckInfos#(c,st))}
       .return {self};
     .disabledCheck c -> Block#(
-      UnitTestLog.log(_PlanLine#(`DISABLED`,c._fetchTrace{ try.currentStackTrace },1)),
+      UnitTestLog.log(_PlanLine#(`DISABLED`,c._fetchTrace { try.currentStackTrace },1)),
       self);
     .disabledTest _ -> Block#(
       UnitTestLog.log(_PlanLine#(`DISABLED`,try.currentStackTrace,1)),
       self);
     mut .run: Void ->
-      ts.flow.forEach{ ci->UnitTestLog.log(_AddToLog#(ci.stackTrace,try#{ci.check#},2)) }
+      ts.flow.forEach { ci->UnitTestLog.log(_AddToLog#(ci.stackTrace,try# {ci.check#},2)) }
     }
   }
-Check:{ #:Void; ._fetchTrace(f: mut MF[List[StackFrame]]): List[StackFrame]->f#;}
-CheckInfos:F[Check,List[StackFrame],CheckInfo]{c,st->CheckInfo:{
-  .check:Check->c; .stackTrace:List[StackFrame]->st;}}
+
+Check: { #: Void; ._fetchTrace(f: mut MF[List[StackFrame]]): List[StackFrame]->f#;}
+
+CheckInfos: F[Check,List[StackFrame],CheckInfo] {c,st->CheckInfo: {
+  .check: Check->c; .stackTrace: List[StackFrame]->st;}}
+
 Test: { .tests(t: mut TestCap): mut TestCap; }
 
-_AddToLog:{
+_AddToLog: {
   #(st: List[StackFrame], a: mut Action[Void], dept: Nat): Str ->
-    a.run{
+    a.run {
       .ok _ ->
         `<testcase classname="` + (_XmlEscape#(st.get(dept).typeName))
         + `" name="` + (_XmlEscape#(st.get(dept).typeName)) + ` at line: ` + (st.get(dept).lineNumber)
@@ -82,38 +89,43 @@ _AddToLog:{
         );
     };
   }
-_FailureMsg:{
+
+_FailureMsg: {
   #(i: Info): Str ->
     i.msg.isEmpty ? {
-      .then -> i.map.opt(`msg`).match{
+      .then -> i.map.opt(`msg`).match {
         .some e -> e.msg;
         .empty -> i.str;
       };
       .else -> i.msg;
     };
   }
-_FailureExpected:{
+
+_FailureExpected: {
   #(i: Info): Str ->
-    i.map.opt(`expected`).match{
+    i.map.opt(`expected`).match {
       .some e -> `<expected>` + (_XmlEscape#(e.msg)) + `</expected>`;
       .empty -> ``;
     };
   }
-_FailureActual:{
+
+_FailureActual: {
   #(i: Info): Str ->
-    i.map.opt(`actual`).match{
+    i.map.opt(`actual`).match {
       .some e -> `<actual>` + (_XmlEscape#(e.msg)) + `</actual>`;
       .empty -> ``;
     };
   }
-_FailureList:{
+
+_FailureList: {
   #(i: Info): Str ->
-    i.map.opt(`list`).match{
-      .some e -> `` | (e.list.flow.map{_FailureTrace#::}.join (`` |));
+    i.map.opt(`list`).match {
+      .some e -> `` | (e.list.flow.map {_FailureTrace#::}.join (`` |));
       .empty -> ``;
     };
   }
-_FormatFailure:{
+
+_FormatFailure: {
   #(i: Info): Str ->
     `<failure>`
     | (_FailureExpected#i)
@@ -122,16 +134,17 @@ _FormatFailure:{
     + (_XmlEscape#(_FailureList#i))
     | `</failure>`;
   }
-_FrameField:{ #(i: Info, k: Str): Str -> 
-  (i.map.opt(k) || {Error.msg(`Malformed stack frame info, missing key: ` + k)}).msg
+
+_FrameField: { #(i: Info, k: Str): Str ->
+  i.map.opt(k).orLazy{Error.msg(`Malformed stack frame info, missing key: ` + k)}.msg
   }
 
-_FailureTrace:{ #(i: Info): Str -> Block#
+_FailureTrace: { #(i: Info): Str -> Block#
   .let[Str] fn = {_FrameField#(i, `fileName`)}
   .let[Str] tn = {_FrameField#(i, `typeName`)}
   .let[Str] mn = {_FrameField#(i, `methodName`)}
   .let[Str] ln = {_FrameField#(i, `lineNumber`)}
-  .let[Nat] sp = {mn.indexOf(` `)||{Error.msg(`Malformed stack frame methodName: ` + mn)}}
+  .let[Nat] sp = {mn.indexOf(` `).orLazy{Error.msg(`Malformed stack frame methodName: ` + mn)}}
   .return {
     mn.sub(0,sp + 1)
     + tn
@@ -140,7 +153,8 @@ _FailureTrace:{ #(i: Info): Str -> Block#
     + ` in file ` + fn
     }
   }
-_PlanLine:{
+
+_PlanLine: {
   #(kind: Str, st: List[StackFrame], dept: Nat): Str ->
     `PLAN|`
     + kind
@@ -153,7 +167,8 @@ _PlanLine:{
     + `|`
     + (st.get(dept).lineNumber)|;//| to end in new line
   }
-_XmlEscape:{
+
+_XmlEscape: {
   #(s: Str): Str ->
     s.replaceSimultaneous(Lists#(
       `&`, `&amp;`,
@@ -162,21 +177,21 @@ _XmlEscape:{
       ));}
 //-----------example usage
 /*
-MyTests: UnitTests{::
+MyTests: UnitTests {::
   .test TestCars
   .test TestPerson
   }
-TestCars:Test{::
+TestCars: Test {::
   .let x=...
-  .check{Cars#(...).assertEquals(MakeCar#23)  }//can capture meth+class
+  .check {Cars#(...).assertEquals(MakeCar#23)  }//can capture meth+class
 name+line number with trycap; can count tests and name the test with
 the number
 //as in TestCars.test24 (but print just TestCars if there is only one test?)
 //To get test by test names, just define more types:
-  .disabledCheck{Cars#(...).assertEquals(MakeCar#23)  }
- .test TestCarsCanMove:Test{:: .check {single one no problem}}//example
+  .disabledCheck {Cars#(...).assertEquals(MakeCar#23)  }
+ .test TestCarsCanMove: Test {:: .check {single one no problem}}//example
 of named test, but it scales to many checks
- .check MyName:{}//this also is named but single check!
+ .check MyName: {}//this also is named but single check!
  .test { TestCar1#(
     `........`,
     `........`
@@ -186,12 +201,12 @@ of named test, but it scales to many checks
     `........`
   )
   }
-TestCar1:{
-  #(out:Str,in:Str)->... stuff.assertEq(stuff2)..;
+TestCar1: {
+  #(out: Str,in: Str)->... stuff.assertEq(stuff2)..;
   }
-TestCar2:Extension[mut TestSuite,mut MF[Str,Str,Void]]{//not even, it
+TestCar2: Extension[mut TestSuite,mut MF[Str,Str,Void]] {//not even, it
 needs to return the ts to keep chaining
-  ts->{out,in->....stuff.assertEq(stuff2);
+  ts-> {out,in->....stuff.assertEq(stuff2);
   }}
 overall, need two phases: collect all the closures+info of the test,
 count them, run them.
@@ -203,26 +218,26 @@ for each check run the check in a captry and Log output in _base/TestLog.log
 
 
 //-------------
-MySuite:TestSuite{test->Block#
+MySuite: TestSuite {test->Block#
   /*some set up stuff if needed* /
   .howToProduceReport(parameters)
 
 //extension methods #test#
-#test#AgeIsPositive:Test{Block#
+#test#AgeIsPositive: Test {Block#
   .var x=..
   .var y=...
   .var res=...
   #test.strEq("..",res.str)
-  #test.assert{ FPerson#(..) == res }
+  #test.assert { FPerson#(..) == res }
   .done
   }
 
-#test#AnotherTest:Test{...}
+#test#AnotherTest: Test {...}
 
-#test#AnotherTest:SysTest{sys->...}
+#test#AnotherTest: SysTest {sys->...}
 ......
 ......
-.return{Void}}
+.return {Void}}
 
 Basically, I forgot that
 --Top level concepts with names can actually be nested inside expression
@@ -236,26 +251,26 @@ and the last line,
 they can read the code As if, we had @Test annotations in front of
 junit methods:
 
-#test#Test1:Test{...}
+#test#Test1: Test {...}
 ~=
-@Test void test1(){...}
+@Test void test1() {...}
 
 Yea, this perspective makes me quite happy.
 
 
 The test suite organization files could look like this
 
-MyTests:TestSuiteTree{run->Block#
+MyTests: TestSuiteTree {run->Block#
   #run#tests.customers.MySuite1
   #run#tests.customers.MySuite2
   #run#tests.buldings.MySuiteTree1
-  .done //or .return{Void}
-}
+  .done //or .return {Void}
+  }
 
 and so on.
 To 'disable' a branch, just comment the line (for now, we can add a
 run.disabled method instead later)
 To disable a Test/SysTest, we could have either #test.disabled
-Foo:Test{...} or we could have a
+Foo: Test {...} or we could have a
 DisabledTest interface to implement instead of Test.
 */

@@ -5,8 +5,7 @@
 ///Plus space ` ` and new line.
 ///There is no concept of escape as in some other languages, so `\n` is two characters.
 ///The methods ^^ and | can be used to obtain a string including new lines or double quotes (").
-
-UStr: Sealed, ToUStr, ToImm[UStr], DataType[UStr,UStr,UStr,UStr], JoinStr[UStr]{
+UStr: Sealed,ToUStr,ToImm[UStr],DataType[UStr,UStr,UStr,UStr],JoinStr[UStr] {
   .close->::; .close->this;         /// fixpoint type closed
   .merge (x: read UStr): UStr;      /// string concatenation; diffence from + is only that it can merge graphene clusters; throws on result size > maxInt  
   + (x: read UStr): UStr;           /// string concatenation; throws on result size > maxInt
@@ -67,16 +66,19 @@ UStr: Sealed, ToUStr, ToImm[UStr], DataType[UStr,UStr,UStr,UStr], JoinStr[UStr]{
   
   read .infoCodePoints(by: ToInfoBy[Nat]): Info;
   read .infoBytes(by: ToInfoBy[Byte]): Info;
-}
-ToUStr:{ read .uStr: UStr }
+  }
 
-UStrProcs:{
+ToUStr: { read .uStr: UStr }
+
+UStrProcs: {
   imm .add(a:UStr,b:ToUStr): mut UStrProc -> this.add(a,b);
   }
-UStrProc:{
+
+UStrProc: {
   mut .add(a:UStr,b:ToUStr): mut UStrProc -> this.add(a,b);
   mut .build(a:UStr): UStr-> a;
   }
-U:{
+
+U: {
   +(Str):UStr
   }

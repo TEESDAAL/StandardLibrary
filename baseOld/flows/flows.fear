@@ -1,7 +1,7 @@
 package base.flows
 alias base.Todo as Todo,
 
-Flow: Sealed, _FlowExtensions, _FlowConverters{
+Flow: Sealed,_FlowExtensions,_FlowConverters {
   #[E:*]: mut Flow[E] -> mut EmptyFlow[E],
   #[E:*](e: E): mut Flow[E] -> _SeqFlow#[E](e),
   #[E:*](e1: E, e2: E): mut Flow[E] -> List#(e1, e2).flow,
@@ -37,7 +37,7 @@ Flow: Sealed, _FlowExtensions, _FlowConverters{
   .fromMutSource[E:*](source: mut FlowOp[E], size: Nat): mut Flow[E] -> _MutSourceCollection[E]#(source, size),
   }
 
-Flow[E:*]: Sealed, Extensible[Flow[E]], _NonTerminalOps[E], _TerminalOps[E]{
+Flow[E:*]: Sealed,Extensible[Flow[E]],_NonTerminalOps[E],_TerminalOps[E] {
   .self -> this,
   mut .let[DR:*,R:*](x: read F[mut MF[mut Flow[E]],DR], cont: mut Continuation[DR,mut Flow[E],R]): R -> Block#
     .let duplicator = {_LazyFlowDuplicators#this}
@@ -61,6 +61,7 @@ Flow[E:*]: Sealed, Extensible[Flow[E]], _NonTerminalOps[E], _TerminalOps[E]{
       .error {Infos.msg("Expected exactly one element, found at least " + (found.size.str))}
     .return {found.tryGet(0)},
   }
+
 _UnwrapFlowToken: {}
 
 _NonTerminalOps[E:*]: {

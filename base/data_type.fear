@@ -6,25 +6,26 @@
 /// - widen/equality helpers (defined elsewhere)
 ///
 /// Fixpoint story:
-/// - OrderHash[T] already provides the method .close:T allowing to see this as a T
-/// - DataType adds the opposite direction .close(t:T):DataType[...] allowing to this T as DataType[T]
+/// - OrderHash[T] already provides the method .close: T allowing to see this as a T
+/// - DataType adds the opposite direction .close(t: T): DataType[...] allowing to this T as DataType[T]
 /// Basically, by implementing those two methods we close the type fixpoint making T and the DataType the same logical type.
 
-ToImm[T0]:{ read .imm: T0 }                               /// deep immutable representation (may change type)
-ToImmBy[E,E0]:{#(t: read E):read ToImm[E0]}               /// per-value ToImm conversion
-ToImm[E:*,E0,T0]:{ read .imm(by: ToImmBy[imm E,E0]): T0 } /// env-dependent deep imm
+ToImm[T0]: { read .imm: T0 }                               /// deep immutable representation (may change type)
+ToImmBy[E,E0]: {#(t: read E): read ToImm[E0]}               /// per-value ToImm conversion
+ToImm[E:*,E0,T0]: { read .imm(by: ToImmBy[imm E,E0]): T0 } /// env-dependent deep imm
 
-ToInfo:{ read .info: Info }                     /// structured diagnostics info
-ToInfoBy[E]:{#(t: read E):read ToInfo}            /// per-value Info conversion
-ToInfo[E:*]:{ read .info(by: ToInfoBy[imm E]): Info }     /// env-dependent Info
+ToInfo: { read .info: Info }                     /// structured diagnostics info
+ToInfoBy[E]: {#(t: read E): read ToInfo}            /// per-value Info conversion
+ToInfo[E:*]: { read .info(by: ToInfoBy[imm E]): Info }     /// env-dependent Info
 
-FromInfo[T]:{ .fromInfo(i: Info): T }            /// parse/decode from Info
+FromInfo[T]: { .fromInfo(i: Info): T }            /// parse/decode from Info
 
-DataType[T,T0]:ToInfo,ToImm[T0],WidenTo[T],OrderHash[T],Extensible[T]{
-  read .close(t: read T): read DataType[T,T0];                    /// close on t (often implemented as .close->:: when T:DataType)
-}
+DataType[T,T0]: ToInfo,ToImm[T0],WidenTo[T],OrderHash[T],Extensible[T] {
+  read .close(t: read T): read DataType[T,T0];                    /// close on t (often implemented as .close->:: when T: DataType)
+  }
+
 /// Env-dependent DataType for T (contains E); imm rep is still T0.
-DataType[T,T0,E:*,E0]:ToInfo[E],ToImm[E,E0,T0],WidenTo[T],OrderHash[T,E],Extensible[T]{
+DataType[T,T0,E:*,E0]: ToInfo[E],ToImm[E,E0,T0],WidenTo[T],OrderHash[T,E],Extensible[T] {
   read .close(t: read T): read DataType[T,T0,E,E0];          /// close on t in this env-dependent instance
 
   /// Freeze the env by capturing element conversions in "by".
@@ -37,18 +38,18 @@ DataType[T,T0,E:*,E0]:ToInfo[E],ToImm[E,E0,T0],WidenTo[T],OrderHash[T,E],Extensi
     .imm     -> this.imm(by);
     .hash    -> this.hash[K](by);
     .cmp[R:**] t0,t1,m -> this.cmp[K,R](by,t0,t1,m);
-  };
-}
+    };
+  }
 
 /// DataTypeBy is the "by key" conversion, analogous to OrderHashBy.
-/// It returns a closed DataType[K,K0] for each source value t:T.
+/// It returns a closed DataType[K,K0] for each source value t: T.
 /// Examples:
 /// - If Key implements DataType[Key,Key0], then {::.key} : DataTypeBy[Foo,Key,Key0].
 /// - {::} is the identity-by when T itself implements DataType[T,T0] (see DataTypeBy[T,T0] below).
-DataTypeBy[E,K,K0]:ToInfoBy[E],ToImmBy[E,K0],OrderHashBy[E,K]{
+DataTypeBy[E,K,K0]: ToInfoBy[E],ToImmBy[E,K0],OrderHashBy[E,K] {
   #(e: read E): read DataType[K,K0];
 
-  .viewData[A](f:F[read A,read E]): DataTypeBy[A,K,K0] -> { # a -> this#(f#a) };
+  .viewData[A](f: F[read A,read E]): DataTypeBy[A,K,K0] -> { # a -> this#(f#a) };
 
   /// Lexicographic composition on keys; you choose how to merge imm reps.
   /// Str merge is by ", " concat; Info merge uses Info+
@@ -64,21 +65,21 @@ DataTypeBy[E,K,K0]:ToInfoBy[E],ToImmBy[E,K0],OrderHashBy[E,K]{
     .str  by -> this#by.str + `, ` + (next#by.str);
     .info by -> this#by.info + (next#by.info);
     .imm  by -> mergeImm#(this#by.imm, next#by.imm);
-  };
+    };
 
   /// Convenience: keep left imm rep (often fine for "by key then tie-breaker").
   .thenDataLeft[K1,K10](next: DataTypeBy[E,K1,K10]): DataTypeBy[E,K0] ->
     this.thenData(next,{k0,k10->k0});
-}
+  }
 
 /// Specialized "datatype for T" (no external key type).
 /// This mirrors OrderHashBy[T]: you provide per-value ops, and # closes into a DataType[T,T0].
-DataTypeBy[T,T0]:DataTypeBy[T,T,T0]{
-  .cmp[R:**](t0:read T,t1:read T,m:mut OrderMatch[R]): R;
-  .hash(t:read T): Nat;
-  .str (t:read T): Str;
-  .info(t:read T): Info;
-  .imm (t:read T): T0;
+DataTypeBy[T,T0]: DataTypeBy[T,T,T0] {
+  .cmp[R:**](t0: read T,t1: read T,m: mut OrderMatch[R]): R;
+  .hash(t: read T): Nat;
+  .str (t: read T): Str;
+  .info(t: read T): Info;
+  .imm (t: read T): T0;
 
   # t -> {
     .close -> t;
@@ -88,5 +89,5 @@ DataTypeBy[T,T0]:DataTypeBy[T,T,T0]{
     .str  -> this.str t;
     .info -> this.info t;
     .imm  -> this.imm t;
-  };
-}
+    };
+  }

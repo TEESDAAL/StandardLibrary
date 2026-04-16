@@ -1,4 +1,4 @@
-StrBasics:F[Tests,Tests]{::
+StrBasics: F[Tests,Tests] {::
   .test(`` .isEmpty .assertEq True)
   .test(`` .size .assertEq 0)
 
@@ -11,9 +11,9 @@ StrBasics:F[Tests,Tests]{::
   .test(`a` .str .assertEq `a`)
   .test(`a` .close .assertEq `a`)
   .test(`ab` .close .assertEq `ab`)
-}
+  }
 
-StrConcat:F[Tests,Tests]{::
+StrConcat: F[Tests,Tests] {::
   .test(`a` + `b` .assertEq `ab`)
   .test(`ab` + `c` .assertEq `abc`)
 
@@ -36,9 +36,9 @@ StrConcat:F[Tests,Tests]{::
   .test(`a` + `b` .size .assertEq 2)
   .test(`a` + `` .size .assertEq 1)
   .test(`` + `b` .size .assertEq 1)
-}
+  }
 
-StrSepOps:F[Tests,Tests]{::
+StrSepOps: F[Tests,Tests] {::
   // | inserts newline between
   .test(`a` | `b` .size .assertEq 3)
   .test(`a` | `b` | `c` .size .assertEq 5)
@@ -81,9 +81,9 @@ StrSepOps:F[Tests,Tests]{::
   .test(`` | `` .isEmpty .assertEq False)
   .test(`` ^ `` .isEmpty .assertEq False)
   .test(`` ^^ `` .isEmpty .assertEq False)
-}
+  }
 
-StrTokenSeparation:F[Tests,Tests]{::
+StrTokenSeparation: F[Tests,Tests] {::
   // token separation examples (space changes the operator tokenization)
   .test(`a` ^^ `b` .size .assertEq 3)    // a ^^ b == `a"b`
   .test(`a` ^ ^ `b` .assertNe (`a` ^^ `b`))
@@ -91,9 +91,9 @@ StrTokenSeparation:F[Tests,Tests]{::
   .test(`x` | .size .assertEq 2)
   .test(`x` ^ .size .assertEq 2)
   .test(`x` ^^ .size .assertEq 2)
-}
+  }
 
-StrOrder:F[Tests,Tests]{::
+StrOrder: F[Tests,Tests] {::
   .test(`a` .assertEq `a`)
   .test(`a` .assertNe `b`)
 
@@ -111,9 +111,9 @@ StrOrder:F[Tests,Tests]{::
   // case sensitivity / codepoint ordering should be stable
   .test(`A` .assertLt `a`)
   .test(`a` .assertGt `A`)
-}
+  }
 
-StrEscape:F[Tests,Tests]{::
+StrEscape: F[Tests,Tests] {::
   // empty string should escape to the empty literal: ``
   .test(`` .escape .assertEq (`` ^ ^))
   .test(`` .escape .size .assertEq 2)
@@ -127,9 +127,9 @@ StrEscape:F[Tests,Tests]{::
   .test(`a` | `b` .escape .assertEq (`(` ^ `a` ^ ` | ` ^ `b` ^ `)`))
   .test(`a` ^ `b` .escape .assertEq (`(` ^ `a` ^ ` ^ ` ^ `b` ^ `)`))
   .test(`a` ^^ `b` .escape .assertEq (`` ^ `a"b` ^))
-}
+  }
 
-StrParseInt:F[Tests,Tests]{::
+StrParseInt: F[Tests,Tests] {::
   .test(`` .intExact .assertEq({::}, Opt[Int]))
 
   .test(`+0` .intExact .assertEq({::}, Opts#(+0)))
@@ -138,11 +138,11 @@ StrParseInt:F[Tests,Tests]{::
   .test(`+1` .intExact .assertEq({::}, Opts#(+1)))
   .test(`-1` .intExact .assertEq({::}, Opts#(-1)))
 
-  .test(`+2_147_483_647` .intExact .assertEq({::}, Opts#(+2147483647)))
-  .test(`-2_147_483_648` .intExact .assertEq({::}, Opts#(-2147483648)))
+  .test(`+9_223_372_036_854_775_807` .intExact .assertEq({::}, Opts#(Math.maxInt)))
+  .test(`-9_223_372_036_854_775_808` .intExact .assertEq({::}, Opts#(Math.minInt)))
 
-  .test(`+2_147_483_648` .intExact .assertEq({::}, Opt[Int]))
-  .test(`-2_147_483_649` .intExact .assertEq({::}, Opt[Int]))
+  .test(`+9_223_372_036_854_775_808` .intExact .assertEq({::}, Opt[Int]))
+  .test(`-9_223_372_036_854_775_809` .intExact .assertEq({::}, Opt[Int]))
 
   // Int requires an explicit sign (otherwise it's a Nat literal)
   .test(`2147483647` .intExact .assertEq({::}, Opt[Int]))
@@ -164,17 +164,17 @@ StrParseInt:F[Tests,Tests]{::
   // whitespace is invalid
   .test(` +1` .intExact .assertEq({::}, Opt[Int]))
   .test(`+1 ` .intExact .assertEq({::}, Opt[Int]))
-}
+  }
 
-StrParseNat:F[Tests,Tests]{::
+StrParseNat: F[Tests,Tests] {::
   .test(`` .natExact .assertEq({::}, Opt[Nat]))
 
   .test(`0` .natExact .assertEq({::}, Opts#(0)))
   .test(`1` .natExact .assertEq({::}, Opts#(1)))
   .test(`1_000_000` .natExact .assertEq({::}, Opts#(1000000)))
 
-  .test(`4_294_967_295` .natExact .assertEq({::}, Opts#(4294967295)))
-  .test(`4_294_967_296` .natExact .assertEq({::}, Opt[Nat]))
+  .test(`18_446_744_073_709_551_615` .natExact .assertEq({::}, Opts#(Math.maxNat)))
+  .test(`18_446_744_073_709_551_616` .natExact .assertEq({::}, Opt[Nat]))
 
   // leading zeros
   .test(`000` .natExact .assertEq({::}, Opts#(0)))
@@ -193,9 +193,9 @@ StrParseNat:F[Tests,Tests]{::
   // whitespace is invalid
   .test(` 1` .natExact .assertEq({::}, Opt[Nat]))
   .test(`1 ` .natExact .assertEq({::}, Opt[Nat]))
-}
+  }
 
-StrParseByte:F[Tests,Tests]{::
+StrParseByte: F[Tests,Tests] {::
   .test(`` .byteExact .assertEq({::}, Opt[Byte]))
 
   .test(`0` .byteExact .assertEq({::}, Opts#(+0 .byte)))
@@ -224,9 +224,10 @@ StrParseByte:F[Tests,Tests]{::
   .test(`1_` .byteExact .assertEq({::}, Opt[Byte]))
   .test(` 1` .byteExact .assertEq({::}, Opt[Byte]))
   .test(`1 ` .byteExact .assertEq({::}, Opt[Byte]))
-}
+  .test(`-1` .byteExact  .assertEq({::}, Opt[Byte]))
+  }
 
-StrParseNum:F[Tests,Tests]{::
+StrParseNum: F[Tests,Tests] {::
   .test(`` .numExact .assertEq({::}, Opt[Num]))
 
   .test(`+0` .numExact .assertEq({::}, {}))
@@ -257,9 +258,9 @@ StrParseNum:F[Tests,Tests]{::
   // whitespace invalid
   .test(` +1/2` .numExact .assertEq({::}, Opt[Num]))
   .test(`+1/2 ` .numExact .assertEq({::}, Opt[Num]))
-}
+  }
 
-StrParseFloat:F[Tests,Tests]{::
+StrParseFloat: F[Tests,Tests] {::
   .test(`` .floatExact .assertEq({::}, Opt[Float]))
 
   // decimal forms
@@ -304,9 +305,9 @@ StrParseFloat:F[Tests,Tests]{::
   .test(`+1.0 ` .floatExact .assertEq({::}, Opt[Float]))
   //.test(`+1._0` .floatExact .assertEq({::}, Opt[Float])) invalid synax: fragement can not start with _
   .test(`+1.0_e3` .floatExact .assertEq({::}, Opt[Float]))
-}
+  }
 
-StrParseIeeeFloat:F[Tests,Tests]{::
+StrParseIeeeFloat: F[Tests,Tests] {::
   .test(`` .ieeeFloat .isEmpty .assertEq True)
 
   // must accept Float.ieeeStr output forms
@@ -336,4 +337,4 @@ StrParseIeeeFloat:F[Tests,Tests]{::
   
   .test(`+0.1`.ieeeFloat!.numExact!.inRange(+0.100000000000000005/1, +2/1).assertEq True)
   .test(`+0.1`.ieeeFloat!.numExact!.inRange(+0.1/1 , +0.100000000000000005/1).assertEq False)
-}
+  }

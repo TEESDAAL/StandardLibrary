@@ -1,7 +1,7 @@
 /// List[E] is the standard persistent sequence.
 /// It also supports DataType[List[E],List[imm E],E,imm E] operations:
 /// .imm/.str/.info/.cmp/.hash/.close (see DataType docs).
-List[E:*]:_List[E],_AssertEmpty,_AssertSize{
+List[E:*]: _List[E],_AssertEmpty,_AssertSize {
   .close->this; .close->::;
   .size->0;
   .isEmpty->True;
@@ -63,6 +63,9 @@ List[E:*]:_List[E],_AssertEmpty,_AssertSize{
   .cmp by, a, b, m ->a.opt(0).match{
     .empty->b.opt(0).match{ .empty->m.eq; .some _->m.lt; };
     .some ea->b.opt(0).match{
+  .cmp by, a, b, m ->a.opt(0).match {
+    .empty->b.opt(0).match { .empty->m.eq; .some _->m.lt; };
+    .some ea->b.opt(0).match {
       .empty->m.gt;
       .some eb->by#ea<=>(by#eb,{
         .lt->m.lt;
@@ -71,8 +74,9 @@ List[E:*]:_List[E],_AssertEmpty,_AssertSize{
         });
       };
     };
-}
-_List[E:*]: Sealed,DataType[List[E],List[imm E],E,imm E]{
+  }
+
+_List[E:*]: Sealed,DataType[List[E],List[imm E],E,imm E] {
   read .size: Nat;                           /// number of elements
   read .isEmpty: Bool;                       /// True iff size == 0
 
@@ -128,12 +132,12 @@ _List[E:*]: Sealed,DataType[List[E],List[imm E],E,imm E]{
   read .flow: mut Flow[read/imm E];          /// view as flow
   imm  .flow: mut Flow[imm E];               /// view as flow
 
-  mut  .as[R:imm](f: mut MF[E,R]): List[R];          /// map to imm list (optimized vs flow.map.list)
-  read .as[R:imm](f: mut MF[read/imm E,R]): List[R]; /// map to imm list (optimized vs flow.map.list)
-  imm  .as[R:imm](f: mut MF[imm E,R]): List[R];      /// map to imm list (optimized vs flow.map.list)
-}
+  mut  .as[R: imm](f: mut MF[E,R]): List[R];          /// map to imm list (optimized vs flow.map.list)
+  read .as[R: imm](f: mut MF[read/imm E,R]): List[R]; /// map to imm list (optimized vs flow.map.list)
+  imm  .as[R: imm](f: mut MF[imm E,R]): List[R];      /// map to imm list (optimized vs flow.map.list)
+  }
 
-Lists:Sealed{//No need of empty, just use {}
+Lists: Sealed {//No need of empty, just use {}
   #[E:*](E): mut List[E]->Magic!;
   #[E:*](E,E): mut List[E]->Magic!;
   #[E:*](E,E,E): mut List[E]->Magic!;
@@ -152,4 +156,4 @@ Lists:Sealed{//No need of empty, just use {}
   #[E:*](E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E): mut List[E]->Magic!;
 
   .singletonRead[E:*](read E): read List[E]->Magic!;
-}
+  }

@@ -20,14 +20,17 @@ Error: {
   .nonDeterministic[R:**](msg: Str): R -> _Throw.nonDeterministic(Infos.msg msg);
   .nonDeterministicInfo[R:**](i: Info): R -> _Throw.nonDeterministic(i);
   }
+
 Todo: {
   ![R:**]: R -> Error.msg `TODO: Implement this code.`;
   ![R:**](msg: Str): R -> Error.msg[R](`TODO: ` + msg);
   }
+
 Unreachable: {
   ![R:**]: R -> Error.msg `This code was flagged as unreachable, but it has been reached.`;
   ![R:**](msg: Str): R -> Error.msg(`This code was flagged as unreachable as `+msg+`, but it has been reached.`);
   }
+
 /// Strong exception safety is upheld:
 /// The operation has either completed successfully or thrown an exception,
 /// leaving the program state exactly as it was before the operation started.

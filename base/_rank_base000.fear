@@ -14,11 +14,13 @@ Magic: Sealed{
   ![R:**]: R -> this!; // magic'd out to tell us what we forgot to implement
   //![R:**](_: mut _System): R -> _Throw.nonDeterministic(Infos.msg `Abort reached`);
   }
+
 Debug: Sealed{
   #[T:*](x: T, f:F[T,Str]): T -> Block#(this#(f#x),x);
   #(x: read ToStr): Void -> Magic!;
   //.identify[T](x: read T): Str -> Magic!;//TODO: can this break observability?
   }
+
 As[X:**]: Sealed{ #(x: X): X -> x }
 
 Let: { #[A:*,R:**](l: mut Let[A, R]): R -> l.in(l.let); }

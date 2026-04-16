@@ -100,9 +100,9 @@ record List$1Instance(List<Object> val) implements List$1{
     throw new AssertionError("Unexpected List impl: "+xs.getClass());
   }
   private int idx(Object p0){
-    int i= natToInt(p0);
+    long i= natToInt(p0);
     check(0 <= i && i < val.size(), "List index out of range");
-    return i;
+    return (int) i;
   }
 
   @Override public Object read$size$0(){ return intToNat(val.size()); }
@@ -119,8 +119,8 @@ record List$1Instance(List<Object> val) implements List$1{
   @Override public Object read$get$1(Object p0){ return val.get(idx(p0)); }
 
   @Override public Object mut$opt$1(Object p0){
-    int i= natToInt(p0);
-    return (0 <= i && i < val.size()) ? optSome(val.get(i)) : optEmpty();
+    long i= natToInt(p0);
+    return (0 <= i && i < val.size()) ? optSome(val.get((int) i)) : optEmpty();
   }
   @Override public Object read$opt$1(Object p0){ return mut$opt$1(p0); }
   @Override public Object imm$opt$1(Object p0){ return mut$opt$1(p0); }
@@ -172,9 +172,9 @@ record List$1Instance(List<Object> val) implements List$1{
   @Override public Object read$$plus_gt$1(Object p0){ return mut$$plus_gt$1(p0); }
 
   @Override public Object mut$subList$2(Object p0, Object p1){
-    int s= Util.natToInt(p0); int e= Util.natToInt(p1);
+    long s= Util.natToInt(p0); long e= Util.natToInt(p1);
     check(0 <= s && s <= e && e <= val.size(), "List subList out of range");
-    return wrap(val.subList(s,e));
+    return wrap(val.subList((int) s, (int) e));
   }
   @Override public Object read$subList$2(Object p0, Object p1){ return mut$subList$2(p0,p1); }
 
@@ -190,12 +190,13 @@ record List$1Instance(List<Object> val) implements List$1{
   @Override public Object read$with$2(Object p0, Object p1){ return mut$with$2(p0,p1); }
 
   @Override public Object mut$withAlso$2(Object p0, Object p1){
-    int i= natToInt(p0);
+    long i= natToInt(p0);
     check(0 <= i && i <= val.size(), "List withAlso out of range");
+    int index = (int) i;
     var l= new ArrayList<Object>(val.size()+1);
-    l.addAll(val.subList(0,i));
+    l.addAll(val.subList(0,index));
     l.add(p1);
-    l.addAll(val.subList(i,val.size()));
+    l.addAll(val.subList(index,val.size()));
     return wrap(l);
   }
   @Override public Object read$withAlso$2(Object p0, Object p1){ return mut$withAlso$2(p0,p1); }

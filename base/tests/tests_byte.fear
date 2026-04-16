@@ -1,24 +1,25 @@
-ByteArith:F[Tests,Tests]{::
+ByteArith: F[Tests,Tests] {::
   .test(+1.byte + (+2.byte) .assertEq (+3.byte))
   .test(+5.byte - (+2.byte) .assertEq (+3.byte))
   .test(+3.byte * (+4.byte) .assertEq (+12.byte))
   .test(+9.byte.sqrt .assertEq +3.0)
+  .test(3.byte ** (3.byte) .assertEq (27.byte))
 
   // Unsigned ordering
   .test(+255.byte .assertGt (+0.byte))
   .test(+0.byte .assertLt (+255.byte))
-}
+  }
 
-ByteDivRem:F[Tests,Tests]{::
+ByteDivRem: F[Tests,Tests] {::
   .test(+7.byte.div 3 .assertEq (+2.byte))
   .test(+7.byte.rem 3 .assertEq (+1.byte))
 
   .test(+6.byte.divExact 3 .assertEq ({::},Opts#(+2.byte)))
   .test(+7.byte.divExact 3 .assertEq ({::},Opt[Byte]))
   .test(+7.byte.divExact 0 .assertEq ({::},Opt[Byte]))
-}
+  }
 
-ByteConv:F[Tests,Tests]{::
+ByteConv: F[Tests,Tests] {::
   .test(+0.byte.nat .assertEq 0)
   .test(+0.byte.int .assertEq +0)
 
@@ -28,9 +29,9 @@ ByteConv:F[Tests,Tests]{::
   .test(+255.byte.float .assertEq +255.0)
 
   .test(+5.byte.num .assertEq (+5.num))
-}
+  }
 
-ByteAlu:F[Tests,Tests]{::
+ByteAlu: F[Tests,Tests] {::
   .test(+250.byte.aluAddWrap(+10.byte) .assertEq (+4.byte))
   .test(+0.byte.aluSubWrap(+1.byte) .assertEq (+255.byte))
   .test(+16.byte.aluMulWrap(+16.byte) .assertEq (+0.byte))
@@ -50,9 +51,9 @@ ByteAlu:F[Tests,Tests]{::
   .test(+250.byte.aluRem(+10.byte) .assertEq (+0.byte))
   .test(+255.byte.aluDiv(+2.byte) .assertEq (+127.byte))
   .test(+255.byte.aluRem(+2.byte) .assertEq (+1.byte))
-}
+  }
 
-ByteRange:F[Tests,Tests]{::
+ByteRangeChecks: F[Tests,Tests] {::
   .test(+3.byte.assertInRange(+1.byte,+5.byte))
   .test(+3.byte.assertInRangeOpen(+1.byte,+5.byte))
   .test(+3.byte.assertInRangeLoOpen(+1.byte,+3.byte))
@@ -62,8 +63,9 @@ ByteRange:F[Tests,Tests]{::
   .test(+6.byte.clamp(+1.byte,+5.byte) .assertEq (+5.byte))
   .test(+3.byte.clamp(+1.byte,+5.byte) .assertEq (+3.byte))
   .test(+3.byte.clamp(+3.byte,+3.byte) .assertEq (+3.byte))
-}
-ByteBoundaryAndBoundedVsAlu:F[Tests,Tests]{::
+  }
+
+ByteBoundaryAndBoundedVsAlu: F[Tests,Tests] {::
   //.test(+250.byte + (+10.byte) .assertEq (+255.byte))// correctly throws instead
   .test(+250.byte.aluAddWrap(+10.byte) .assertEq (+4.byte))
 
@@ -76,4 +78,16 @@ ByteBoundaryAndBoundedVsAlu:F[Tests,Tests]{::
 
   //.test(+255.byte + (+1.byte) .assertEq (+255.byte))// correctly throws instead
   .test(+255.byte.aluAddWrap(+1.byte) .assertEq (+0.byte))
-}
+  }
+
+
+ByteRange: F[Tests, Tests] {::
+  .test(0.byte~~(0.byte).size .assertEq 0)
+  .test(0.byte~~(1.byte).list .assertEq({::},  Lists#(0.byte)))
+
+  .test(0.byte~~=(1.byte).list .assertEq({::},  Lists#(0.byte, 1.byte)))
+  .test(0.byte~~(2.byte).list .assertEq({::},  Lists#(0.byte, 1.byte)))
+
+  .testFails{(1.byte)~~(0.byte)}
+  .testFails{(1.byte)~~=(0.byte)}
+  }

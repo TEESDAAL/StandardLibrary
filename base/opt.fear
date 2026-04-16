@@ -4,12 +4,17 @@ Opt[E:*]: _Opt[E]{
   .imm by     -> this.match{.some x -> Opts#(by#x.imm); .empty->{} };
   .isEmpty    -> this.match{.some _ -> False; .empty -> True};
   .isSome     -> this.match{.some _ -> True; .empty -> False};  
-  !           -> this.match{.some x -> x; .empty -> Error.msg `Opt was empty`};  
+  !           -> this.match{.some x -> x; .empty -> Error.msg `Opt was empty`};
+  ! msg       -> this.match{.some x -> x; .empty -> Error.msg msg};
 
-  .or default -> this.match{.some x -> x; .empty -> default};
-  
-  |   default -> this.or(default);
-  ||  default -> this.match{.some x -> x; .empty -> default#};
+  .or other -> this.match{.some _ -> this; .empty -> other};
+  |   other -> this.or(other);
+
+  ||  other -> this.match{.some _ -> this; .empty -> other#};
+
+  .orValue default -> this.match{.some x -> x; .empty -> default};
+
+  .orLazy default -> this.match{.some x -> x; .empty -> default#};
   
   .flow       -> this.match{.empty -> Flows#; .some x -> Flows#(x)};
 
@@ -34,23 +39,35 @@ Opt[E:*]: _Opt[E]{
     };
   }
   
-_Opt[E:*]:DataType[Opt[E],Opt[imm E],E,imm E],_AssertEmpty{
+_Opt[E:*]: DataType[Opt[E],Opt[imm E],E,imm E],_AssertEmpty {
   mut  .match[R:**](mut OptMatch[E, R]): R;
   read .match[R:**](mut OptMatch[read/imm E, R]): R;
   imm  .match[R:**](mut OptMatch[imm E, R]): R;
 
-  mut  .or(E): E;
-  read .or(read/imm E): read/imm E;
+  mut  .or(mut Opt[E]): mut Opt[E];
+  read .or(read Opt[E]): read Opt[E];
+  imm  .or(Opt[E]): imm Opt[E];
 
-  mut  |(E): E;
-  read |(read/imm E): read/imm E;
+  mut  |(mut Opt[E]): mut Opt[E];
+  read |(read Opt[E]): read Opt[E];
+  imm  |(imm Opt[E]): imm Opt[E];
 
-  mut  ||(mut MF[E]): E;
-  read ||(mut MF[read/imm E]): read/imm E;
-  imm  ||(mut MF[imm E]): imm E;
+  mut  ||(mut MF[mut Opt[E]]): mut Opt[E];
+  read ||(mut MF[read Opt[E]]): read Opt[E];
+  imm  ||(mut MF[imm Opt[E]]): imm Opt[E];
+
+  mut  .orValue(E): E;
+  read .orValue(read/imm E): read/imm E;
+
+  mut  .orLazy(mut MF[E]): E;
+  read .orLazy(mut MF[read/imm E]): read/imm E;
+  imm  .orLazy(mut MF[imm E]): imm E;
 
   mut  !: E;
   read !: read/imm E;
+
+  mut  !(Str): E;
+  read !(Str): read/imm E;
 
   mut  .flow: mut Flow[E];
   read .flow: mut Flow[read/imm E];
@@ -65,12 +82,13 @@ _Opt[E:*]:DataType[Opt[E],Opt[imm E],E,imm E],_AssertEmpty{
   read .isEmpty: Bool;
   read .isSome: Bool;
   read .as[R:imm](mut MF[read/imm E, R]): Opt[R];  
-}
+  }
 
-Opts:{
+Opts: {
   #[E:*](x: E): mut Opt[E] -> { .match m -> m.some(x) };
-}
-OptMatch[E:*, R:**]:{
+  }
+
+OptMatch[E:*,R:**]: {
   mut .some(E): R;
   mut .empty: R;
-}
+  }

@@ -1,16 +1,17 @@
 Continuation[T:*,R:*]: {mut #(x: T, self: mut Block[R]): R}
 OpenIsoContinuation[T,R:*]: {mut #(x: mut T, self: mut Block[R]): R}//Only needed for limitations of inference
 //otherwise the same as Continuation[mut X,R]
-ReprWithInvariant[T]:{ mut .elem:iso T; mut .invariant:F[read T,Bool];}
+ReprWithInvariant[T]: { mut .elem: iso T; mut .invariant: F[read T,Bool];}
 
-Block: Sealed{
+Block: Sealed {
   #[R:*]: mut Block[R] -> {};
   #[A:**, R:**](A, res: R): R -> res;
   #[A:**, B:**, R:**](A, B, res: R): R -> res;
   #[A:**, B:**, C:**, R:**](A, B, C, res: R): R -> res;
   #[A:**, B:**, C:**, D:**, R:**](A, B, C, D, res: R): R -> res;
   }
-Block[R:*]: Sealed{
+
+Block[R:*]: Sealed {
   mut .done: Void -> {};
   mut .return(a: mut MF[R]): R -> a#;
   mut .do(r: mut MF[Void]): mut Block[R] -> 
@@ -43,19 +44,21 @@ Block[R:*]: Sealed{
       .done     -> Block#[Void];
       };
     };
-  mut .loop(body: mut MF[mut ControlFlow[R]]): mut Block[R] -> body#.match mut ControlFlowMatch[R:*]:{
+  mut .loop(body: mut MF[mut ControlFlow[R]]): mut Block[R] -> body#.match mut ControlFlowMatch[R:*]: {
     mut .continue: mut Block[R]     -> this.loop(body);
     mut .break: mut Block[R]        -> this;
     mut .return(v: R): mut Block[R] -> _DecidedBlock#v;
     };
   }
-BlockIf[R:*]:{
+
+BlockIf[R:*]: {
   mut .return(a: mut MF[R]): mut Block[R];
   mut .do(r: mut MF[Void]): mut Block[R];
   mut .error(info: mut MF[Info]): mut Block[R];
   mut .done: mut Block[Void];
   }
-_DecidedBlock:{
+
+_DecidedBlock: {
   #[R:*](res: R): mut Block[R] -> { 'self
     .return  _    -> res;
     .do      _    -> self;
@@ -75,7 +78,8 @@ _DecidedBlock:{
       };
     }
   }
-ControlFlow[R:*]:Sealed { mut .match(m: mut ControlFlowMatch[R]): mut Block[R]; }
-Continue:{#[R:*]:mut ControlFlow[R]->{::.continue}}
-Break:{#[R:*]:mut ControlFlow[R]->{::.break}}
-OuterReturn:{#[R:*](r:R):mut ControlFlow[R]->{::.return r} }
+
+ControlFlow[R:*]: Sealed { mut .match(m: mut ControlFlowMatch[R]): mut Block[R]; }
+Continue: {#[R:*]: mut ControlFlow[R]->{::.continue}}
+Break: {#[R:*]: mut ControlFlow[R]->{::.break}}
+OuterReturn: {#[R:*](r: R): mut ControlFlow[R]->{::.return r} }

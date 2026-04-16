@@ -1,5 +1,5 @@
 //File _tank_game/point.fear
-Points:{#(x: Nat, y: Nat): Point -> Point: ToStr{ 'self
+Points: {#(x: Nat, y: Nat): Point -> Point: ToStr{ 'self
   .x: Nat -> x;
   .y: Nat -> y;
   +(other: Point): Point -> Points#(other.x + x, other.y + y);
@@ -94,7 +94,7 @@ NextState:F[List[Tank],List[Tank]]{
 //----------------------------------
 //File _tank_game/print_game.fear
 TanksToS: F[List[Tank],Str]{ ts -> Block#
-  .let res = {0.rangeUntil(30).map{_->this.newLine}.list }
+  .let res = {0~~=30.map{_->this.newLine}.list }
   .do{ ts.flow.forEach{ t -> Block#
     .let x= { t.position.x }
     .let y= { t.position.y }
@@ -106,14 +106,14 @@ TanksToS: F[List[Tank],Str]{ ts -> Block#
     .done
     }}
   .return { res.flow.map{::.flow.map{::.get}.join(``)}.join(``|) };
-  read .newLine: mut List[mut Var[Str]] -> 0.rangeUntil(10).map{ _ -> Vars#(`      `)}.list;
+  read .newLine: mut List[mut Var[Str]] -> 0~~=10.map{ _ -> Vars#(`      `)}.list;
   }
 PrintGame: {
   mut .out: mut Output;
   mut .singleLine(ts: List[Tank]): Void -> this.out.println(TanksToS#(ts));
   mut .lines(rounds: Nat, ts: List[Tank]): Void -> Block#
     .var current= {ts}
-    .return{ 0.rangeUntil(rounds).forEach{step -> Block#(
+    .return{ 0~~=rounds.forEach{step -> Block#(
       Void,//this.out.println(`Step `+step|),
       Void,//this.out.println(`------------------------------------------------------------`|),
       Void,//this.singleLine(current.get),

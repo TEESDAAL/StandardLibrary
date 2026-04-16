@@ -1,4 +1,4 @@
-UStrTest:F[Tests,Tests]{::
+UStrTest: F[Tests,Tests] {::
   .test("Hello".size .assertEq (5))
 }
 /*
