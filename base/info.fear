@@ -52,30 +52,33 @@ Info: Sealed,DataType[Info,Info],_AssertImmEmpty {
       };
     };
   }
-_InfoMapPlus:{ #[K](m1: Map[K,Info], m2: Map[K,Info]): Map[K,Info] ->
+
+_InfoMapPlus: { #[K](m1: Map[K,Info], m2: Map[K,Info]): Map[K,Info] ->
   m2.flow.fold({m1}, {acc,ke->
-    acc.opt(ke.key).match{
+    acc.opt(ke.key).match {
       .empty -> acc.with(ke.key, ke.elem);
       .some v -> acc.with(ke.key, v+(ke.elem));
     };
   });}
-_InfoFreshKey:{
+
+_InfoFreshKey: {
   #(m: Map[Str,Info], base: Str, i: Nat): Str -> Block#
     .let k= {i == 0 ? {.then->base; .else->base + `#` + i.str; }}
-    .return{ m.containsKey(k)?{
+    .return { m.containsKey(k)?{
       .then -> this#(m, base, i + 1);
       .else -> k;
   }};}
 
-InfoMatch[R]:{
-  .empty:R;
+InfoMatch[R]: {
+  .empty: R;
   .msg(Str): R;
   .list(List[Info]): R;
   .map(Map[Str,Info]): R;
   }
-_InfoToStr: InfoMatch[Str]{
+
+_InfoToStr: InfoMatch[Str] {
   .empty ->`EmptyInfo`;
   .msg(msg) -> msg.escape;
-  .list(list) -> list.str{::};
-  .map(map) -> map.str{::};
+  .list(list) -> list.str {::};
+  .map(map) -> map.str {::};
   }
