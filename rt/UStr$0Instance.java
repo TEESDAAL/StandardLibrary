@@ -256,7 +256,7 @@ public final class UStr$0Instance implements UStr$0{
   @Override public Object imm$escape$0(){ return new Str$0Instance(toUExpr()); }
 
   private static int hashNat(OrderHashBy$2 by, int x){
-    return natToInt(((OrderHash$1)by.imm$$hash$1(Nat$0Instance.instance(x))).read$hash$0());
+    return Long.hashCode(natToInt(((OrderHash$1)by.imm$$hash$1(Nat$0Instance.instance(x))).read$hash$0()));
   }
   @Override public Object read$cmpCodePoints$4(Object p0,Object p1,Object p2,Object m){
     var a= (UStr$0Instance)p1;
@@ -292,7 +292,7 @@ public final class UStr$0Instance implements UStr$0{
   }
   @Override public Object read$hash$1(Object p0){
     var by= (OrderHashBy$2)p0;
-    int h= asGraphemes().hash(g -> natToInt(((OrderHash$1)by.imm$$hash$1(instance(g))).read$hash$0()));
+    long h= asGraphemes().hash(g -> Long.hashCode(natToInt(((OrderHash$1)by.imm$$hash$1(instance(g))).read$hash$0())));
     return Nat$0Instance.instance(h);
   }
   @Override public Object imm$joinStr$1(Object p0){

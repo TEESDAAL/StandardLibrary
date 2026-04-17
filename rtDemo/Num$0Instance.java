@@ -189,8 +189,8 @@ public record Num$0Instance(BigInteger n,BigInteger d) implements Num$0{
 }
 
 /*
-public record Num$0Instance(BigInteger val1,BigInteger val2) implements Num$0{
-  public static Num$0 instance(BigInteger val1,BigInteger val2){ return new Num$0Instance(val1,val2); }
+public record Num$0Instance(BigInteger numerator,BigInteger denominator) implements Num$0{
+  public static Num$0 instance(BigInteger numerator,BigInteger denominator){ return new Num$0Instance(numerator,denominator); }
 
   //@Override public Object imm$shiftLeft$1(Object p0){ throw new Error(); }
   //@Override public Object imm$shiftRight$1(Object p0){ throw new Error(); }

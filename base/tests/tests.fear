@@ -1,9 +1,13 @@
-Tests:{
+Tests: {
   .test(v: Void): Tests -> this;
+  .testFails[R:*](f: F[R]): Tests -> Block#
+    .do{Try#(f).assertInfo}
+    .return{this};
   .done: Void -> {};
-  .testSuite(f:F[Tests,Tests]):Tests -> f#this;
-}
-AllTest:Main{s->
+  .testSuite(f: F[Tests,Tests]): Tests -> f#this;
+  }
+
+AllTest: Main { s->
   Tests
     .testSuite FloatArith
     .testSuite FloatRound
@@ -12,6 +16,7 @@ AllTest:Main{s->
     .testSuite FloatConv
     .testSuite FloatRange
     .testSuite FloatLiteralFormsLarge
+    .testSuite FloatSignNum
 
     .testSuite NumArith
     .testSuite NumRound
@@ -21,31 +26,36 @@ AllTest:Main{s->
     .testSuite NumRange
     .testSuite NumRationalLiteralForms
     .testSuite NumRationalTokenizationWitness
+    .testSuite NumSign
 
     .testSuite IntArith
     .testSuite IntDivRem
     .testSuite IntWrapIndex
     .testSuite IntConv
     .testSuite IntAlu
-    .testSuite IntRange
+    .testSuite IntRangeChecks
     .testSuite IntLiteralForms
     .testSuite IntBoundaryAndBoundedVsAlu
+    .testSuite IntRange
+    .testSuite IntSign
 
     .testSuite NatArith
     .testSuite NatDivRem
     .testSuite NatIndexOffset
     .testSuite NatConv
     .testSuite NatAlu
-    .testSuite NatRange
+    .testSuite NatRangeChecks
     .testSuite NatLiteralForms
     .testSuite NatBoundaryAndBoundedVsAlu
+    .testSuite NatRange
 
     .testSuite ByteArith
     .testSuite ByteDivRem
     .testSuite ByteConv
     .testSuite ByteAlu
-    .testSuite ByteRange
+    .testSuite ByteRangeChecks
     .testSuite ByteBoundaryAndBoundedVsAlu
+    .testSuite ByteRange
     
     .testSuite StrBasics
     .testSuite StrConcat
@@ -59,7 +69,7 @@ AllTest:Main{s->
     .testSuite StrParseNum
     .testSuite StrParseFloat
     .testSuite StrParseIeeeFloat
-    
+
     .testSuite ListBasics
     .testSuite MapBasics
     
@@ -73,7 +83,9 @@ AllTest:Main{s->
     .testSuite TestRepr
     
     .testSuite UStrTest
-    
+
+    .testSuite MathTests
     .done
-}
-TestLog:Main{_->Log.log(`Hello`)}
+  }
+
+TestLog: Main { _ -> Log.log(`Hello`) }

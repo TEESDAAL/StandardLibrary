@@ -5,4 +5,8 @@ Extensible[S:*]:{
   mut  ~[R:*](ext: mut MF[mut  S, R]): R -> ext#(this.close);
   read ~[R:*](ext: mut MF[read S, R]): R -> ext#(this.close);
   imm  ~[R:*](ext: mut MF[imm  S, R]): R -> ext#(this.close);
+
+  mut  |>[R:*](fn: F[mut  S, R]): R -> fn#(this.close);
+  read |>[R:*](fn: F[read S, R]): R -> fn#(this.close);
+  imm  |>[R:*](fn: F[imm  S, R]): R -> fn#(this.close);
   }

@@ -31,6 +31,7 @@ Info: Sealed{
   .accept[R](visitor: InfoVisitor[R]): R;
   .str: Str -> this.accept[Json](_InfoToJson).str;
   }
+
 Infos: {
   .msg(msg: Str): Info -> {'info
     .msg -> msg;

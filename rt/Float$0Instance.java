@@ -1,5 +1,6 @@
 package base;
 
+import static base.Nat$0Instance.MAX_UNSIGNED_VALUE_FLOAT;
 import static base.Util.*;
 import java.math.BigInteger;
 
@@ -21,13 +22,7 @@ public record Float$0Instance(double val) implements Float$0{
     if (Double.isNaN(lo) || Double.isNaN(hi)){ throw err(where+": lo/hi NaN"); }
     if (Double.compare(lo,hi) > 0){ throw err(where+": lo>hi"); }
   }
-  private static int clampTrunc0ToInt(double x){ return (int)x; }
-  private static int clampTrunc0ToNatBits(double x){
-    if (Double.isNaN(x) || x <= 0.0d){ return 0; }
-    if (x >= 4294967295.0d){ return -1; } // 2^32-1
-    long t= (long)x;
-    return t > 0xFFFF_FFFFL ? -1 : (int)t;
-  }
+  private static long clampTrunc0ToInt(double x){ return (long)x; }
   private static byte clampTrunc0ToByteBits(double x){
     if (Double.isNaN(x) || x <= 0.0d){ return 0; }
     if (x >= 255.0d){ return (byte)255; }
@@ -37,9 +32,32 @@ public record Float$0Instance(double val) implements Float$0{
     if (!Double.isFinite(x)){ return false; }
     return x == Math.rint(x);
   }
+  @Override public Object imm$signnum$0() {
+    return Float$0Instance.instance(Math.signum(this.val));
+  }
   @Override public Object imm$$star_star$1(Object p0){ return instance(Math.pow(val,f(p0))); }
-  @Override public Object imm$int$0(){ return Int$0Instance.instance(clampTrunc0ToInt(val)); }
-  @Override public Object imm$nat$0(){ return Nat$0Instance.instance(clampTrunc0ToNatBits(val)); }
+  @Override public Object imm$int$0(){
+    if (Double.isNaN(val)) {
+      return Int$0Instance.instance(0);
+    }
+    if (val <= Long.MIN_VALUE) {
+      return Int$0Instance.instance(Long.MIN_VALUE);
+    }
+    if (val >= Long.MAX_VALUE) {
+      return Int$0Instance.instance(Long.MAX_VALUE);
+    }
+    return Int$0Instance.instance((long) val);
+  }
+  /// clamp+trunc0; NaN->0; +Inf->maxNat; -Inf->0 (never throws)
+  @Override public Object imm$nat$0(){
+    if (Double.isNaN(val) || val <= 0.0d) {
+      return Nat$0Instance.instance(0);
+    }
+    if (val > MAX_UNSIGNED_VALUE_FLOAT) {
+      return Nat$0Instance.instance(Nat$0Instance.MAX_UNSIGNED_VALUE);
+    }
+    return Nat$0Instance.instance((long) val);
+  }
   @Override public Object imm$byte$0(){ return Byte$0Instance.instance(clampTrunc0ToByteBits(val)); }
   private static Object numExactFinite(double x){
     if (x == 0.0d){ return Num$0Instance.instance(BigInteger.ZERO,BigInteger.ONE); } // also -0.0
@@ -61,7 +79,8 @@ public record Float$0Instance(double val) implements Float$0{
   @Override public Object imm$numExact$0(){
     if (Double.isNaN(val) || Double.isInfinite(val)){ return optEmpty(); }
     return optSome(numExactFinite(val));
-  }  
+  }
+
   @Override public Object imm$intExact$0(){
     if (!isIntegral(val)){ return optEmpty(); }
     if (val < (double)Integer.MIN_VALUE || val > (double)Integer.MAX_VALUE){ return optEmpty(); }
@@ -69,7 +88,7 @@ public record Float$0Instance(double val) implements Float$0{
   }
   @Override public Object imm$natExact$0(){
     if (!isIntegral(val)){ return optEmpty(); }
-    if (val < 0.0d || val > 4294967295.0d){ return optEmpty(); }
+    if (val < 0.0d || val > MAX_UNSIGNED_VALUE_FLOAT){ return optEmpty(); }
     return optSome(Nat$0Instance.instance((int)((long)val)));
   }
   @Override public Object imm$byteExact$0(){
@@ -111,11 +130,11 @@ public record Float$0Instance(double val) implements Float$0{
   }
   @Override public Object imm$round$0(){
     if (Double.isNaN(val)){ return Int$0Instance.instance(0); }
-    if (val == Double.POSITIVE_INFINITY){ return Int$0Instance.instance(Integer.MAX_VALUE); }
-    if (val == Double.NEGATIVE_INFINITY){ return Int$0Instance.instance(Integer.MIN_VALUE); }
+    if (val == Double.POSITIVE_INFINITY){ return Int$0Instance.instance(Int$0Instance.MAX_VALUE); }
+    if (val == Double.NEGATIVE_INFINITY){ return Int$0Instance.instance(Int$0Instance.MIN_VALUE); }
     double r= Math.rint(val); // ties-to-even
-    if (r <= (double)Integer.MIN_VALUE){ return Int$0Instance.instance(Integer.MIN_VALUE); }
-    if (r >= (double)Integer.MAX_VALUE){ return Int$0Instance.instance(Integer.MAX_VALUE); }
+    if (r <= (double)Int$0Instance.MIN_VALUE){ return Int$0Instance.instance(Int$0Instance.MIN_VALUE); }
+    if (r >= (double)Int$0Instance.MAX_VALUE){ return Int$0Instance.instance(Int$0Instance.MAX_VALUE); }
     return Int$0Instance.instance((int)r);
   }
   @Override public Object imm$ceil$0(){ return Int$0Instance.instance((int)Math.ceil(val)); }

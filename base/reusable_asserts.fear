@@ -1,12 +1,12 @@
-_AssertApprox[T]:DataType[T,T]{
-  .eqDelta(n:T, delta:T):Bool;
-  .assertEqDelta(expected:T, delta:T):Void -> Assert!(
+_AssertApprox[T]: DataType[T,T] {
+  .eqDelta(n: T, delta: T): Bool;
+  .assertEqDelta(expected: T, delta: T): Void -> Assert!(
     this.eqDelta(expected,delta),
     { `Expected within delta`
       | `expected: `+(this.close(expected))
       | `delta: `+(this.close(delta))
       | `actual: `+this });
-  .assertEqDelta(expected:T, delta:T, msg:F[Str]):Void -> Assert!(
+  .assertEqDelta(expected: T, delta: T, msg: F[Str]): Void -> Assert!(
     this.eqDelta(expected,delta),
     { msg#
       | `expected: `+(this.close(expected))
@@ -14,7 +14,7 @@ _AssertApprox[T]:DataType[T,T]{
       | `actual: `+this });
   }
   
-_AssertSize:{
+_AssertSize: {
   read .size: Nat;
 
   read .assertSize(expected: Nat): Void -> this.assertSize(expected,{``});
@@ -25,7 +25,7 @@ _AssertSize:{
       | `Actual size: `+(this.size) });
   }
 
-_AssertImmSize:{
+_AssertImmSize: {
   imm .size: Nat;
 
   imm .assertSize(expected: Nat): Void -> this.assertSize(expected,{``});
@@ -36,7 +36,7 @@ _AssertImmSize:{
       | `Actual size: `+(this.size) });
   }
 
-_AssertEmpty:{
+_AssertEmpty: {
   read .isEmpty: Bool;
 
   read .assertEmpty: Void -> this.assertEmpty({``});
@@ -44,7 +44,7 @@ _AssertEmpty:{
     this.isEmpty,
     { msg# | `Expected empty` });
   }
-_AssertImmEmpty:{
+_AssertImmEmpty: {
   imm .isEmpty: Bool;
 
   imm .assertEmpty: Void -> this.assertEmpty({``});

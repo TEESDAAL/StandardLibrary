@@ -1,14 +1,15 @@
-Flows:{
-  #[R:*]:mut Flow[R]->Magic!;
-  #[R:*](r1:R):mut Flow[R]->Magic!;
-  #[R:*](r1:R,r2:R):mut Flow[R]->Magic!;
-  #[R:*](r1:R,r2:R,r3:R):mut Flow[R]->Magic!;
-  #[R:*](r1:R,r2:R,r3:R,r4:R):mut Flow[R]->Magic!;
+Flows: {
+  #[R:*]: mut Flow[R]->Magic!;
+  #[R:*](r1: R): mut Flow[R]->Magic!;
+  #[R:*](r1: R, r2: R): mut Flow[R]->Magic!;
+  #[R:*](r1: R, r2: R, r3: R): mut Flow[R]->Magic!;
+  #[R:*](r1: R, r2: R, r3: R, r4: R): mut Flow[R]->Magic!;
   .fromMutList[R:*](xs: mut List[R]): mut Flow[R]->Magic!;
   .fromReadList[R:*](xs: read List[R]): mut Flow[read/imm R]->Magic!;
   .fromImmList[R:*](xs: List[R]): mut Flow[imm R]->Magic!;
   }
-Flow[E:*]:{
+
+Flow[E:*]: {
   mut .forEach[R:*](f: mut MF[E,Void]): Void;
   mut .map[R:*](f: read F[E, R]): mut Flow[R];
   mut .flatMap[R:*](f: read F[E, Flow[R]]): mut Flow[R];
@@ -18,17 +19,17 @@ Flow[E:*]:{
   mut ++ (mut Flow[E]): mut Flow[E];
   mut .list: mut List[E];
   mut .eList: mut EList[E];
-  mut .mapping[K,K0,E0:*](OrderHashBy[K,K0],read KeyElemMapper[E,K,E0]):mut Map[K,E0];
+  mut .mapping[K,K0,E0:*](OrderHashBy[K,K0], read KeyElemMapper[E,K,E0]): mut Map[K,E0];
   mut .join(js: JoinStr[E]): E -> js.joinStr this;
   mut .sum(sn: SumNumber[E]): E -> sn.sumNumber this;
   mut .fold[R:*](acc: iso MF[R], f: read F[R,E,R]): R;
   mut .foldAcc[R:*](acc: iso MF[mut FoldAcc[E,R]]): R ->
     this.fold(acc,{a,e->a.acc e}).result;
-  mut .max[K](by:OrderBy[imm E,K]):          mut Flow[E] -> this.foldAcc({ MaxAcc#by }).flow;
-  mut .min[K](by:OrderBy[imm E,K]):          mut Flow[E] -> this.foldAcc({ MinAcc#by }).flow;
-  mut .sort[K](by:OrderBy[imm E,K]):         mut Flow[E]-> this.eList.sortAnd by .flow;
-  mut .distinct[K](by:OrderHashBy[imm E,K]): mut Flow[E]-> this.eList.distinctAnd by .flow;
-  mut .sortDistinct[K](by:OrderBy[imm E,K]): mut Flow[E]-> this.eList.sortDistinctAnd by .flow;
+  mut .max[K](by: OrderBy[imm E,K]):          mut Flow[E] -> this.foldAcc({ MaxAcc#by }).flow;
+  mut .min[K](by: OrderBy[imm E,K]):          mut Flow[E] -> this.foldAcc({ MinAcc#by }).flow;
+  mut .sort[K](by: OrderBy[imm E,K]):         mut Flow[E]-> this.eList.sortAnd by .flow;
+  mut .distinct[K](by: OrderHashBy[imm E,K]): mut Flow[E]-> this.eList.distinctAnd by .flow;
+  mut .sortDistinct[K](by: OrderBy[imm E,K]): mut Flow[E]-> this.eList.sortDistinctAnd by .flow;
   mut .any(f: read F[E, Bool]):  Bool;
   mut .all(f: read F[E, Bool]):  Bool;
   mut .none(f: read F[E, Bool]): Bool;
@@ -36,12 +37,14 @@ Flow[E:*]:{
   mut .opt:   Opt[E];//opt of the first element if size in {0,1} throws otherwise
   mut .first: Opt[E]; //opt of the first element, never throws
   }
-FoldAcc[E:*,R:**]:{ mut .result:R; mut .acc(E): mut FoldAcc[E,R] }
-ELists:{ #[E:*]: mut EList[E]-> Magic! }
-EList[E:*]:{
+
+FoldAcc[E:*,R:**]: { mut .result: R; mut .acc(E): mut FoldAcc[E,R] }
+ELists: { #[E:*]: mut EList[E]-> Magic! }
+
+EList[E:*]: {
   //I was considering if EList should start with a Num current size AND should allow for 'holes', so .get
   //can give exception in the middle of present items.
-  mut .add(E):Void;
+  mut .add(E): Void;
   mut .addAnd(E): mut EList[E];
   mut .clear: Void;
   mut .clearAnd: mut EList[E];
@@ -56,11 +59,12 @@ EList[E:*]:{
   read .size: Nat;
   mut .list: mut List[E]; //consumes the EList and moves the data in the result
   }
-JoinStr[E:*]:{ .joinStr(mut Flow[E]): E }
-SumNumber[E:*]:{ .sumNumber(mut Flow[E]): E }
 
-MaxAcc:{
-  #[E:*,K](by:OrderBy[imm E,K]): mut FoldAcc[E,mut EList[E]] -> {
+JoinStr[E:*]: { .joinStr(mut Flow[E]): E }
+SumNumber[E:*]: { .sumNumber(mut Flow[E]): E }
+
+MaxAcc: {
+  #[E:*,K](by: OrderBy[imm E,K]): mut FoldAcc[E,mut EList[E]] -> {
     ELists#;
     e -> MaxAcc#(by, ELists#.addAnd e);
   };
@@ -73,8 +77,9 @@ MaxAcc:{
       });
     };
   }
-MinAcc:{
-  #[E:*,K](by:OrderBy[imm E,K]): mut FoldAcc[E,mut EList[E]] -> {
+
+MinAcc: {
+  #[E:*,K](by: OrderBy[imm E,K]): mut FoldAcc[E,mut EList[E]] -> {
     ELists#;
     e -> MinAcc#(by, ELists#.addAnd e);
   };

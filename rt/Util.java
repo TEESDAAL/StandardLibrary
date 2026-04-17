@@ -56,8 +56,12 @@ public class Util{
   public static Error err(String msg){
     return (Error)Error$0.instance.imm$nonDeterministic$1(new Str$0Instance(msg));
     }
+  public static Error detErr(String msg) {
+    var info = base.Infos$0.instance.imm$msg$1(new Str$0Instance(msg));
+    return (Error) Error$0.instance.imm$$bang$1(info);
+  }
   public static String toS(Object o){return ((Str$0Instance)((ToStr$0)o).read$str$0()).val(); }
-  public static int natToInt(Object n){
+  public static long natToInt(Object n){
     return ((Nat$0Instance)n).val();
   }
   public static Object intToNat(int i){
@@ -90,14 +94,14 @@ public class Util{
     public final OrderHash$1 ord; // OrderHash[K0] closed at this key's projection
     public final Object key;      // representative K (first inserted)
     public final Object close;    // K0
-    public final int hc;
+    public final long hc;
     public MapKey(OrderHashBy$2 oh,Object k){
       key= k;
       ord= (OrderHash$1)oh.imm$$hash$1(k);
       close= ((Order$1)ord).read$close$0();
       hc= natToInt(ord.read$hash$0());
   }
-  @Override public int hashCode(){ return hc; }
+  @Override public int hashCode(){ return Long.hashCode(hc); }
   @Override public boolean equals(Object o){
     if (!(o instanceof MapKey x)){ assert false; return false; }
     return isTrue(((Order$1)ord).read$$eq_eq$1(x.close));

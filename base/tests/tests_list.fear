@@ -1,4 +1,4 @@
-ListBasics:F[Tests,Tests]{::
+ListBasics: F[Tests,Tests] {::
   // empty list literal (type-directed)
   .test(List[Str] .size .assertEq 0)
   .test(List[Int] .isEmpty .assertEq True)
@@ -93,4 +93,4 @@ ListBasics:F[Tests,Tests]{::
 
   // string for nested lists: again avoid hardcoding formatting; compare equivalent constructions
   .test(List[List[Str]] .withAlso(0, Lists#`a`) .str{::.str{::.str}} .assertEq( Lists#(Lists#`a`) .str{::.str{::.str}}))
-}
+  }
