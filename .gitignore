@@ -6,3 +6,5 @@
 /integrationTests/testUnitTests/.fearless_out
 /integrationTests/helloStackTraces/.fearless_out
 /integrationTests/testingStandardLibrary/.fearless_out
+/integrationTests/testingStandardLibrary/.out
+/integrationTests/testUnitTests/.out
