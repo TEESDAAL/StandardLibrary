@@ -91,18 +91,15 @@ NumRange: F[Tests,Tests] {::
   .test(+3.num.clamp(+1.num,+5.num) .assertEq (+3.num))
   .test(+3.num.clamp(+3.num,+3.num) .assertEq (+3.num))
   }
-
+//TODO: no, those are now results of the / method
 NumRationalLiteralForms: F[Tests,Tests] {::
-  // SignedRational token: +n/d (no spaces)
-  .test(+1/2 + +1/2 .assertEq (+1.num))
+  .test(+1/2 + (1/2) .assertEq (+1.num))
   .test(+3/2 - (+1.num) .assertEq (+1/2))
 
   // underscores inside rationals
   .test(+1_0/2_0 .assertEq (+1/2))
   .test(+10/20 .assertEq (+1/2))
 
-  // decimal forms inside SignedRational
-  .test(+1.0/2.0 + +1.0/2.0 .assertEq (+1.num))
   }
 
 NumRationalTokenizationWitness: F[Tests,Tests] {::

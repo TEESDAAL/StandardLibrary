@@ -80,6 +80,13 @@ public record Nat$0Instance(long val) implements Nat$0 {
     if (overflow){ throw err("Nat.* overflow"); }
     return a * b;
   }
+  @Override public Object imm$$slash$1(Object p0){
+    long d=n(p0);
+    return Num$0Instance.instance(
+      unsignedLongToBigInteger(val),
+      unsignedLongToBigInteger(d)
+    );
+  }
 
   /**
    * Clamp the natural number to the range of int,

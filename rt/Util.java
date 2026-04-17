@@ -1,4 +1,5 @@
 package base;
+import java.math.BigInteger;
 import java.util.concurrent.atomic.AtomicBoolean;
 public class Util{
   private static final AtomicBoolean parentLifelineStarted= new AtomicBoolean();
@@ -59,6 +60,11 @@ public class Util{
   public static Error detErr(String msg) {
     var info = base.Infos$0.instance.imm$msg$1(new Str$0Instance(msg));
     return (Error) Error$0.instance.imm$$bang$1(info);
+  }
+  public static BigInteger unsignedLongToBigInteger(long x){
+    return x >= 0
+      ? BigInteger.valueOf(x)
+      : BigInteger.valueOf(x & Long.MAX_VALUE).setBit(63);
   }
   public static String toS(Object o){return ((Str$0Instance)((ToStr$0)o).read$str$0()).val(); }
   public static long natToInt(Object n){

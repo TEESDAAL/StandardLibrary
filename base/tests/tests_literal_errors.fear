@@ -3,7 +3,7 @@ ThrowArithSuite: F[mut CapTry,Void] {try->Block#
   .do{try#{12 .div 0}.assertInfo}
   .do{try#{+12 .div 0}.assertInfo}
   .do{try#{+12.byte .div 0}.assertInfo}
-  .do{try#{+12/3 / +0/1}.assertInfo}
+  .do{try#{+12/3 / (+0/1)}.assertInfo}
 
   // Nat overflow/underflow
   .do{try#{Math.maxNat + 1}.assertInfo}

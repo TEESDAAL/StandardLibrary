@@ -57,6 +57,13 @@ public record Int$0Instance(long val) implements Int$0{
     try{ return instance(Math.subtractExact(val,i(p0))); }
     catch(ArithmeticException e){ throw err("Int.- overflow"); }
   }
+  @Override public Object imm$$slash$1(Object p0){
+    long d=((Nat$0Instance)p0).val();
+    return Num$0Instance.instance(
+      BigInteger.valueOf(val),
+      unsignedLongToBigInteger(d)
+    );
+  }
   @Override public Object imm$$star$1(Object p0){ return instance(mulChecked(val,i(p0))); }
   @Override public Object imm$$star_star$1(Object p0) {
     long power = unsignedLongFromNat(p0);

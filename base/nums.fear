@@ -93,6 +93,7 @@ Int: Sealed,DataType[Int,Int],SumNumber[Int] {
   .abs: Nat;                                /// abs; x if x >= 0, -x otherwise. Returns a Nat sice Math.minInt.abs is larger than Math.maxInt, so it would be unrepresentable as an Int.
   .sqrt: Float;                             /// approximate sqrt; returns NaN iff this is negative
   .wrapIndex(len: Nat): Nat;                /// normalize into [0,len-1]; throws iff len==0; example: -1.wrapIndex(7) == 6
+  / (d: Nat) : Num;                         /// create a Num represening the exact result of this division; throws iff d==0
   .nat: Nat;                                /// clamp to [0,maxNat] (that is, just clamp negatives to 0)
   .byte: Byte;                              /// clamp to [0,maxByte]
   .float: Float;                            /// converts to Float (note: Float can represent exactly all Int values)
@@ -136,6 +137,7 @@ Nat: Sealed,DataType[Nat,Nat],SumNumber[Nat] {
   .divExact(d: Nat): Opt[Nat];             /// .some if d != 0 and this.rem(d) == 0; .empty otherwise
   .sqrt: Float;                            /// approximate sqrt
   .indexOffset(delta: Int): Nat;           /// index helper: this + delta; throws on under/overflow
+  / (d: Nat) : Num;                         /// create a Num represening the exact result of this division; throws iff d==0
   .int: Int;                               /// clamp to [0,maxInt]
   .byte: Byte;                             /// clamp to [0,maxByte]
   .float: Float;                           /// converts to Float (note: Float can represent exactly all Nat values)

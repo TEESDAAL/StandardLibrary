@@ -40,7 +40,7 @@ public record Str$0Instance(String val) implements Str$0{
     "[+-](?:[0-9](?:[0-9_]*[0-9])?)\\.(?:[0-9](?:[0-9_]*[0-9])?)"
     + "(?:[eE][+-]?[0-9](?:[0-9_]*[0-9])?)?");
   static final Pattern signedRational= Pattern.compile(
-    "[+-](?:[0-9](?:[0-9_]*[0-9])?(?:\\.[0-9](?:[0-9_]*[0-9])?)?)/(?:[0-9](?:[0-9_]*[0-9])?(?:\\.[0-9](?:[0-9_]*[0-9])?)?)");
+    "[+-]?(?:[0-9](?:[0-9_]*[0-9])?(?:\\.[0-9](?:[0-9_]*[0-9])?)?)/(?:[0-9](?:[0-9_]*[0-9])?(?:\\.[0-9](?:[0-9_]*[0-9])?)?)");
   static final long maxNatU= -1;
   static final long maxByteU= 255L;
   @Override public Object imm$intExact$0(){
@@ -108,8 +108,8 @@ public record Str$0Instance(String val) implements Str$0{
     if (!signedRational.matcher(val).matches()){ return optEmpty(); }
     try{
       String t= no_(val);
-      boolean neg= t.charAt(0)=='-';
-      t= t.substring(1); // drop leading +/-
+      boolean neg= t.charAt(0) == '-';
+      if (t.charAt(0)=='+' || t.charAt(0)=='-'){ t= t.substring(1); }
       int slash= t.indexOf('/');
       Dec a= Dec.parse(t.substring(0,slash));
       Dec b= Dec.parse(t.substring(slash+1));

@@ -7,7 +7,7 @@ TestThrowingExample: Main{s->Block#
   }
 
 TestSuite1: F[mut CapTry,Void] {try->Block#
-  .do{try#{+12/3 / +0/1}.assertInfo }
+  .do{try#{+12/3 / (+0/1)}.assertInfo }
   .done
   }
 
