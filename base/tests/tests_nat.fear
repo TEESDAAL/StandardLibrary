@@ -103,7 +103,6 @@ NatRange: F[Tests, Tests] {::
 
   .test(0~~=1.list .assertEq({::},  Lists#(0,1)))
   .test(0~~2.list .assertEq({::},  Lists#(0,1)))
-  // These tests seem to make the program hang... TODO:
   .test(Math.maxNat - 5~~=(Math.maxNat).size .assertEq 6 )
   .test(Math.maxNat - 5~~(Math.maxNat).size .assertEq 5 )
   .test(Math.maxInt.nat~~=(Math.maxInt.nat + 1).size .assertEq 2 )
