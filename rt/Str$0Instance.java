@@ -31,7 +31,12 @@ public record Str$0Instance(String val) implements Str$0{
     if (val.length()+2 != res.length()){ res= "("+res+")"; }
     return instance(res);
   }
-
+  @Override public Object imm$u$1(Object p0){
+    return UStr$0Instance.instance(val).imm$u$1(p0);
+  }
+  @Override public Object imm$u$0(){
+    return UStr$0Instance.instance(val);
+  }
   @Override public Object read$cmp$3(Object p0, Object p1, Object p2){ return ord(s(p0).compareTo(s(p1)),p2); }
   
   static final Pattern signedInt= Pattern.compile("[+-][0-9](?:[0-9_]*[0-9])?");

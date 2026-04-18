@@ -5,6 +5,8 @@ import static base.Util.*;
 import java.util.ArrayList;
 
 public final class _CapTry$0 implements CapTry$0{
+  @Override public final Object mut$iso$0(){ return this; }
+  @Override public final Object mut$self$0(){ return this; }
   public final Object mut$$hash$1(Object p0){ return actionLazy(()->callF$1(p0)); }
   public final Object mut$$hash$2(Object p0, Object p1){ return actionLazy(()->callF$2(p1,p0)); }
   public final Action$1 actionLazy(java.util.function.Supplier<Object> s){
@@ -12,8 +14,6 @@ public final class _CapTry$0 implements CapTry$0{
       public Object mut$run$1(Object p0){
         var m= (ActionMatch$2)p0;
         Object res; try{ res= s.get(); }
-        //catch(Deterministic d){ return m.mut$info$1(d.i); }
-        //catch(NonDeterministic d){ return m.mut$info$1(d.i); }
         catch(Deterministic d){ return m.mut$info$1(addStackInfo(d.i,d)); }
         catch(NonDeterministic d){ return m.mut$info$1(addStackInfo(d.i,d)); }
         catch(Throwable t){ 

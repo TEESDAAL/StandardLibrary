@@ -35,7 +35,9 @@ TestCap: Sealed {//by making it sealed we can guaranteed the output of the funct
   mut .test(t: Test): mut TestCap -> t.tests this;
   mut .disabledTest(Test): mut TestCap;
   mut .check(Check): mut TestCap;
-  mut .disabledCheck(Check): mut TestCap;
+  mut .disabledCheck(Check): mut TestCap; 
+  mut .checkWithTry(CheckCapTry): mut TestCap;
+  mut .disabledCheckWithTry(CheckCapTry): mut TestCap;  
   }
 
 TestCont[T]: { #(t: T, self: mut TestCap): mut TestCap }
@@ -43,25 +45,43 @@ TestCont[T]: { #(t: T, self: mut TestCap): mut TestCap }
 _TestCaps: {
   #(try: mut CapTry, ts: mut EList[CheckInfo]): mut RTestCap -> mut RTestCap: TestCap {'self
     .check c -> Block#
-      .let[List[StackFrame]] st = {c._fetchTrace { try.currentStackTrace }}
+      .let[List[StackFrame]] st = {c._fetchTrace {try.currentStackTrace}}
+      .do {UnitTestLog.log(_PlanLine#(`RUN`,st,2))}
+      .do {ts.add(CheckInfos#(
+        { _ -> c#; ._fetchTrace f -> c._fetchTrace f },
+        st))}
+      .return {self};
+
+    .checkWithTry c -> Block#
+      .let[List[StackFrame]] st = {c._fetchTrace {try.currentStackTrace}}
       .do {UnitTestLog.log(_PlanLine#(`RUN`,st,2))}
       .do {ts.add(CheckInfos#(c,st))}
       .return {self};
+
     .disabledCheck c -> Block#(
-      UnitTestLog.log(_PlanLine#(`DISABLED`,c._fetchTrace { try.currentStackTrace },1)),
+      UnitTestLog.log(_PlanLine#(`DISABLED`,c._fetchTrace {try.currentStackTrace},1)),
       self);
+
+    .disabledCheckWithTry c -> Block#(
+      UnitTestLog.log(_PlanLine#(`DISABLED`,c._fetchTrace {try.currentStackTrace},1)),
+      self);
+
     .disabledTest _ -> Block#(
       UnitTestLog.log(_PlanLine#(`DISABLED`,try.currentStackTrace,1)),
       self);
+
     mut .run: Void ->
-      ts.flow.forEach { ci->UnitTestLog.log(_AddToLog#(ci.stackTrace,try# {ci.check#},2)) }
+      ts.flow.forEach { ci->
+        UnitTestLog.log(_AddToLog#(ci.stackTrace,try#(try.iso.self,{ t -> ci.check#t }),2))
+      }
     }
   }
 
-Check: { #: Void; ._fetchTrace(f: mut MF[List[StackFrame]]): List[StackFrame]->f#;}
+Check: { #: Void; ._fetchTrace(f: mut MF[List[StackFrame]]): List[StackFrame]->f#; }
+CheckCapTry: { #(try: mut CapTry): Void; ._fetchTrace(f: mut MF[List[StackFrame]]): List[StackFrame]->f#; }
 
-CheckInfos: F[Check,List[StackFrame],CheckInfo] {c,st->CheckInfo: {
-  .check: Check->c; .stackTrace: List[StackFrame]->st;}}
+CheckInfos: F[CheckCapTry,List[StackFrame],CheckInfo] {c,st->CheckInfo: {
+  .check: CheckCapTry->c; .stackTrace: List[StackFrame]->st;}}
 
 Test: { .tests(t: mut TestCap): mut TestCap; }
 
@@ -104,7 +124,10 @@ _FailureMsg: {
 _FailureExpected: {
   #(i: Info): Str ->
     i.map.opt(`expected`).match {
-      .some e -> `<expected>` + (_XmlEscape#(e.msg)) + `</expected>`;
+      .some e -> Block#(
+        Debug#(`Expected: `+(e.msg)),
+        `<expected>` + (_XmlEscape#(e.msg)) + `</expected>`
+        );
       .empty -> ``;
     };
   }
@@ -112,7 +135,9 @@ _FailureExpected: {
 _FailureActual: {
   #(i: Info): Str ->
     i.map.opt(`actual`).match {
-      .some e -> `<actual>` + (_XmlEscape#(e.msg)) + `</actual>`;
+      .some e -> Block#(
+        Debug#(`Actual: `+(e.msg)),
+        `<actual>` + (_XmlEscape#(e.msg)) + `</actual>`);
       .empty -> ``;
     };
   }

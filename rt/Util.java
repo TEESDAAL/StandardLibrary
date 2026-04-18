@@ -54,8 +54,11 @@ public class Util{
   }
   public static Opt$1 optEmpty(){ return Opt$1.instance; }
   public static Object optSome(Object x){ return Opts$0.instance.imm$$hash$1(x); }
-  public static Error err(String msg){
+  public static Error nonDetErr(String msg){
     return (Error)Error$0.instance.imm$nonDeterministic$1(new Str$0Instance(msg));
+    }
+  public static Error err(String msg){//TODO: eventually all calls to .err will need to take a decision det/non det.
+    return detErr(msg);
     }
   public static Error detErr(String msg) {
     var info = base.Infos$0.instance.imm$msg$1(new Str$0Instance(msg));

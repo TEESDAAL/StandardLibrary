@@ -80,6 +80,8 @@ Str: Sealed,DataType[Str,Str],JoinStr[Str],_AssertImmEmpty,_AssertImmSize {
   .startsWith(Str): Bool;            /// this string starts with the other string
   .lower: Str;                      /// this string but all lowercase
   .upper: Str;                      /// this string but all uppercase
+  .u : UStr;                        /// this string, but as a Unicode string
+  .u(values: Str) : UStr;           /// equivalent to this.u.u values
   }
 
 StrProcs: {
