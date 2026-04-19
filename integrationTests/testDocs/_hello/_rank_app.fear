@@ -2,6 +2,16 @@ use base.UnitTests as UnitTests;
 use base.Void as Voider;
 use base.Str as Stringer;
 
+Base:{
+  .a:Base;
+  .b:Base;
+  .c:Base;
+  .d:Base;
+  }
+Left:Base{   .b:Base;  .c:Base; .d:Base;}
+Right:Base{   .b:Base;  .c:Base;}
+Union:Left,Right{  .b:Base; }
+
 ///Example documentation for 'A'
 A:{
   .m:Voider->Voider;///Example documentation for 'A.m'
