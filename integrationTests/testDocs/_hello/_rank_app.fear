@@ -1,0 +1,125 @@
+use base.UnitTests as UnitTests;
+use base.Void as Voider;
+use base.Str as Stringer;
+
+///Example documentation for 'A'
+A:{
+  .m:Voider->Voider;///Example documentation for 'A.m'
+}
+
+///This local type intentionally shadows base.Void.
+///Therefore signatures using the alias Voider should still print base.Void, not Void.
+Void:{}
+
+///Parent has docs and methods that children can inherit or override.
+Parent:{
+  ///Doc for Parent.alpha
+  .alpha:Voider->Voider;
+
+  .beta:Voider->Voider;///Doc for Parent.beta
+
+  ///Doc for Parent.same
+  .same:Voider->Voider;
+
+  ///Doc for Parent.makeA
+  .makeA:A->A{'x .m->x.m;};
+}
+
+///Child inherits alpha, beta, and makeA, but overrides same.
+Child:Parent{
+  ///Doc for Child.same
+  .same:Voider->Voider;
+}
+
+///MultiChild checks clickable Extends with more than one supertype.
+MultiChild:Child,A{
+  ///Doc for MultiChild.m
+  .m:Voider->Voider;
+
+  ///Doc for MultiChild.local
+  .local:Voider->Voider;
+}
+
+///This type exists to check base-name shortening in signatures.
+NameShortening:{
+  ///Should print base.Void because local Void shadows it.
+  .v:Voider;
+
+  ///Should print List, Str, Nat if the hardcoded base map applies.
+  .list:base.List[base.Str];
+
+  ///Should print Map, Str, Nat if the hardcoded base map applies.
+  .map:base.Map[base.Str,base.Nat];
+
+  ///Should print F and Bool without base.
+  .f:base.F[base.Bool,base.Bool];
+
+  ///Should print MF and Int without base.
+  .mf:base.MF[base.Int];
+
+  ///Should print Num and UStr without base.
+  .numbers:base.Map[base.Num,base.UStr];
+}
+
+/*
+///This block-comment doc must not attach to Noise.
+*/
+Noise:{
+  ///Real doc for Noise.real
+  .real:Voider->Voider;
+}
+
+///This tests anonymous literals in method bodies.
+AnonTests:{
+  ///The returned anonymous A has no docs and should not appear as a type.
+  .hiddenAnon:A->
+    A{'x .m->x.m;};
+
+  ///The returned anonymous A has a documented method and should appear.
+  .anonMethodDoc:A->
+    A{'x .m->///Doc for the anonymous A.m method
+      x.m;};
+
+  ///The returned anonymous A has a doc on the literal itself and should appear.
+  .anonTypeDoc:A->
+    A{///Doc for the anonymous A literal itself
+      'x .m->x.m;};
+
+  ///This intentionally documents the anonymous object, not the method.
+  .inlineBraceDoc:A->A{///Doc after { attaches to the anonymous literal
+    'x .m->x.m;};
+
+  ///This is the preferred way to document the method when returning an object literal.
+  .methodDocBeforeBrace:A->
+    A{'x .m->x.m;};
+}
+
+///This checks the line-start method doc case.
+LineBeforeDocs:{
+  ///Doc for before1
+  .before1:Voider->Voider;
+
+  ///Doc for before2 line one
+  ///Doc for before2 line two
+  .before2:Voider->Voider;
+
+  .sameLine:Voider->Voider;///Doc for sameLine
+}
+
+///This tests same-line body docs, like base.Main methods.
+MainLike:base.Main{sys->base.Block#(///Doc for MainLike.main
+  base.Debug#("Hello world"),
+  base.Debug#("/// this string must not become documentation"));
+  .aa:A->///Doc for MainLike.aa
+    A{'x .m->///Doc for anon .m inside MainLike.aa
+      x.m;};
+  }
+
+///This tests a normal type with no docs on some methods.
+///Undocumented named types and named methods should still appear.
+UndocumentedNamed:{
+  .noDoc:Voider->Voider;
+
+  ///Doc for hasDoc
+  .hasDoc:Voider->Voider;
+}
