@@ -3,6 +3,7 @@ package base;
 import static base.Util.*;
 import java.util.Arrays;
 import java.util.List;
+import java.util.ArrayList;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
@@ -10,7 +11,6 @@ public record UStr$0Instance(int[] val) implements UStr$0{
   private static final Pattern uCodeText= Pattern.compile("[0-9A-F]{1,6}(?: [0-9A-F]{1,6})*");
   private static final int[] empty= {};
   private static final int[] nl= {'\n'};
-  private static final int[] tick= {'`'};
   private static final int[] quote= {'"'};
   private static final String strChars=
     "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ+-*/=<>,.;:()[]{}`'\"!?@#$%^&_|~\\ \n";
@@ -30,15 +30,11 @@ public record UStr$0Instance(int[] val) implements UStr$0{
     return new UStr$0Instance(cat(val,nl,((UStr$0Instance)p0).val));
   }
   @Override public Object imm$$xor$1(Object p0){
-    return new UStr$0Instance(cat(val,tick,((UStr$0Instance)p0).val));
-  }
-  @Override public Object imm$$xor_xor$1(Object p0){
     return new UStr$0Instance(cat(val,quote,((UStr$0Instance)p0).val));
   }
 
   @Override public Object imm$$or$0(){ return new UStr$0Instance(cat(val,nl)); }
-  @Override public Object imm$$xor$0(){ return new UStr$0Instance(cat(val,tick)); }
-  @Override public Object imm$$xor_xor$0(){ return new UStr$0Instance(cat(val,quote)); }
+  @Override public Object imm$$xor$0(){ return new UStr$0Instance(cat(val,quote)); }
 
   @Override public Object imm$isEmpty$0(){ return bool(val.length == 0); }
   @Override public Object imm$size$0(){ return Nat$0Instance.instance(val.length); }
@@ -147,43 +143,43 @@ public record UStr$0Instance(int[] val) implements UStr$0{
     return res;
   }
   private static String escapeText(int[] cps){
-    if (cps.length == 0){ return "``.u"; }
-    if (isStr(cps)){ return safeChunk(cps)+".u"; }
+    if (cps.length == 0){ return "\"\".u"; }
+    var terms= new ArrayList<String>();
+    for(int i= 0; i < cps.length; ){
+      boolean safe= isStr(cps[i]);
+      int j= i + 1;
+      while (j < cps.length && isStr(cps[j]) == safe){ j++; }
+      var part= Arrays.copyOfRange(cps,i,j);
+      terms.add(safe ? strTerm(part) : uCodeTerm(part));
+      i= j;
+    }
+    return joinTerms(terms);
+  }
+  private static String strTerm(int[] cps){
+    return receiver(strExpr(new String(cps,0,cps.length)))+".u";
+  }
+  private static String uCodeTerm(int[] cps){
+    return "\"\".u("+strExpr(strUCode(cps))+")";
+  }
+  private static String joinTerms(List<String> terms){
+    assert !terms.isEmpty();
+    if (terms.size() == 1){ return terms.getFirst(); }
     var res= new StringBuilder();
-    int i= 0;
-    boolean first= true;
-    while(i < cps.length){
-      String term;
-      if (isStr(cps[i])){
-        int j= i + 1;
-        while (j < cps.length && isStr(cps[j])){ j++; }
-        var safe= Arrays.copyOfRange(cps,i,j);
-        term= safeChunk(safe) + ".u";
-        if (j < cps.length){
-          int k= j + 1;
-          while (k < cps.length && !isStr(cps[k])){ k++; }
-          var unsafe= Arrays.copyOfRange(cps,j,k);
-          term += "`"+strUCode(unsafe)+"`";
-          i = k;
-        }
-        else{ i= j; }
-      }
-      else{
-        int j= i + 1;
-        while (j < cps.length && !isStr(cps[j])){ j++; }
-        var unsafe= Arrays.copyOfRange(cps,i,j);
-        term= "``.u`"+strUCode(unsafe)+"`";
-        i= j;
-      }
-      if (first){ res.append(term); first= false; }
-      else{ res.append("+(").append(term).append(")"); }
-      }
+    for(int i= 0; i < terms.size(); i++){
+      if (i != 0){ res.append(" + "); }
+      res.append('(').append(terms.get(i)).append(')');
+    }
     return res.toString();
   }
-
-
-  private static String safeChunk(int[] cps){
-    String s= new String(cps,0,cps.length);
+  private static String receiver(String e){
+    return isOneLiteral(e) ? e : "("+e+")";
+  }
+  private static boolean isOneLiteral(String e){
+    return e.length() >= 2
+      && (e.charAt(0) == '"' || e.charAt(0) == '`')
+      && e.charAt(e.length() - 1) == e.charAt(0);
+  }
+  private static String strExpr(String s){
     return ((Str$0Instance)Str$0Instance.instance(s).imm$escape$0()).val();
   }
 }

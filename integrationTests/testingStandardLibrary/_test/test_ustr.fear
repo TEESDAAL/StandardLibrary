@@ -81,20 +81,16 @@ TestUStr:Test{::
   // ------------------------------------------------------------
 
   .check{(`a`.u|(`b`.u)).scalarHex.assertEq `0061 000A 0062`}
-  .check{(`a`.u^(`b`.u)).scalarHex.assertEq `0061 0060 0062`}
-  .check{(`a`.u^^(`b`.u)).scalarHex.assertEq `0061 0022 0062`}
+  .check{(`a`.u^(`b`.u)).scalarHex.assertEq `0061 0022 0062`}
 
   .check{(`a`.u |).scalarHex.assertEq `0061 000A`}
-  .check{(`a`.u ^).scalarHex.assertEq `0061 0060`}
-  .check{(`a`.u ^^).scalarHex.assertEq `0061 0022`}
+  .check{(`a`.u ^).scalarHex.assertEq `0061 0022`}
 
   .check{(``.u|(`b`.u)).scalarHex.assertEq `000A 0062`}
-  .check{(``.u^(`b`.u)).scalarHex.assertEq `0060 0062`}
-  .check{(``.u^^(`b`.u)).scalarHex.assertEq `0022 0062`}
+  .check{(``.u^(`b`.u)).scalarHex.assertEq `0022 0062`}
 
   .check{(`a`.u|(``.u)).scalarHex.assertEq `0061 000A`}
-  .check{(`a`.u^(``.u)).scalarHex.assertEq `0061 0060`}
-  .check{(`a`.u^^(``.u)).scalarHex.assertEq `0061 0022`}
+  .check{(`a`.u^(``.u)).scalarHex.assertEq `0061 0022`}
 
   // ------------------------------------------------------------
   // isEmpty / size
@@ -207,7 +203,6 @@ TestUStr:Test{::
 
   .check{(`a`.u |).escape.assertEq (`(`^`a`^` | `^ ^ `).u`)}
   .check{(`a`.u ^).escape.assertEq (`(`^`a`^` ^ `^ ^ `).u`)}
-  .check{(`a`.u ^^).escape.assertEq (``^`a"`^`.u`)}
 
   // ------------------------------------------------------------
   // escape, mixed safe/unsafe

@@ -56,41 +56,18 @@ StrSepOps: F[Tests,Tests] {::
   .test(`` ^ `a` .size .assertEq 2)
   .test(`a` ^ `` .size .assertEq 2)
 
-  // nullary ^ appends backtick; "^ ^" is NOT "^^"
   .test(`a` ^ .size .assertEq 2)
   .test(`a` ^ .assertEq (`a` ^ ``))
   .test(`a` ^ ^ `b` .size .assertEq 4)
 
-  // ^^ inserts double quote character between (no space inside the token)
-  .test(`a` ^^ `b` .size .assertEq 3)
-  .test(`a` ^^ `b` ^^ `c` .size .assertEq 5)
-  .test(`` ^^ `a` .size .assertEq 2)
-  .test(`a` ^^ `` .size .assertEq 2)
-
-  // nullary ^^ appends double quote
-  .test(`a` ^^ .size .assertEq 2)
-  .test(`a` ^^ .assertEq (`a` ^^ ``))
-  .test(`a` ^^ ^^ `b` .size .assertEq 4) // (a ^^ ) ^^ b == `a""b`
 
   // ToStr with separators: size checks (a + sep + True)
   .test(`a` | True .size .assertEq 6)
   .test(`a` ^ True .size .assertEq 6)
-  .test(`a` ^^ True .size .assertEq 6)
 
   // empty is never produced by adding a separator
   .test(`` | `` .isEmpty .assertEq False)
   .test(`` ^ `` .isEmpty .assertEq False)
-  .test(`` ^^ `` .isEmpty .assertEq False)
-  }
-
-StrTokenSeparation: F[Tests,Tests] {::
-  // token separation examples (space changes the operator tokenization)
-  .test(`a` ^^ `b` .size .assertEq 3)    // a ^^ b == `a"b`
-  .test(`a` ^ ^ `b` .assertNe (`a` ^^ `b`))
-
-  .test(`x` | .size .assertEq 2)
-  .test(`x` ^ .size .assertEq 2)
-  .test(`x` ^^ .size .assertEq 2)
   }
 
 StrOrder: F[Tests,Tests] {::
@@ -115,7 +92,7 @@ StrOrder: F[Tests,Tests] {::
 
 StrEscape: F[Tests,Tests] {::
   // empty string should escape to the empty literal: ``
-  .test(`` .escape .assertEq (`` ^ ^))
+  .test(`` .escape .assertEq (`""`))
   .test(`` .escape .size .assertEq 2)
 
   // plain literals should escape as a single literal: `...`
@@ -123,10 +100,8 @@ StrEscape: F[Tests,Tests] {::
   .test(`a` .escape .size .assertEq 3)
   .test(`abc` .escape .assertEq (`` ^ `abc` ^))
 
-  // newline/backtick/dquote content can be expressed via operators in code
-  .test(`a` | `b` .escape .assertEq (`(` ^ `a` ^ ` | ` ^ `b` ^ `)`))
-  .test(`a` ^ `b` .escape .assertEq (`(` ^ `a` ^ ` ^ ` ^ `b` ^ `)`))
-  .test(`a` ^^ `b` .escape .assertEq (`` ^ `a"b` ^))
+  .test(`a` | `b` .escape .assertEq (`` ^ `a` ^ ` | ` ^ `b` ^))
+  .test(`a` ^ `b` .escape .assertEq ("`"+`a"b`+"`"))
   }
 
 StrParseInt: F[Tests,Tests] {::

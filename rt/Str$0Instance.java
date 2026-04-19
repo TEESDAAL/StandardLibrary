@@ -5,6 +5,8 @@ import java.math.BigInteger;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 import java.util.List;
+import java.util.ArrayList;
+import java.util.stream.Collectors;
 
 public record Str$0Instance(String val) implements Str$0{
   public static Str$0 instance(String val){ return new Str$0Instance(val); }
@@ -16,21 +18,56 @@ public record Str$0Instance(String val) implements Str$0{
 
   @Override public Object imm$$plus$1(Object p0){ return instance(val+toS(p0)); }
   @Override public Object imm$$or$1(Object p0){ return instance(val+"\n"+toS(p0)); }
-  @Override public Object imm$$xor$1(Object p0){ return instance(val+"`"+toS(p0)); }
-  @Override public Object imm$$xor_xor$1(Object p0){ return instance(val+"\""+toS(p0)); }
-
   @Override public Object imm$$or$0(){ return instance(val+"\n"); }
-  @Override public Object imm$$xor$0(){ return instance(val+"`"); }
-  @Override public Object imm$$xor_xor$0(){ return instance(val+"\""); }
-  
+  @Override public Object imm$$xor$1(Object p0){ return instance(val+"\""+toS(p0)); }
+  @Override public Object imm$$xor$0(){ return instance(val+"\""); }
+
   @Override public Object imm$isEmpty$0(){ return bool(val.isEmpty()); }
   @Override public Object imm$size$0(){ return Nat$0Instance.instance(val.length()); }
   
   @Override public Object imm$escape$0(){
-    var res= "`"+val.replace("`", "` ^ `").replace("\n", "` | `")+"`";
-    if (val.length()+2 != res.length()){ res= "("+res+")"; }
-    return instance(res);
+    return instance(strExpr(val));
   }
+
+  private static String strExpr(String s){
+    var parts= s.split("\n",-1);
+    var res= new StringBuilder(lineExpr(parts[0]));
+    for (var i= 1; i < parts.length; i++){
+      if (parts[i].isEmpty()){
+        if (res.charAt(res.length()-1) == '|'){ res.append(' '); }
+        res.append('|');
+        continue;
+      }
+      res.append(" | ").append(lineExpr(parts[i]));
+    }
+    return res.toString();
+  }
+
+  private static String lineExpr(String s){
+    if (s.indexOf('"') < 0){ return "\""+s+"\""; }
+    if (s.indexOf('`') < 0){ return "`"+s+"`"; }
+    return splitOnDelimiterChanges(s).stream()
+      .map(Str$0Instance::lineExpr)
+      .collect(Collectors.joining("+"));
+  }
+
+  private static List<String> splitOnDelimiterChanges(String s){
+    var res= new ArrayList<String>();
+    var start= 0;
+    char seen= 0;
+    for (var i= 0; i < s.length(); i++){
+      var c= s.charAt(i);
+      if (c != '"' && c != '`'){ continue; }
+      if (seen == 0){ seen = c; continue; }
+      if (seen == c){ continue; }
+      res.add(s.substring(start,i));
+      start = i;
+      seen = c;
+    }
+    if (start < s.length()){ res.add(s.substring(start)); }
+    return res;
+  }
+
   @Override public Object imm$u$1(Object p0){
     return UStr$0Instance.instance(val).imm$u$1(p0);
   }
@@ -53,12 +90,12 @@ public record Str$0Instance(String val) implements Str$0{
     try{ return optSome(Int$0Instance.instance(Long.parseLong(no_(val)))); }
     catch(NumberFormatException e){ return optEmpty(); }
   }
-  @Override public Object imm$indexOf$1(Object p1){//: Opt[Nat];          /// index of the first occourence of the parameter. Returns 0 if the parameter is ``
+  @Override public Object imm$indexOf$1(Object p1){
     String text= ((Str$0Instance)p1).val();
     var res= val.indexOf(text);
     return res==-1? optEmpty(): optSome(Nat$0Instance.instance(res));
   }
-  @Override public Object imm$sub$2(Object p1, Object p2){//: Str;    /// substring [from,to); throws on from/to out of the string boundaries
+  @Override public Object imm$sub$2(Object p1, Object p2){
     long from= ((Nat$0Instance)p1).val();
     long to= ((Nat$0Instance)p2).val();
     int size= val.length();
@@ -118,7 +155,7 @@ public record Str$0Instance(String val) implements Str$0{
       int slash= t.indexOf('/');
       Dec a= Dec.parse(t.substring(0,slash));
       Dec b= Dec.parse(t.substring(slash+1));
-      if (b.u.signum() == 0){ return optEmpty(); } // denom == 0
+      if (b.u.signum() == 0){ return optEmpty(); }
       BigInteger num= a.u.multiply(BigInteger.TEN.pow(b.scale));
       BigInteger den= b.u.multiply(BigInteger.TEN.pow(a.scale));
       if (neg){ num= num.negate(); }
@@ -139,11 +176,10 @@ public record Str$0Instance(String val) implements Str$0{
       String x= no_(val);
       double d= Double.parseDouble(x);
       if (!Double.isFinite(d)){ return optEmpty(); }
-      // reject "would-round" decimals: input must equal the exact value of the parsed double bits
       if (new BigDecimal(x).compareTo(new BigDecimal(d)) != 0){ return optEmpty(); }
-      if (d == 0.0d){ d= 0.0d; } // canonicalize -0.0 -> +0.0 for normal Float
+      if (d == 0.0d){ d= 0.0d; }
       return optSome(Float$0Instance.instance(d));
-      }
+    }
     catch(NumberFormatException e){ return optEmpty(); }
   }
   @Override public Object read$hash$0(){

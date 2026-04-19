@@ -20,7 +20,7 @@
 ///And `` myUString.u`FB03 0066 0066 0069`+(`Hello`.u) `` would append "ffiffiHello" to a pre-existing Unicode string.
 ///Since writing `` `Hello`.u.u`...` `` is clearly redundant, Str also supports `.u` with one argument, that first converts to unicode and then append the new sequence.
 ///
-///This type does support concatenation (+,|,^,^^) as for Str, but this works by simply apppending scalar values one after the other in the sequence.
+///This type does support concatenation (+,|,^) as for Str, but this works by simply apppending scalar values one after the other in the sequence.
 ///This may not be desirable. Consider ligatures (where scalar values could/should/may be merged)
 ///and grapheme clusters, where simply sequencing scalar values may accidentally create new undesired grapheme clusters.
 ///More complex methods, like .startsWith(prefix) and .replace(target,dest) are not offered exactly for those reasons.
@@ -30,12 +30,10 @@
 UStr: Sealed,ToUStr,ToImm[UStr],JoinStr[UStr] {
   + (x: read UStr): UStr;           /// string concatenation; throws on result size > maxInt
   | (x: read UStr): UStr;           /// like + but inserts a newline between the two strings
-  ^ (x: read UStr): UStr;           /// like + but inserts a backtick between the two strings
-  ^^(x: read UStr): UStr;           /// like + but inserts a double quote between the two strings
+  ^ (x: read UStr): UStr;           /// like + but inserts a double quote between the two strings
 
   | : UStr;                         /// appends a newline
-  ^ : UStr;                         /// appends a backtick
-  ^^ : UStr;                        /// appends a double quote
+  ^  : UStr;                        /// appends a double quote
   .isEmpty: Bool;                   /// true iff size == 0
   .size: Nat;                       /// the amount of unicode scalar values in this string
   .escape: Str;                     /// returns a string representing valid Fearless code which yields a string with the same representation of this string when evaluated (will use .u)
@@ -50,16 +48,3 @@ UStr: Sealed,ToUStr,ToImm[UStr],JoinStr[UStr] {
   }
 
 ToUStr: { read .uStr: UStr }
-
-UStrProcs: {
-  imm .add(a:UStr,b:ToUStr): mut UStrProc -> this.add(a,b);
-  }
-
-UStrProc: {
-  mut .add(a:UStr,b:ToUStr): mut UStrProc -> this.add(a,b);
-  mut .build(a:UStr): UStr-> a;
-  }
-
-U: {
-  +(Str):UStr
-  }
