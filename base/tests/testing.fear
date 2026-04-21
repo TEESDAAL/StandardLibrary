@@ -71,7 +71,7 @@ _TestCaps: {
       self);
 
     mut .run: Void ->
-      ts.flow.forEach { ci->
+      ts.seqFlow.forEach { ci->
         UnitTestLog.log(_AddToLog#(ci.stackTrace,try#(try.iso.self,{ t -> ci.check#t }),2))
       }
     }
