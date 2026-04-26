@@ -1,0 +1,10 @@
+TxtFile:{
+  .path: Str;
+  .diskPath: Str;
+  .zipSteps: Str;
+  .zipEntry: Str;
+  .strUtf8: Str -> _TxtRead.cacheStrUtf8(this.path,this.diskPath,this.zipSteps,this.zipEntry);
+}
+_TxtRead:{
+  .cacheStrUtf8(path: Str,diskPath: Str,zipSteps: Str,zipEntry: Str): Str -> Magic!;
+}

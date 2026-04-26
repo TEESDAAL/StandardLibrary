@@ -80,6 +80,7 @@ Str: Sealed,DataType[Str,Str],JoinStr[Str],_AssertImmEmpty,_AssertImmSize {
   .upper: Str;                      /// this string but all uppercase
   .u : UStr;                        /// this string, but as a Unicode string
   .u(values: Str) : UStr;           /// equivalent to this.u.u values
+  .norm: Norm[Str];
   }
 
 OrderByCaseInsensitive: OrderBy[Str] { s0,s1,m -> s0.imm.lower <=> (s1.imm.lower, m) }

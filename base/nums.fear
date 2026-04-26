@@ -27,6 +27,7 @@ Num: Sealed,DataType[Num,Num],SumNumber[Num],_AssertApprox[Num] {
   .close->::; .close->this;         /// fixpoint type closed
   .sumNumber xs ->                  /// summing all numbers starting from this
     xs.fold( {this}, {acc,e -> acc + e} );
+  .norm: Norm[Num];
   }
 
 /// Float: 64 bits IEEE values. Note: ==/order instead follow the usual rules:
@@ -121,6 +122,7 @@ Int: Sealed,DataType[Int,Int],SumNumber[Int] {
   .close -> ::; .close -> this;             /// fixpoint type closed
   .sumNumber xs ->                          /// summing all numbers starting from this
     xs.fold( {this}, {acc,e -> acc + e} );
+  .norm: Norm[Int];
   }
 
 // Nat: 64-bit unsigned (bitty, index-flavored). Ordering is UNSIGNED.
@@ -165,6 +167,7 @@ Nat: Sealed,DataType[Nat,Nat],SumNumber[Nat] {
   .sumNumber xs ->                        /// summing all numbers starting from this
     xs.fold( {this}, {acc,e -> acc + e} );
   .hashWith(other: Nat): Nat -> this.aluMulWrap(31).aluAddWrap(other);
+  .norm: Norm[Nat];
   }
 
 /// Byte: 8-bit unsigned [0,255]. Ordering is UNSIGNED.
@@ -200,4 +203,5 @@ Byte: Sealed,DataType[Byte,Byte],SumNumber[Byte] {
   .close->::; .close->this;                    /// fixpoint type closed
   .sumNumber xs ->                             /// summing all numbers starting from this
     xs.fold( {this}, {acc,e -> acc + e} );
+  .norm: Norm[Byte];
   }

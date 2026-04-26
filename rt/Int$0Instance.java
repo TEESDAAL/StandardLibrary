@@ -213,4 +213,6 @@ public record Int$0Instance(long val) implements Int$0{
             LongStream.rangeClosed(start, end).mapToObj(Int$0Instance::instance)
     );
   }
+  @Override public Object imm$norm$0(){ return myCache.computeIfAbsent(val,_->new Norm(this)); }
+  static java.util.concurrent.ConcurrentHashMap<Object,Object> myCache= new java.util.concurrent.ConcurrentHashMap<>(); 
 }

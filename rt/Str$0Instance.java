@@ -196,6 +196,7 @@ public record Str$0Instance(String val) implements Str$0{
   }
   @Override public Object imm$lower$0(){ return new Str$0Instance(val.toLowerCase()); }
   @Override public Object imm$upper$0(){ return new Str$0Instance(val.toUpperCase()); }
-
+  @Override public Object imm$norm$0(){ return myCache.computeIfAbsent(val,_->new Norm(this)); }
+  static java.util.concurrent.ConcurrentHashMap<Object,Object> myCache= new java.util.concurrent.ConcurrentHashMap<>(); 
   static String no_(String s){ return s.indexOf('_')==-1 ? s : s.replace("_",""); }
 }

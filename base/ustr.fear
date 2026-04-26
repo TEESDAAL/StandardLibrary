@@ -44,7 +44,8 @@ UStr: Sealed,ToUStr,ToImm[UStr],JoinStr[UStr] {
   .flow: mut Flow[Nat];             /// return a flow of scalar values.
   .equalRepr(other: UStr): Bool;    /// checks if the two unicode strings have the same exact scalar value representation.
   .hashRepr: Nat;                   /// hashes all the scalar values together.
-  .u(values: Str): UStr             /// concatenate those scalar values to the end of this string. Example parameter could be `FB03 0066 0066 0069`; throws on malformed input.
+  .u(values: Str): UStr;            /// concatenate those scalar values to the end of this string. Example parameter could be `FB03 0066 0066 0069`; throws on malformed input.
+  .norm: Norm[UStr];
   }
 
 ToUStr: { read .uStr: UStr }

@@ -234,4 +234,6 @@ public record Num$0Instance(BigInteger numerator, BigInteger denominator) implem
   }
 
   @Override public Object read$cmp$3(Object p0, Object p1, Object p2){ return ord(cmp(num(p0),num(p1)),p2); }
+  @Override public Object imm$norm$0(){ return myCache.computeIfAbsent(this,_->new Norm(this)); }
+  static java.util.concurrent.ConcurrentHashMap<Object,Object> myCache= new java.util.concurrent.ConcurrentHashMap<>(); 
 }

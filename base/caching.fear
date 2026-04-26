@@ -1,0 +1,67 @@
+CaptureFree: {}//special type rule will make sure zero captures
+Norm[T]:Sealed{ .get: T; }//this means only base can make norms, so we control production of Norms
+CacheF[R]: CaptureFree{//Any instantiated type implementing CacheF will be a singleton (becase of NonCaputure)
+  #: R;
+  ._get: R -> Magic!//this.myCache.get()
+  //via magic it defines
+  //Cache0<Object> myCache= new Cache0<>(new AtomicReference<Entry<Object>>(),1,this);
+  }
+CacheF[A,R]: CaptureFree{//Any instantiated type implementing CacheF will be a singleton (becase of NonCaputure)
+  #(Norm[A]): R;
+  ._get(a: Norm[A]): R -> Magic!//this.myCache.get(a)
+  //via magic it defines
+  //Cache1<Object,Object> myCache= new Cache1<>(new ConcurrentHashMap<Norm<Object>,Entry<Object>>(),1,this);
+  }
+CacheF[A,B,R]: CaptureFree{//Any instantiated type implementing CacheF will be a singleton (becase of NonCaputure)
+  #(Norm[A], Norm[B]): R;
+  ._get(a: Norm[A], b: Norm[B]): R -> Magic!//this.myCache.get(a,b)
+  //via magic it defines
+  //Cache2<Object,Object,Object> myCache= new Cache2<>(new ConcurrentHashMap<Cache2.Key<Object,Object>,Entry<Object>>(),1,this);
+  }
+CacheMemo[R]: CaptureFree{//Any instantiated type implementing CacheF will be a singleton (becase of NonCaputure)
+  #: R;
+  ._get: Norm[R] -> Magic!//this.myCache.get(a)
+  //via magic it defines
+  //Cache0<Object> myCache= new Cache0<>(new AtomicReference<Entry<Object>>(),1,()->new Norm<R>(this.imm$$hash$0()));
+  }
+CacheMemo[A,R]: CaptureFree{//Any instantiated type implementing CacheF will be a singleton (becase of NonCaputure)
+  #(Norm[A]): R;
+  ._get(a: Norm[A]): Norm[R] -> Magic!//this.myCache.get(a)
+  //via magic it defines
+  //Cache1<Object,Object> myCache= new Cache1<>(new ConcurrentHashMap<Norm<Object>,Entry<Object>>(),1,(p1)->new Norm<R>(this.imm$$hash$0(p1));
+  }
+CacheMemo[A,B,R]: CaptureFree{//Any instantiated type implementing CacheF will be a singleton (becase of NonCaputure)
+  #(Norm[A], Norm[B]): R;
+  ._get(a: Norm[A], b: Norm[B]): Norm[R] -> Magic!//this.myCache.get(a,b)
+  //via magic it defines
+  //Cache2<Object,Object,Object> myCache= new Cache2<>(new ConcurrentHashMap<Cache2.Key<Object,Object>,Entry<Object>>(),1,(p1,p2)->new Norm<R>(this.imm$$hash$0(p1,p2));  
+  }
+Cache: {
+  #[R](f: CacheF[R]): R -> f._get;
+  #[A,R](a: Norm[A], f: CacheF[A,R]): R -> f._get(a);
+  #[A,B,R](a: Norm[A], b: Norm[B], f: CacheF[A,B,R]): R -> f._get(a,b);
+  .norm[R](f: CacheMemo[R]): Norm[R] -> f._get;
+  .norm[A,R](a: Norm[A], f: CacheMemo[A,R]): Norm[R] -> f._get(a);
+  .norm[A,B,R](a:Norm[A], b: Norm[B], f: CacheMemo[A,B,R]): Norm[R] -> f._get(a,b);
+  }
+
+
+
+/*
+- NMap[Norm[K]]
+
+
+NonCaptureRF[T,R]:NonCapture[NonCaptureRF[T,R]]{//repr never swap its (only) inner field, inited as iso
+  #(read T):R;
+  _get(rt: mut Repr[T]):R->Magic!//consults static ReprAux.IdentityHashmap<rt,~Cache1(this.norm)> and uses #(rt inner field)
+  }
+Repr.mutate also calls _FlushRepr after executing the function mutating the inner field.
+_FlushRepr:{#[T](Repr[T]):Void->Magic!}//flushes ReprAux.IdentityHashmap.get(repr)
+.cacheLook(f:NonCaptureRF[T,R]):R->f._get(this);
+NonCaptureRF[T,A,R]:NonCapture[NonCaptureRF[T,A,R]]{
+  #(read T,Norm[A]):R;
+  _get(rt: mut Repr[T],a:Norm[A]):R->Magic!//consults static ReprAux.IdentityHashmap<rt,~Cache2(this.norm,a)> and uses #(rt inner field,a)
+  }//for repr caches, the repr identity works as the key in the identity hash map
+.cacheLook(a:Norm[A], f:NonCaptureRF[T,R]):R->f._get(this,a);
+
+*/

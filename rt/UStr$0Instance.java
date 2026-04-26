@@ -68,6 +68,9 @@ public record UStr$0Instance(int[] val) implements UStr$0{
     List<UStr$0Instance> parts= (List<UStr$0Instance>)(Object)s.toList();
     return new UStr$0Instance(join(val,parts));
   }
+  @Override public Object imm$norm$0(){ return myCache.computeIfAbsent(val,_->new Norm(this)); }
+  static java.util.concurrent.ConcurrentHashMap<Object,Object> myCache= new java.util.concurrent.ConcurrentHashMap<>(); 
+
   private static int[] cat(int[] a,int[] b){
     int size= Math.addExact(a.length,b.length);
     var res= new int[size];

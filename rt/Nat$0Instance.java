@@ -294,4 +294,6 @@ public record Nat$0Instance(long val) implements Nat$0 {
             LongStream.rangeClosed(Long.MIN_VALUE, until)
     ).mapToObj(Nat$0Instance::new));
   }
+  @Override public Object imm$norm$0(){ return myCache.computeIfAbsent(val,_->new Norm(this)); }
+  static java.util.concurrent.ConcurrentHashMap<Object,Object> myCache= new java.util.concurrent.ConcurrentHashMap<>();
 }
