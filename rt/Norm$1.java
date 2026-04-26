@@ -69,13 +69,15 @@ record Cache0(AtomicReference<Entry> entry, long time, CacheF$1 f) implements Ca
 record Cache1(ConcurrentHashMap<Object,Entry> map, long time, CacheF$2 f) implements Cache{
   public Cache1(long time,CacheF$2 f){this(new ConcurrentHashMap<Object,Entry>(),time,f);}
   public Cache1(long time,CacheMemo$2 f){ this(new ConcurrentHashMap<Object,Entry>(),time, new CacheF$2(){public Object imm$$hash$1(Object p0){ return new Norm(f.imm$$hash$1(p0));}});}
+  public Cache1(long time,Repr$1 repr){ this(new ConcurrentHashMap<Object,Entry>(),time, new CacheF$2(){public Object imm$$hash$1(Object f){ return ((CacheReprF$2)f).imm$$hash$1(repr.read$look$1(new F$2(){public Object read$$hash$1(Object x){ return x;}}));}});}
   public Entry former(Object k, Entry candidate){ return map.putIfAbsent(k,candidate); }
-  public Object get(Norm$1 a){ return get(a,()->f.imm$$hash$1(a),time); }
+  public Object get(Object a){ return get(a,()->f.imm$$hash$1(a),time); }
 }
 record Cache2(ConcurrentHashMap<Object,Entry> map, long time,CacheF$3 f) implements Cache{
   public Cache2(long time,CacheF$3 f){this(new ConcurrentHashMap<Object,Entry>(),time,f);}
   public Cache2(long time,CacheMemo$3 f){ this(new ConcurrentHashMap<Object,Entry>(),time, new CacheF$3(){public Object imm$$hash$2(Object p0,Object p1){ return new Norm(f.imm$$hash$2(p0,p1));}});}
-  public record Key(Norm$1 a,Norm$1 b){}
+  public Cache2(long time,Repr$1 repr){ this(new ConcurrentHashMap<Object,Entry>(),time, new CacheF$3(){public Object imm$$hash$2(Object f,Object n){ return ((CacheReprF$3)f).imm$$hash$2(repr.read$look$1(new F$2(){public Object read$$hash$1(Object x){ return x;}}),n);}});}
+  public record Key(Object a, Object b){}
   public Entry former(Object k, Entry candidate){ return map.putIfAbsent(k,candidate); }
-  public Object get(Norm$1 a, Norm$1 b){ return get(new Key(a,b),()->f.imm$$hash$2(a,b),time); }
+  public Object get(Object a, Object b){ return get(new Key(a,b),()->f.imm$$hash$2(a,b),time); }
 }

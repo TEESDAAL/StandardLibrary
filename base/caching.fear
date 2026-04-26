@@ -45,8 +45,23 @@ Cache: {
   .norm[A,B,R](a:Norm[A], b: Norm[B], f: CacheMemo[A,B,R]): Norm[R] -> f._get(a,b);
   }
 
+CacheReprF[A,R]: CaptureFree{
+  #(read A): R;
+  ._get(read Repr[A]): R -> Magic!//CacheReprF$2.myCache.computeIfAbsent(p0,v->new Cache1(1,v)).get(this);
+  //via magic it defines in CacheReprF$2
+  //static java.util.concurrent.ConcurrentHashMap<Repr$1, Cache1> myCache= new java.util.concurrent.ConcurrentHashMap<>();
+  }
+CacheReprF[A,B,R]: CaptureFree{
+  #(read A, Norm[B]): R;
+  ._get(read Repr[A], Norm[B]): R -> Magic!//CacheReprF$3.myCache.computeIfAbsent(p0,v->new Cache2(1,v)).get(this,p2);
+  //via magic it defines in CacheReprF$2
+  //static java.util.concurrent.ConcurrentHashMap<Repr$1, Cache2> myCache= new java.util.concurrent.ConcurrentHashMap<>();
+  }
 
+_ListNorm:{#[T:*,R](List[T],mut MF[T,Norm[R]]): Norm[List[Norm[R]]]->Magic!}
 
+_ReprCacheFlush:{#[T](mut Repr[T]):Void->Magic!}
+//Move the specific thing from message to core to avoid warnings
 /*
 - NMap[Norm[K]]
 

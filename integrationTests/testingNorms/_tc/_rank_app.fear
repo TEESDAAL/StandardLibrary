@@ -1,5 +1,6 @@
 use base.Main as Main;
-use base.Lists as L;
+use base.Lists as Lists;
+use base.List as List;
 use base.Error as Error;
 use base.Void as Void;
 use base.Norm as Norm;
@@ -9,6 +10,9 @@ use base.Debug as Debug;
 use base.Nat as Nat;
 use base.Str as Str;
 use base.Info as Info;
+use base.Repr as Repr;
+use base.Var as Var;
+use base.Vars as Vars;
 
 CacheSum:{ #(a:Nat,b:Nat):Nat->Cache#(a.norm,b.norm,{
   a',b'->Block#(Debug#("Summing "+(a'.get)+" and "+(b'.get)),a'.get + (b'.get))
@@ -22,6 +26,38 @@ UseInfo:{ #(i:Norm[Info]):Str->Cache#(i,{
   i'->Block#(Debug#("OutInfo "+(i'.get)),i'.get.str)
   })}
 
+NormL:{#(ns:List[Nat]):Norm[List[Norm[Nat]]]->ns.norm{::.norm}}
+SumAll:{#(ns:Norm[List[Norm[Nat]]]):Nat->Cache#(ns,{::.get.flow.map{::.get}.sum 0})}
+HelloNormList:Main{s->Block#
+  .let nl1={NormL#(Lists#(1,2,3))}
+  .do{Debug#(SumAll#nl1)}
+  .done
+}
+
+ReprStr:{#(r: mut Repr[Var[Nat]]):Str->r.cachableLook{n->Block#(
+  Debug#("InReprStr"+(n.get)),
+  "!"+(n.get.str)+"!"
+  )}}
+
+ReprStr2:{#(r: mut Repr[Var[Nat]], i: Norm[Nat]):Str->r.cachableLook(i,{n,i'->Block#(
+  Debug#("InReprStr2"+(n.get)),
+  "!"+(n.get.str)+" - "+(i'.get.str)+"!"
+  )}
+  )}
+
+
+HelloRepr:Main{s->Block#
+  .repr x={ Vars#10; .invariant->{::.get > 5} }
+  .do{ Debug#(ReprStr#x) }
+  .do{ x.mutate{v->v.set(20)}}
+  .do{ Debug#(ReprStr#x) }
+  .do{ Debug#(ReprStr2#(x,10.norm))}
+  .do{ Debug#(ReprStr2#(x,10.norm))}
+  .do{ x.mutate{v->v.set(30)}}
+  .do{ Debug#(ReprStr2#(x,10.norm))}
+  .do{ Debug#(ReprStr#x) }
+  .done
+  }
 Hello2:Main{s->Block#
   .let[Norm[Info]] i1= {CacheInfo#("HelloStringInfo".norm)}
   .let[Norm[Info]] i2= {CacheInfo#("AnotherInfo".norm)}
