@@ -7,7 +7,7 @@ public interface CacheMemo$3 extends base.CaptureFree$0{
     var this$= this;
     var a$= (base.Norm$1)p0;
     var b$= (base.Norm$1)p1;
-    return base.Magic$0.instance.imm$$bang$0(
-);
+    return CacheMemo$3.myCache.computeIfAbsent(this,v->new Cache2(1,v)).get(a$,b$);
   }
+  java.util.concurrent.ConcurrentHashMap<CacheMemo$3, Cache2> myCache= new java.util.concurrent.ConcurrentHashMap<>();
 }

@@ -7,11 +7,34 @@ use base.Cache as Cache;
 use base.Block as Block;
 use base.Debug as Debug;
 use base.Nat as Nat;
-
+use base.Str as Str;
+use base.Info as Info;
 
 CacheSum:{ #(a:Nat,b:Nat):Nat->Cache#(a.norm,b.norm,{
   a',b'->Block#(Debug#("Summing "+(a'.get)+" and "+(b'.get)),a'.get + (b'.get))
   })}
+
+CacheInfo:{ #(str:Norm[Str]):Norm[Info]->Cache.norm(str,{
+  s->Block#(Debug#("ToInfo "+(s.get)),s.get.info)
+  })}
+
+UseInfo:{ #(i:Norm[Info]):Str->Cache#(i,{
+  i'->Block#(Debug#("OutInfo "+(i'.get)),i'.get.str)
+  })}
+
+Hello2:Main{s->Block#
+  .let[Norm[Info]] i1= {CacheInfo#("HelloStringInfo".norm)}
+  .let[Norm[Info]] i2= {CacheInfo#("AnotherInfo".norm)}
+  .let[Norm[Info]] i3= {CacheInfo#("HelloStringInfo".norm)}
+  .let[Str] s11= {UseInfo#(i1)}
+  .let[Str] s12= {UseInfo#(i2)}
+  .let[Str] s13= {UseInfo#(i3)}
+  .let[Str] s21= {UseInfo#(i1)}
+  .let[Str] s22= {UseInfo#(i2)}
+  .let[Str] s23= {UseInfo#(i3)}
+  .do{ Debug#(s11+s12+s13+s21+s22+s23)}
+  .done
+  }
 
 Hello:Main{s->Block#(
   Debug#(CacheSum#(1,2)),

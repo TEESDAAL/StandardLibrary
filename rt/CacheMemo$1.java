@@ -4,8 +4,7 @@ public interface CacheMemo$1 extends base.CaptureFree$0{
     throw new AssertionError("Uncallable method: CacheMemo$1.imm$$hash$0"+this.getClass().getName());
   }
   default Object imm$_get$0(){
-    var this$= this;
-    return base.Magic$0.instance.imm$$bang$0(
-);
+    return CacheMemo$1.myCache.computeIfAbsent(this,v->new Cache0(1,v)).get();
   }
+  java.util.concurrent.ConcurrentHashMap<CacheMemo$1, Cache0> myCache= new java.util.concurrent.ConcurrentHashMap<>();
 }

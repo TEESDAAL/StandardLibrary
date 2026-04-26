@@ -7,7 +7,7 @@ public interface CacheF$3 extends base.CaptureFree$0{
     var this$= this;
     var a$= (base.Norm$1)p0;
     var b$= (base.Norm$1)p1;
-    return CacheF$3.myCache.computeIfAbsent(this,v->new Cache2(new java.util.concurrent.ConcurrentHashMap<>(),1,v)).get(a$,b$);
+    return CacheF$3.myCache.computeIfAbsent(this,v->new Cache2(1,v)).get(a$,b$);
   }
   java.util.concurrent.ConcurrentHashMap<CacheF$3, Cache2> myCache= new java.util.concurrent.ConcurrentHashMap<>();
 }
