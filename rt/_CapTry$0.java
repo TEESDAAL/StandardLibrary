@@ -6,7 +6,7 @@ import java.util.ArrayList;
 
 public final class _CapTry$0 implements CapTry$0{
   @Override public final Object mut$iso$0(){ return this; }
-  @Override public final Object mut$self$0(){ return this; }
+  @Override public final Object mut$close$0(){ return this; }
   public final Object mut$$hash$1(Object p0){ return actionLazy(()->callF$1(p0)); }
   public final Object mut$$hash$2(Object p0, Object p1){ return actionLazy(()->callF$2(p1,p0)); }
   public final Action$1 actionLazy(java.util.function.Supplier<Object> s){

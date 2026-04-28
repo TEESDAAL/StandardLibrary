@@ -7,7 +7,7 @@ InferErr[A,B]:Sealed{}
 InferErr[A,B,C]:Sealed{}
 InferErr[A,B,C,D]:Sealed{}
 
-ToIso[R]: {mut .iso: iso ToIso[R]; mut .self: mut R;}
+ToIso[R]: {mut .iso: iso ToIso[R]; mut .close: mut R;}
 
 Abort: Sealed{![R:**]: R -> _Throw.nonDeterministic(Infos.msg `Abort reached`);}
 Magic: Sealed{

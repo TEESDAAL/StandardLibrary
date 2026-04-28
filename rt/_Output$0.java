@@ -4,6 +4,8 @@ import static base.Util.*;
 
 import java.util.List;
 public final class _Output$0 implements Output$0{
+  @Override public final Object mut$iso$0(){ return this; }
+  @Override public final Object mut$close$0(){ return this; }
   public final Object mut$print$1(Object p0){
     print(toS(p0));
     return Void$0.instance;
