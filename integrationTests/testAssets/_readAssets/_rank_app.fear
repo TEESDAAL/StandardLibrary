@@ -1,0 +1,10 @@
+use base.UnitTests as UnitTests;
+use base.Void as Void;
+use base.Str as Str;
+use base.UStr as UStr;
+
+HelloAutoLoad:Main{s->base.Debug#(Auto_loadTest_text.strUtf8)}
+//content: "Hello! We are automatically reading this file!"
+
+HelloAutoLoadZip:Main{s->base.Debug#(Auto_zip_loadSubTest_text_in_zip.strUtf8
+//content: "Hello! We are automatically reading this file from a zip!"

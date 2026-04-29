@@ -185,4 +185,10 @@ public record UStr$0Instance(int[] val) implements UStr$0{
   private static String strExpr(String s){
     return ((Str$0Instance)Str$0Instance.instance(s).imm$escape$0()).val();
   }
+  public static boolean isScalar(int cp){
+    return 0 <= cp && cp <= 0x10FFFF && !(0xD800 <= cp && cp <= 0xDFFF);
+  }
+  public static boolean isStrScalar(int cp){
+    return cp < 128 && strChars.indexOf((char)cp) != -1;
+  }
 }
