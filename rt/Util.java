@@ -157,6 +157,18 @@ public class Util{
     var jList= ((List$1Instance)fList).val();
     for(var e : jList){ printInfoMsg("- ","  ",(Info$0)e); }
   }
+  public static RuntimeException asFearlessError(Throwable t){
+    for (var c= t; c != null; c = c.getCause()){
+      if (c instanceof Deterministic d){ return d; }
+      if (c instanceof NonDeterministic n){ return n; }
+    }
+    return nonDeterministic((Info$0)Infos$0.instance.imm$msg$1(new Str$0Instance(javaErrMsg(t))));
+}
+  private static String javaErrMsg(Throwable t){
+    var msg= t.getMessage();
+    if (msg == null || msg.isBlank()){ return "Backend exception: "+t.getClass().getName(); }
+    return "Backend exception: "+t.getClass().getName()+": "+msg;
+  }
 }
 @SuppressWarnings("serial")
 class Deterministic extends RuntimeException{
