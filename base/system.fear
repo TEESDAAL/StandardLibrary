@@ -9,6 +9,8 @@ System: ToIso[System], WidenTo[System] {
   ///Concrete log types must be non generic.
   ///Creating a reader throw with nondeterministic error if the concrete log type is generic.
   mut .readLog[T](InMemoryLog[T]): mut LogReader[T];
+  
+  mut .gui:mut Gui;
   }
   
 /// This try-catch will catch non-deterministic errors.

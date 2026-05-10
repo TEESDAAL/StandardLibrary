@@ -180,9 +180,9 @@ Frame:{//TODO: add getters like title/fps. Can we get location getters?
   mut .title(Str):mut Frame;
   mut .fps(Nat):mut Frame;
   mut .location(XNat, YNat):mut Frame;
-  mut .onKey(Scope[Keys]):mut Frame;
-  mut .content(Scope[Pane]):Void;
-  mut .contentB(Scope[Border]):Void;
+  mut .onKey(mut Scope[Keys]):mut Frame;
+  mut .content(mut Scope[Pane]):Void;
+  mut .contentB(mut Scope[Border]):Void;
 }
 Graphics:{
   mut .color(Color):mut Graphics;
@@ -196,7 +196,7 @@ Graphics:{
   read .panelWidth:WidthNat;
   read .panelHeight:HeightNat;
 }
-Gui:{ mut .run(mut Consumer[Frame]):Void }//public interface TopF{ void run(Frame f); }
+Gui:{ mut .run(mut Consumer[mut Frame]):Void }//public interface TopF{ void run(Frame f); }
 Label:Widget[Label]{
   .self->this;
   mut .textSize(HeightNat):mut Label;
