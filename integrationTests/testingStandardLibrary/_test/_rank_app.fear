@@ -40,20 +40,20 @@ use base.Operation as Operation;
 use base.Todo as Todo;
 
 MyTests:UnitTests{::
- // .test TestByte
- // .test TestFloat
- // .test TestInt
- // .test TestNat
- // .test TestNum
- // .test TestStr
- // .test TestList
- // .test TestMap
- // .test TestRepr
- // .test TestLiteralErrors
- // .test TestPipe
- // .test TestComparators
- // .test TestUStr
- // .test SetUnitTests
- // .test InfoExtractorUnitTests
- // .test MathUnitTests
+  .test TestByte
+  .test TestFloat
+  .test TestInt
+  .test TestNat
+  .test TestNum
+  .test TestStr
+  .test TestList
+  .test TestMap
+  .test TestRepr
+  .test TestLiteralErrors
+  .test TestPipe
+  .test TestComparators
+  .test TestUStr
+  .test SetUnitTests
+  .test InfoExtractorUnitTests
+  .test MathUnitTests
   }
