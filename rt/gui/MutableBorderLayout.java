@@ -21,6 +21,20 @@ public final class MutableBorderLayout implements LayoutManager2, Serializable{
 
   public MutableBorderLayout(AWidget gap){ this.gap = gap; }
 
+  // Current occupant of a slot, or null. Used by _Frame.addTo to evict the
+  // old occupant before adding a replacement, which is what keeps the
+  // duplicate-slot check in put() unreachable in practice.
+  Component at(String slot){
+    return switch (slot){
+      case BorderLayout.NORTH -> north;
+      case BorderLayout.SOUTH -> south;
+      case BorderLayout.EAST -> east;
+      case BorderLayout.WEST -> west;
+      case BorderLayout.CENTER -> center;
+      default -> throw new IllegalArgumentException(slot);
+    };
+  }
+
   @Override public void addLayoutComponent(String name, Component comp){
     addLayoutComponent(comp, name);
   }
@@ -81,16 +95,16 @@ public final class MutableBorderLayout implements LayoutManager2, Serializable{
       boolean middle = west != null || center != null || east != null;
 
       if (north != null){
-        var d = north.getPreferredSize();
-        north.setBounds(left, top, span(right - left), d.height);
-        top += d.height;
+        int hh = wrapHeight(north, span(right - left));
+        north.setBounds(left, top, span(right - left), hh);
+        top += hh;
         if (middle || south != null){ top += h(gap.heightGap); }
       }
 
       if (south != null){
-        var d = south.getPreferredSize();
-        bottom -= d.height;
-        south.setBounds(left, bottom, span(right - left), d.height);
+        int hh = wrapHeight(south, span(right - left));
+        bottom -= hh;
+        south.setBounds(left, bottom, span(right - left), hh);
         if (middle){ bottom -= h(gap.heightGap); }
       }
 
@@ -112,6 +126,21 @@ public final class MutableBorderLayout implements LayoutManager2, Serializable{
         center.setBounds(left, top, span(right - left), span(bottom - top));
       }
     }
+  }
+
+  // Height for a north/south slot given the exact width it will receive. A
+  // flow pane wraps into more rows when the window is narrower than its
+  // one-row preferred width, so its height depends on that width; asking
+  // getPreferredSize().height would return the one-row height and the
+  // wrapped rows would be clipped. An explicit user .height wins over the
+  // wrap-based height.
+  private int wrapHeight(Component c, int width){
+    if (c instanceof SkComponent s
+      && s.w.preferredHeight == null
+      && s.getLayout() instanceof CenteredFlowLayout f){
+      return f.heightFor(s, width);
+    }
+    return c.getPreferredSize().height;
   }
 
   private int span(int n){ return Math.max(0, n); }

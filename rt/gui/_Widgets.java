@@ -20,6 +20,7 @@ import io.github.humbleui.skija.ColorAlphaType;
 import io.github.humbleui.skija.ColorType;
 import io.github.humbleui.skija.ImageInfo;
 import io.github.humbleui.skija.Paint;
+import io.github.humbleui.skija.Path;
 
 import static base.Scopes.*;
 
@@ -47,6 +48,12 @@ class _Button extends AWidget implements Button$0{
   final List<MF$1> actions = new ArrayList<>();// EDT confined
   boolean down;// visual pressed state, maintained by SkMouse, read by Sk.button
   boolean over;// visual rollover state, maintained by SkMouse, read by Sk.button
+  // Bevel path cache, used and maintained by Sk.button; EDT confined. The
+  // paths depend only on (width, height, radius, bevel depth), so a stable
+  // button costs zero path allocations per frame. Stale paths of discarded
+  // buttons are reclaimed by Skija's cleaner.
+  Path bevelTl, bevelBr;
+  int bevelW = -1, bevelH = -1, bevelR = -1, bevelD = -1;
 
   _Button(_Frame frame){ super(frame); }
 
@@ -89,6 +96,18 @@ class _Pane extends AContainer implements Pane$0{
   @Override public Pane$0 mut$label$1(Object s){ frame.addTo(component, s, _Label::new); return this; }
   @Override public Pane$0 mut$pane$1(Object s){ frame.addTo(component, s, _Pane::new); return this; }
   @Override public Pane$0 mut$border$1(Object s){ frame.addTo(component, s, _Border::new); return this; }
+  @Override public Pane$0 mut$clear$0(){
+    frame.onEdtAndWait(() -> {
+      // Removed widgets get no Exited events (DOM semantics: removal is not
+      // an exit); SkMouse just forgets its references into the subtrees.
+      // Handler tasks already queued for removed widgets still run; they
+      // mutate orphans, which is harmless and deterministic.
+      for (var c : component.getComponents()){ frame.mouse.detached((SkComponent) c); }
+      component.removeAll();
+    });
+    frame.markLayoutDirty();
+    return this;
+  }
 }
 
 class _Border extends AContainer implements Border$0{
@@ -201,6 +220,12 @@ abstract class AWidget implements Widget$1{
     frame.height((HeightNat$0) t, "text size");
     return reStyle(() -> textSize = (HeightNat$0) t);
   }
+  //TODO: this can stay in pure fearless. Is there any other code we can remove from Java in this way?
+  // Alias: .textHeight(n) is .textSize(Height#n), following the inset pattern
+  // of a Nat overload wrapping the dimension-typed one.
+  //public Object mut$textHeight$1(Object n){
+  //  return mut$textSize$1(HeightNat$0.instance.read$$hash$1((Nat$0) n));
+  //}
   public Object read$textSize$0(){ return textSize; }
   @Override public Object mut$autoWidth$0(){ return reStyle(() -> preferredWidth = null); }
   @Override public Object mut$autoHeight$0(){ return reStyle(() -> preferredHeight = null); }
@@ -262,23 +287,39 @@ abstract class AContainer extends AWidget{
 class _Frame implements Frame$0{
   final FearlessFrame frame;
   final SkMouse mouse = new SkMouse(this);
-  Time$0 elapsed = time(0);
+  // Written by the repaint tick on the EDT, read by painters on the EDT and
+  // by the model (read .elapsed) on the queue thread with no ordering between
+  // the two: volatile makes the reference handoff safe. The Time object
+  // itself is immutable.
+  volatile Time$0 elapsed = time(0);
   AWidget top;
   final int screenW;
   final int screenH;
   final WidthNat$0 screenSizeW;
   final HeightNat$0 screenSizeH;
-  private final long startNanos = System.nanoTime();
+  private long startNanos = System.nanoTime();// re-based in start(): game time zero = warmup end
   private Nat$0 fps = n(30);
   private Nat$0 modelFpsVal;
-  private final List<MF$1> modelTickActions = new ArrayList<>();
+  private final List<MF$1> modelTickActions = new ArrayList<>();// live, EDT confined
   private Alpha$0 alpha = (Alpha$0) Alpha$0.instance.imm$opaque$0();
   private XNat$0 locationX;
   private YNat$0 locationY;
+  // Explicit window size, or null to size from the content (pack). Set by
+  // .resizable(w,h) and .fixedSize(w,h); resizability is orthogonal and kept
+  // in `resizable`. Note an undecorated window can be technically resizable,
+  // but there is no border to drag, so the user cannot actually resize it.
+  private WidthNat$0 frameW;
+  private HeightNat$0 frameH;
   private Str$0 title = new Str$0Instance("");
   private boolean maximized;
   private boolean resizable;
   private boolean undecorated;
+  // True once start() completed. Written on the EDT at the end of start().
+  // Pre-start readers run on the launcher thread strictly before start() is
+  // scheduled; post-start readers are queue tasks whose submission (from the
+  // EDT) happens after the write, so the queue handoff gives the
+  // happens-before. Single mutator at every point in time: no volatile.
+  private boolean started;
   private final AtomicBoolean layoutDirty = new AtomicBoolean();
   private Bitmap bitmap;
   private Canvas canvas;
@@ -312,6 +353,15 @@ class _Frame implements Frame$0{
 
   void addTo(JComponent parent, String where, Object scope, Function<_Frame, ? extends AWidget> make){
     var b = onEdtAndWait(() -> {
+      // Border slots are replaceable: a second .north evicts the first. The
+      // model is the single mutator, so this removal cannot race any gesture
+      // dispatch; SkMouse just forgets its references into the old subtree
+      // (no Exited events for removed widgets: removal is not an exit).
+      var old = ((MutableBorderLayout) parent.getLayout()).at(where);
+      if (old != null){
+        mouse.detached((SkComponent) old);
+        parent.remove(old);
+      }
       var bb = make.apply(this);
       parent.add(bb.component, where);
       return bb;
@@ -457,28 +507,22 @@ class _Frame implements Frame$0{
     assert top != null;
 
     frame.setTitle(((Str$0Instance) title).val());
-    top.mut$radius$1(n(0));
-
-    var col = (Color$0) top.read$background$0();
-    if (Scopes.alpha(col.read$alpha$0()) == 0){
-      top.mut$background$1(Color$0.instance.imm$boringGray$0());
-    } else {
-      top.mut$background$1(Color$0.instance.imm$$hash$4(
-        col.read$red$0(),
-        col.read$green$0(),
-        col.read$blue$0(),
-        Alpha$0.instance.imm$opaque$0()
-      ));
-    }
+    forceTopStyle();
 
     frame.setContentPane(top.component);
     frame.setUndecorated(undecorated);
     frame.setResizable(resizable);
     frame.pack();
+    if (frameW != null){// explicit size overrides the packed (content) size
+      frame.setSize(new Dimension(width(frameW, "window width"), height(frameH, "window height")));
+    }
 
     if (maximized){
       if (locationX != null || locationY != null){
         throw Util.detErr("A maximized window cannot also have an explicit location");
+      }
+      if (frameW != null){
+        throw Util.detErr("A maximized window cannot also have an explicit size");
       }
       frame.setSize(new Dimension(screenW, screenH));
       frame.setLocation(0, 0);
@@ -501,31 +545,106 @@ class _Frame implements Frame$0{
     render();
     frame.setFocusable(true);
     frame.setVisible(true);
+    // Nothing after startRuntime may throw: abortBeforeStart asserts the
+    // runtime timer never started. Both timers begin firing WarmupMillis
+    // from now (Timer.setInitialDelay), skipping the worst-case first EDT
+    // second (JIT, first rasterization, window-manager events); the window
+    // is already visible showing the frame rendered above. Game time zero
+    // is warmup end, so elapsed, the model tick deadlines and warning
+    // timestamps agree, and the first tick behaves like every later one.
+    long modelPeriodNs = modelFpsVal == null ? 0 : Math.round(1e9 / Scopes.nat(modelFpsVal));
+    startNanos = System.nanoTime() + FearlessFrame.WarmupMillis * 1_000_000L;
     frame.startRuntime(
       Math.round(1000.0f / Scopes.nat(fps)),
       () -> tick(timeNanos(System.nanoTime() - startNanos))
     );
+    if (modelFpsVal != null){
+      frame.restartModelTimer(modelPeriodNs, FearlessFrame.WarmupMillis, modelTickActions);
+    }
+    started = true;
+  }
 
-    if (modelFpsVal != null && !modelTickActions.isEmpty()){
-      frame.startModelTimer(
-        Math.round(1000.0f / Scopes.nat(modelFpsVal)),
-        List.copyOf(modelTickActions)
-      );
+  private void forceTopStyle(){
+    top.mut$radius$1(n(0));
+    var col = (Color$0) top.read$background$0();
+    if (Scopes.alpha(col.read$alpha$0()) == 0){
+      top.mut$background$1(Color$0.instance.imm$boringGray$0());
+    } else {
+      top.mut$background$1(Color$0.instance.imm$$hash$4(
+        col.read$red$0(),
+        col.read$green$0(),
+        col.read$blue$0(),
+        Alpha$0.instance.imm$opaque$0()
+      ));
     }
   }
 
-  @Override public Object mut$maximized$0(){ maximized = true; return this; }
-  @Override public Object mut$resizable$0(){ resizable = true; return this; }
+  @Override public Object mut$maximized$0(){
+    maximized = true;
+    if (started){
+      onEdtAndWait(() -> {
+        frame.setSize(new Dimension(screenW, screenH));
+        frame.setLocation(0, 0);
+      });
+    }
+    return this;
+  }
+  // resizable / fixedSize: resizability and explicit size are orthogonal;
+  // the no-arg forms only flip resizability (size stays as it is: packed
+  // pre-start, current post-start), the two-arg forms also set the size.
+  // Note: an undecorated window can be technically resizable, but there is
+  // no border to drag, so the user cannot actually resize it.
+  @Override public Object mut$resizable$0(){ return setResizable(true, null, null); }
+  @Override public Object mut$resizable$2(Object w, Object h){
+    return setResizable(true, (WidthNat$0) w, (HeightNat$0) h);
+  }
+  @Override public Object mut$fixedSize$0(){ return setResizable(false, null, null); }
+  @Override public Object mut$fixedSize$2(Object w, Object h){
+    return setResizable(false, (WidthNat$0) w, (HeightNat$0) h);
+  }
+  private Object setResizable(boolean r, WidthNat$0 w, HeightNat$0 h){
+    int ww = w == null ? 0 : width(w, "window width");// validate eagerly, deterministic error
+    int hh = h == null ? 0 : height(h, "window height");
+    resizable = r;
+    if (w != null){
+      frameW = w;
+      frameH = h;
+    }
+    if (started){
+      onEdtAndWait(() -> {
+        frame.setResizable(r);
+        if (w != null){ frame.setSize(new Dimension(ww, hh)); }
+      });
+    }
+    return this;
+  }
   @Override public Object mut$undecorated$1(Object a){
     undecorated = true;
     alpha = (Alpha$0) a;
+    if (started){
+      // Live decoration swap: dispose + re-show inside one EDT block; the
+      // synthetic WINDOW_CLOSED is suppressed in FearlessFrame.
+      float op = Scopes.alpha(alpha) / 255f;
+      onEdtAndWait(() -> frame.setDecoration(true, op));
+    }
+    return this;
+  }
+  @Override public Object mut$decorated$0(){
+    undecorated = false;
+    if (started){ onEdtAndWait(() -> frame.setDecoration(false, 1f)); }
     return this;
   }
   @Override public Object mut$location$2(Object x, Object y){
-    xPos((XNat$0) x, "window x location");
-    yPos((YNat$0) y, "window y location");
+    int xx = xPos((XNat$0) x, "window x location");
+    int yy = yPos((YNat$0) y, "window y location");
     locationX = (XNat$0) x;
     locationY = (YNat$0) y;
+    if (started){
+      onEdtAndWait(() -> {
+        checkWindowLocationFits(xx, yy);
+        frame.setLocation(xx, yy);
+      });
+    }
     return this;
   }
   @Override public Object mut$onKey$1(Object scope){
@@ -537,34 +656,98 @@ class _Frame implements Frame$0{
     });
     return this;
   }
-  @Override public Object mut$title$1(Object t){ title = (Str$0) t; return this; }
+  @Override public Object mut$title$1(Object t){
+    title = (Str$0) t;
+    if (started){ onEdtAndWait(() -> frame.setTitle(((Str$0Instance) title).val())); }
+    return this;
+  }
   @Override public Object mut$fps$1(Object f){
     long nn = Util.natToInt((Nat$0) f);
     if (nn < 1 || nn > 500){ throw Util.detErr("FPS must be between 1 and 500"); }
     fps = (Nat$0) f;
+    if (started){
+      int delay = Math.round(1000.0f / nn);
+      onEdtAndWait(() -> frame.setTickDelay(delay));
+    }
     return this;
+  }
+  // Getters. All safe from the queue thread: title/fps are read under the
+  // single-mutator model, elapsed is volatile, the location getters hop to
+  // the EDT for the real, current window position (including user drags).
+  @Override public Object read$title$0(){ return title; }
+  @Override public Object read$fps$0(){ return fps; }
+  @Override public Object read$elapsed$0(){ return elapsed; }
+  @Override public Object read$screenSizeW$0(){ return screenSizeW; }
+  @Override public Object read$screenSizeH$0(){ return screenSizeH; }
+  @Override public Object read$locationX$0(){
+    if (!started){ return locationOrErr(locationX); }
+    // The OS may place a window at negative coordinates; XNat cannot express
+    // them, so they are reported as 0.
+    return Scopes.x(Math.max(0, onEdtAndWait(frame::getX)));
+  }
+  @Override public Object read$locationY$0(){
+    if (!started){ return locationOrErr(locationY); }
+    return Scopes.y(Math.max(0, onEdtAndWait(frame::getY)));
+  }
+  private Object locationOrErr(Object loc){
+    if (loc == null){
+      throw Util.detErr("The window location is not known before the window is"
+        + " visible, unless .location was called");
+    }
+    return loc;
   }
   @Override public Object mut$modelFps$2(Object f, Object scope){
     long nn = Util.natToInt((Nat$0) f);
     if (nn < 1 || nn > 500){ throw Util.detErr("modelFps must be between 1 and 500"); }
     modelFpsVal = (Nat$0) f;
+    onEdtAndWait(modelTickActions::clear);// replace semantics, like .mouse and .onKey
     ((Scope$1) scope).mut$run$1(new ModelFps$0(){
       @Override public Object mut$action$1(Object r){
-        modelTickActions.add((MF$1) r);
+        // Live list: an action added later (through a saved builder) takes
+        // part from the next due tick, exactly like Button.actions.
+        onEdtAndWait(() -> modelTickActions.add((MF$1) r));
         return this;
       }
     });
+    if (started){
+      // Live change: fixed-rate deadlines restart from now, no warmup.
+      long periodNs = Math.round(1e9 / nn);
+      onEdtAndWait(() -> frame.restartModelTimer(periodNs, 0, modelTickActions));
+    }
     return this;
   }
-  @Override public Object mut$content$1(Object s){
-    var b = onEdtAndWait(() -> install(new _Pane(this)));
-    ((Scope$1) s).mut$run$1(b);
-    markLayoutDirty();
-    return Void$0.instance;
-  }
-  @Override public Object mut$contentB$1(Object s){
-    var b = onEdtAndWait(() -> install(new _Border(this)));
-    ((Scope$1) s).mut$run$1(b);
+  @Override public Object mut$content$1(Object s){ return newContent(s, _Pane::new); }
+  @Override public Object mut$contentB$1(Object s){ return newContent(s, _Border::new); }
+
+  private Object newContent(Object scope, Function<_Frame, ? extends AWidget> make){
+    var t = onEdtAndWait(() -> make.apply(this));
+    if (!started){
+      onEdtAndWait(() -> {
+        if (top != null){ uninstall(top); }// a later .content replaces an earlier one
+        install(t);
+      });
+      ((Scope$1) scope).mut$run$1(t);
+      markLayoutDirty();
+      return Void$0.instance;
+    }
+    // Post start: configure the new tree while detached (ticks keep painting
+    // the old tree), then swap in one EDT block so no tick or mouse event
+    // ever sees a half-built tree. The window keeps its current size.
+    ((Scope$1) scope).mut$run$1(t);
+    onEdtAndWait(() -> {
+      uninstall(top);
+      install(t);
+      forceTopStyle();
+      frame.setContentPane(t.component);
+      // The old tree is gone: no Exited events for it, a gesture in progress
+      // is forgotten (an in-flight release finds no press target, like a
+      // release over empty space), and mouse.down is cleared so relayout
+      // gating cannot wait forever for a release the old tree will never
+      // deliver.
+      mouse.reset();
+      frame.validate();
+      render();// fresh pixels before the next paint, never the old tree's image
+    });
     markLayoutDirty();
     return Void$0.instance;
   }
@@ -576,5 +759,10 @@ class _Frame implements Frame$0{
     t.component.addMouseListener(mouse);
     t.component.addMouseMotionListener(mouse);
     return t;
+  }
+
+  private void uninstall(AWidget t){
+    t.component.removeMouseListener(mouse);
+    t.component.removeMouseMotionListener(mouse);
   }
 }

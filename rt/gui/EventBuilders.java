@@ -62,6 +62,10 @@ record CMouseBuilder(AWidget panel) implements Mouse$0{
 //   hit-testing, so synthetic AWT enter/exit noise cannot reach them. They
 //   fire on every widget entering/leaving the hover chain (mouseenter/
 //   mouseleave semantics) and do not bubble.
+// - Widget removal (slot replacement, Pane.clear, content swap) prunes the
+//   references below without firing Exited: removal is not an exit (DOM
+//   semantics), and firing events for widgets that no longer exist would be
+//   misleading.
 final class SkMouse extends MouseAdapter{
   private final _Frame frame;
   boolean down;// any mouse button held; read by _Frame.tick to postpone relayout
@@ -71,6 +75,37 @@ final class SkMouse extends MouseAdapter{
   private _Button pressedButton;
 
   SkMouse(_Frame frame){ this.frame = frame; }
+
+  // A subtree was removed from the live tree: forget every reference into it.
+  // The gesture itself continues on the (unchanged) top component, so `down`
+  // is untouched. pressedButton is always pressTarget or null, so both clear
+  // together.
+  void detached(SkComponent root){
+    assert SwingUtilities.isEventDispatchThread();
+    if (!hover.isEmpty()){
+      var keep = new ArrayList<AWidget>();
+      for (var t : hover){
+        if (!SwingUtilities.isDescendingFrom(t.component, root)){ keep.add(t); }
+      }
+      if (keep.size() != hover.size()){ hover = List.copyOf(keep); }
+    }
+    if (pressTarget != null && SwingUtilities.isDescendingFrom(pressTarget.component, root)){
+      pressTarget = null;
+      pressedButton = null;
+    }
+  }
+
+  // The whole tree was replaced (content swap): forget everything, including
+  // `down`. The old top component holds the AWT mouse grab for any gesture in
+  // progress but no longer has listeners, so its release would never arrive
+  // here; leaving `down` true would postpone relayout forever.
+  void reset(){
+    assert SwingUtilities.isEventDispatchThread();
+    down = false;
+    hover = List.of();
+    pressTarget = null;
+    pressedButton = null;
+  }
 
   @Override public void mousePressed(MouseEvent e){
     down = true;

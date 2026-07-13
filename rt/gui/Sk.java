@@ -33,7 +33,15 @@ interface Sk{
     p.setMode(PaintMode.FILL);
     return p;
   }
-
+  // TODO(fonts): typeface resolution is platform-dependent: we take whatever
+  // the OS resolves for Segoe UI / Arial / Consolas, so text pixels differ
+  // across machines even though rendering is otherwise deterministic. The plan
+  // is to bundle our own font(s) so text is identical everywhere. There is
+  // deliberately NO glyph fallback: characters missing from the selected
+  // typeface render as tofu boxes, identically on every machine, instead of
+  // being silently substituted from whichever random font the host has
+  // installed. Keep fallback disabled after bundling, so output never depends
+  // on glyphs outside the bundled set.
   static Typeface typeface(){
     var fm = FontMgr.getDefault();
     var t = fm.matchFamilyStyle("Segoe UI", FontStyle.NORMAL);
@@ -46,7 +54,7 @@ interface Sk{
   }
 
   static Font font(AWidget s){
-    int size = Math.max(14, h(s.textSize));
+    int size = h(s.textSize);
     Font f = fonts.get(size);
     if (f != null){ return f; }
     f = new Font(typeface, size);
@@ -140,24 +148,34 @@ interface Sk{
     paint.setColor(center);
     cv.drawRRect(outer, paint);
     if (d > 0){
-      Path o = Path.makeRRect(outer);
-      Path i = Path.makeRRect(RRect.makeXYWH(d, d, w - 2f * d, h - 2f * d, Math.max(0, r - d)));
-      var pb = new PathBuilder();
-      pb.moveTo(0, h);
-      pb.lineTo(w, 0);
-      pb.lineTo(0, 0);
-      pb.closePath();
-      Path diag = pb.build();
-      Path ring = Path.makeCombining(o, i, PathOp.DIFFERENCE);
-      Path tl = Path.makeCombining(ring, diag, PathOp.INTERSECT);
-      Path br = Path.makeCombining(ring, diag, PathOp.DIFFERENCE);
-      assert ring != null && tl != null && br != null;
+      // The bevel paths depend only on (w, h, radius, d) and are cached on
+      // the button: a stable button costs zero path allocations per frame.
+      int rad = n(s.radius);
+      if (s.bevelW != w || s.bevelH != h || s.bevelR != rad || s.bevelD != d){
+        if (s.bevelTl != null){ s.bevelTl.close(); s.bevelBr.close(); }
+        Path o = Path.makeRRect(outer);
+        Path i = Path.makeRRect(RRect.makeXYWH(d, d, w - 2f * d, h - 2f * d, Math.max(0, r - d)));
+        var pb = new PathBuilder();
+        pb.moveTo(0, h);
+        pb.lineTo(w, 0);
+        pb.lineTo(0, 0);
+        pb.closePath();
+        Path diag = pb.build();
+        Path ring = Path.makeCombining(o, i, PathOp.DIFFERENCE);
+        s.bevelTl = Path.makeCombining(ring, diag, PathOp.INTERSECT);
+        s.bevelBr = Path.makeCombining(ring, diag, PathOp.DIFFERENCE);
+        assert ring != null && s.bevelTl != null && s.bevelBr != null;
+        for (Path p : new Path[]{ o, i, diag, ring }){ p.close(); }
+        s.bevelW = w;
+        s.bevelH = h;
+        s.bevelR = rad;
+        s.bevelD = d;
+      }
       paint.setMode(PaintMode.FILL);
       paint.setColor(down ? dark : light);
-      cv.drawPath(tl, paint);
+      cv.drawPath(s.bevelTl, paint);
       paint.setColor(down ? light : dark);
-      cv.drawPath(br, paint);
-      for (Path p : new Path[]{ o, i, diag, ring, tl, br }){ p.close(); }
+      cv.drawPath(s.bevelBr, paint);
     }
     int shift = down && d > 0 ? Math.max(1, d / 2) : 0;
     text(cv, s.text, s, shift, shift);
