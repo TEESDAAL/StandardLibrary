@@ -4,7 +4,7 @@
 Operation[S:**, R:**]: Pipe[Operation[S, R]] {
   .close -> this;
   mut #(source: S): R
-}
+  }
 
 
 Pipe[S:*]: {
@@ -14,4 +14,11 @@ Pipe[S:*]: {
   mut  |>[R:*](fn: mut Operation[mut  S, R]): R -> fn#(this.close);
   read |>[R:*](fn: mut Operation[read S, R]): R -> fn#(this.close);
   imm  |>[R:*](fn: mut Operation[imm  S, R]): R -> fn#(this.close);
+  }
+
+Done: Sealed {
+  #[R:**]: mut Done[R] -> Done[R]
+  }
+Done[R:**]: Operation[R, Void] {
+  _ -> Void
   }

@@ -11,7 +11,7 @@ InfiniteFlow[E: *]: Pipe[InfiniteFlow[E]] {
 
   /// `this.first` returns the first element of the infinite stream.
   /// Note: this operation can never fail since the stream is infinite, but it may never terminate.
-  ///   e.g. `Flows.generate{0}.filter{_ -> false}.first` will never terminate.
+  ///   e.g. `Flows.generate{0}.filter{_ -> False}.first` will never terminate.
   mut .first: E;
 
   mut .mapFilter[R](f: read F[E, mut Opt[R]]): mut InfiniteFlow[R] ->

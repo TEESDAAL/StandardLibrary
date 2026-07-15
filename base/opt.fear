@@ -16,7 +16,7 @@ Opt[E:*]: _Opt[E] {
 
   .orLazy default -> this.match{.some x -> x; .empty -> default#};
 
- .and other -> this.match{.some _ -> other; .empty -> this};
+  .and other -> this.match{.some _ -> other; .empty -> this};
   &   other -> this.and(other);
 
   &&  other -> this.match{.some _ -> other#; .empty -> this};

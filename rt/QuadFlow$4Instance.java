@@ -21,7 +21,7 @@ public class QuadFlow$4Instance extends GeneralMultiFlow implements QuadFlow$4 {
     }
 
     @Override public Object mut$limitDefensive$1(Object p0) {
-        this.limit(natToInt(p0));
+        this.limit(natToLong(p0));
         return this;
     }
 

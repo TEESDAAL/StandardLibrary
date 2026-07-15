@@ -47,7 +47,7 @@ public abstract class GeneralMultiFlow implements _MultiFlow$0  {
     }
 
     protected void limit(long limit) {
-        long lim = natToInt(limit);
+        long lim = natToLong(limit);
         if (lim >= maxSize) { return; }
         int l = (int) lim;
         lanes.forEach(lane -> lane.size = Math.min(lane.size, l));

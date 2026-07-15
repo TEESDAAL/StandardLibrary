@@ -1,5 +1,5 @@
 /// Example usage coupling
-/// info:= {"friends": [{"name": "Bob"}, {"name": "Alice"}]}
+/// info := {"friends": [{"name": "Bob"}, {"name": "Alice"}]}
 /// info ~ > "friends"
 ///           & > 0 > "name" .msgMatch{:: == "Bob"}
 ///           & > 1 > "name" .msgMatch{:: == "Alice"}

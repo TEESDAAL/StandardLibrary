@@ -1,6 +1,7 @@
 package base;
 
-import java.util.Collections;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Supplier;
@@ -38,7 +39,7 @@ class ESparseListMap$1Instance implements ESparseList$1 {
   }
 
   @Override public Object mut$increaseCapacity$1(Object p0) {
-    long newCapacity = natToInt(p0);
+    long newCapacity = natToLong(p0);
     check(newCapacity <= Integer.MAX_VALUE, "Internal ESparseList capacity cannot be larger than Integer.MAX_VALUE");
     if (newCapacity < this.capacity) {
       throw err("New capacity " + newCapacity + " must be larger than current capacity " + capacity);
@@ -48,7 +49,7 @@ class ESparseListMap$1Instance implements ESparseList$1 {
   }
 
   @Override public Object mut$increaseCapacityDefensive$1(Object p0) {
-    long newCapacity = natToInt(p0);
+    long newCapacity = natToLong(p0);
     check(newCapacity <= Integer.MAX_VALUE, "Internal ESparseList capacity cannot be larger than Integer.MAX_VALUE");
     if (newCapacity <= this.capacity) { return this; }
     this.capacity = (int) newCapacity;
@@ -56,7 +57,7 @@ class ESparseListMap$1Instance implements ESparseList$1 {
   }
 
   @Override public Object mut$set$2(Object p0, Object p1) {
-    long index = natToInt(p0);
+    long index = natToLong(p0);
     check(0 <= index && index < capacity, "ESparseList index out of range");
     int idx = (int) index;
     map.put(idx, p1);
@@ -64,7 +65,7 @@ class ESparseListMap$1Instance implements ESparseList$1 {
   }
 
   @Override public Object mut$remove$1(Object p0) {
-    long index = natToInt(p0);
+    long index = natToLong(p0);
     check(0 <= index && index < capacity, "ESparseList index out of range");
     int idx = (int) index;
     map.remove(idx);
@@ -86,18 +87,22 @@ class ESparseListMap$1Instance implements ESparseList$1 {
 
   @Override public Object mut$fillFrom$1(Object p0) {
     if (numHoles() == 0) { return this; }
-    Stream<Object> s = ((Flow$1Instance) p0).s();
-    fillAvailableHoles(s);
+    ArrayList<Object> elist = ((EList$1Instance) p0).xs;
+    int currentIndex = 0;
+    for (int i = 0; i<=capacity;i++) {
+      if (this.map.containsKey(i)) { continue; }
+      this.map.put(i, elist.get(i));
+      currentIndex+=1;
+    }
+
     return this;
   }
 
   @Override public Object mut$fillAndExpand$1(Object p0) {
-    SizedFlow$1Instance source = (SizedFlow$1Instance) p0;
-    long additionalSize = natToInt(source.read$size$0());
-    check(additionalSize <= (Integer.MAX_VALUE - capacity),
-        "This would cause the internal ESparseList capacity to exceed Integer.MAX_VALUE");
+    ArrayList<Object> elist = ((EList$1Instance) p0).xs;
+    long additionalSize = this.numHoles() - elist.size();
     this.mut$increaseCapacity$1(Nat$0Instance.instance(capacity + additionalSize));
-    fillAvailableHoles(source.s());
+    this.mut$fillFrom$1(p0);
     return this;
   }
 
@@ -161,8 +166,8 @@ class ESparseListMap$1Instance implements ESparseList$1 {
   }
 
   @Override public Object mut$swap$2(Object p0, Object p1) {
-    long iLong = natToInt(p0);
-    long jLong = natToInt(p1);
+    long iLong = natToLong(p0);
+    long jLong = natToLong(p1);
     check(0 <= iLong && iLong < capacity, "ESparseList swap index i out of range");
     check(0 <= jLong && jLong < capacity, "ESparseList swap index j out of range");
     int j = (int) jLong;
@@ -185,8 +190,8 @@ class ESparseListMap$1Instance implements ESparseList$1 {
   }
 
   @Override public Object mut$trimTo$2(Object p0, Object p1) {
-    long start = natToInt(p0);
-    long end   = natToInt(p1);
+    long start = natToLong(p0);
+    long end   = natToLong(p1);
     check(0 <= start && start <= end && end <= capacity,
         "ESparseList trimTo range out of bounds");
     int s = (int) start;
@@ -261,9 +266,10 @@ class ESparseListMap$1Instance implements ESparseList$1 {
     );
   }
 
+  // In future, make this parallel
   @Override public Object mut$flowOpts$1(Object p0) { return mut$seqFlowOpts$0(); }
 
-  @Override public Object mut$flatSeqFlow$0() {
+  @Override public Object mut$seqFlowDefensive$0() {
     Map<Integer, Object> drained = drain();
     Stream<Object> s = drained.entrySet().stream()
         .sorted(Map.Entry.comparingByKey())
@@ -271,7 +277,8 @@ class ESparseListMap$1Instance implements ESparseList$1 {
     return Flows$0.of(s, drained.size());
   }
 
-  @Override public Object mut$flatFlow$1(Object p0) { return mut$flatSeqFlow$0(); }
+  // In future, make this parallel
+  @Override public Object mut$flowDefensive$1(Object p0) { return mut$seqFlowDefensive$0(); }
 
   @Override public Object mut$listExact$0() {
     if (this.capacity != this.map.size()) {
@@ -290,7 +297,18 @@ class ESparseListMap$1Instance implements ESparseList$1 {
     clone.map = new HashMap<>(this.map);
     return clone;
   }
+  @Override public Object mut$mapOpts$1(Object p0) {
+    IntStream.range(0, this.capacity)
+      .forEach(i -> {
+        Object optValue = optToNull((Opt$1) callMF$2(p0, map.get(i)));
+        if (optValue == null) {
+          map.remove(i);
+        }
+        map.put(i, optValue);
+      });
 
+    return this;
+  }
   Map<Integer, Object> drain() {
     Map<Integer, Object> result = this.map;
     this.map = new HashMap<>();

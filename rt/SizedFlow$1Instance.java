@@ -2,14 +2,9 @@ package base;
 
 import base.multiflowUtils.SizedLane;
 
-import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import static base.Util.*;
-import static base.Util.check;
-import static base.Util.natToInt;
-import static base.Util.optEmpty;
-import static base.Util.optSome;
+import static base.Util.natToLong;
 
 public class SizedFlow$1Instance extends Flow$1Instance implements SizedFlow$1 {
     public long size;
@@ -44,7 +39,7 @@ public class SizedFlow$1Instance extends Flow$1Instance implements SizedFlow$1 {
         } catch(IllegalStateException e){ throw consumed(); }
     }
 
-    @Override public Object mut$concat$1(Object p0) {
+    @Override public Object mut$sizedConcat$1(Object p0) {
         try{
             var other = (SizedFlow$1Instance)p0;
             return new SizedFlow$1Instance(Stream.concat(this.s, other.s), size + other.size);
@@ -53,7 +48,7 @@ public class SizedFlow$1Instance extends Flow$1Instance implements SizedFlow$1 {
     }
 
     @Override public Object mut$limitDefensive$1(Object p0) {
-        long limit = natToInt(p0);
+        long limit = natToLong(p0);
         if (limit >= size) { return this; }
         try{ return new SizedFlow$1Instance(this.s.limit(limit), limit); }
         catch(IllegalStateException e){ throw consumed(); }

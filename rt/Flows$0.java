@@ -1,11 +1,8 @@
 package base;
 
-import base.multiflowUtils.SizedLane;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.LinkedHashMap;
-import java.util.stream.IntStream;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -79,14 +76,17 @@ class Flow$1Instance implements Flow$1 {
     try{ return new Flow$1Instance(s.map(e->callF$2(p0,e))); }
     catch(IllegalStateException e){ throw consumed(); }
   }
+
   @Override public Object mut$filter$1(Object p0){
     try{ return new Flow$1Instance(s.filter(e->isTrue(callF$2(p0,e)))); }
     catch(IllegalStateException e){ throw consumed(); }
   }
+
   @Override public Object mut$count$0(){
     try{ return new Nat$0Instance((int)s.count()); }
     catch(IllegalStateException e){ throw consumed(); }
   }
+
   @Override public Object mut$$plus_plus$1(Object o){
   //Note: all those try catches are relying on the JVM enforcing the stream consumptions,
   //but in the standard it is not guaranteed that it is checked. We need to add tests to all of the flow methods
@@ -197,7 +197,7 @@ class Flow$1Instance implements Flow$1 {
   }
 
   @Override public Object mut$limitDefensive$1(Object p0) {
-    long limit = natToInt(p0);
+    long limit = natToLong(p0);
     try{ return new Flow$1Instance(this.s.limit(limit)); }
     catch(IllegalStateException e){ throw consumed(); }
   }

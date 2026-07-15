@@ -60,6 +60,19 @@ public class Util{
     return optSome(x);
   }
 
+  public static Object optToNull(Opt$1 opt) {
+    return opt.mut$match$1(new OptMatch$2() {
+      @Override
+      public Object mut$some$1(Object p0) {
+        return p0;
+      }
+      @Override
+      public Object mut$empty$0(){
+        return null;
+      }
+    });
+  }
+
   public static Opt$1 optEmpty(){ return Opt$1.instance; }
   public static Opt$1 optSome(Object x){ return (Opt$1) Opts$0.instance.imm$$hash$1(x); }
   public static Error nonDetErr(String msg){
@@ -78,7 +91,7 @@ public class Util{
       : BigInteger.valueOf(x & Long.MAX_VALUE).setBit(63);
   }
   public static String toS(Object o){return ((Str$0Instance)((ToStr$0)o).read$str$0()).val(); }
-  public static long natToInt(Object n){
+  public static long natToLong(Object n){
     return ((Nat$0Instance)n).val();
   }
   public static Object intToNat(int i){
@@ -136,7 +149,7 @@ public class Util{
       key= k;
       ord= (OrderHash$1)oh.imm$$hash$1(k);
       close= ((Order$1)ord).read$close$0();
-      hc= natToInt(ord.read$hash$0());
+      hc= natToLong(ord.read$hash$0());
   }
   @Override public int hashCode(){ return Long.hashCode(hc); }
   @Override public boolean equals(Object o){

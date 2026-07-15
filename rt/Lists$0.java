@@ -100,7 +100,7 @@ record List$1Instance(List<Object> val) implements List$1 {
     throw new AssertionError("Unexpected List impl: "+xs.getClass());
   }
   private int idx(Object p0){
-    long i= natToInt(p0);
+    long i= natToLong(p0);
     check(0 <= i && i < val.size(), "List index out of range");
     return (int) i;
   }
@@ -123,7 +123,7 @@ record List$1Instance(List<Object> val) implements List$1 {
   @Override public Object read$get$1(Object p0){ return val.get(idx(p0)); }
   @Override public Object mut$opt$1(Object p0){
 //    System.exit(1);
-    long index = natToInt(p0);
+    long index = natToLong(p0);
    if (index >= val.size()) {
       return optEmpty();
     }
@@ -179,7 +179,7 @@ record List$1Instance(List<Object> val) implements List$1 {
   @Override public Object read$$plus_gt$1(Object p0){ return mut$$plus_gt$1(p0); }
 
   @Override public Object mut$subList$2(Object p0, Object p1){
-    long s= Util.natToInt(p0); long e= Util.natToInt(p1);
+    long s= Util.natToLong(p0); long e= Util.natToLong(p1);
     check(0 <= s && s <= e && e <= val.size(), "List subList out of range");
     return wrap(val.subList((int) s, (int) e));
   }
@@ -197,7 +197,7 @@ record List$1Instance(List<Object> val) implements List$1 {
   @Override public Object read$with$2(Object p0, Object p1){ return mut$with$2(p0,p1); }
 
   @Override public Object mut$withAlso$2(Object p0, Object p1){
-    long i= natToInt(p0);
+    long i= natToLong(p0);
     check(0 <= i && i <= val.size(), "List withAlso out of range");
     int index = (int) i;
     var l= new ArrayList<Object>(val.size()+1);

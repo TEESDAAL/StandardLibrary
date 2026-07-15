@@ -68,7 +68,7 @@ class InfiniteFlow$1Instance implements InfiniteFlow$1 {
   }
 
   @Override public Object mut$limit$1(Object p0) {
-    long limit = natToInt(p0);
+    long limit = natToLong(p0);
     try{ return new SizedFlow$1Instance(this.s.limit(limit), limit); }
     catch(IllegalStateException e){ throw consumed(); }
   }

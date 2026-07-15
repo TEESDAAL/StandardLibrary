@@ -1,5 +1,6 @@
 package base;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.stream.IntStream;
@@ -8,8 +9,8 @@ import java.util.stream.Stream;
 import static base.Util.*;
 
 public interface SparseLists$0  extends Sealed$0{
-  default Object imm$$ackedWithArray$1(Object p0){
-    long capacity = natToInt(p0);
+  default Object imm$backedWithArray$1(Object p0){
+    long capacity = natToLong(p0);
     check(
         capacity <= Integer.MAX_VALUE,
         "Internal EList capacity cannot be larger than Integer.MAX_VALUE"
@@ -17,13 +18,14 @@ public interface SparseLists$0  extends Sealed$0{
     return new ESparseList$1Instance((int) capacity);
   }
 
-  default Object imm$$backedWithMap$1(Object p0){
-    long capacity = natToInt(p0);
-    check(
-        capacity <= Integer.MAX_VALUE,
-        "Internal EList capacity cannot be larger than Integer.MAX_VALUE"
-    );
+  default Object imm$backedWithMap$1(Object p0){
+    long capacity = natToLong(p0);
     return new ESparseListMap$1Instance((int) capacity);
+  }
+
+  default Object imm$backedWithSparse$1(Object p0){
+    long capacity = natToLong(p0);
+    return new ESparseSegmentList$1Instance(capacity);
   }
 
   ELists$0 instance= new ELists$0(){};
@@ -34,7 +36,24 @@ class ESparseList$1Instance implements ESparseList$1{
   int numHoles;
   public ESparseList$1Instance(int capacity) {
     this.list = new Object[capacity];
-    this.numHoles = 0;
+    this.numHoles = capacity;
+  }
+
+  public ESparseList$1Instance(ESparseList$1Instance elist) {
+    this.list = Arrays.copyOf(elist.list, elist.list.length);
+    this.numHoles = elist.numHoles;
+  }
+
+  @Override public Object mut$get$1(Object index) {
+    long idx = natToLong(index);
+    if (idx >= list.length) {
+      throw err("Index "+index+" out of bounds for sparse list with capacity " +this.read$capacity$0());
+    }
+    return Util.optNullable(this.list[(int) idx]);
+  }
+
+  @Override public Object read$get$1(Object index) {
+    return this.mut$get$1(index);
   }
 
   @Override public Object read$capacity$0() {
@@ -46,8 +65,8 @@ class ESparseList$1Instance implements ESparseList$1{
   }
 
   @Override public Object mut$increaseCapacity$1(Object p0) {
-    long newCapacity = natToInt(p0);
-    check(newCapacity <= Integer.MAX_VALUE, "Internal EList capacity cannot be larger than Integer.MAX_VALUE");
+    long newCapacity = natToLong(p0);
+    check(Long.compareUnsigned(newCapacity, Integer.MAX_VALUE) <= 0, "Internal EList capacity cannot be larger than Integer.MAX_VALUE");
     int addedCapacity = (int) newCapacity - this.list.length;
     if (addedCapacity < 0) {
       throw err("New capacity "+newCapacity+" cannot be smaller than current capacity "+list.length);
@@ -61,7 +80,7 @@ class ESparseList$1Instance implements ESparseList$1{
   }
 
   @Override public Object mut$increaseCapacityDefensive$1(Object p0) {
-    long newCapacity = natToInt(p0);
+    long newCapacity = natToLong(p0);
     check(newCapacity <= Integer.MAX_VALUE, "Internal EList capacity cannot be larger than Integer.MAX_VALUE");
     int cap = (int) newCapacity;
     int addedCapacity = (int) newCapacity - this.list.length;
@@ -87,45 +106,44 @@ class ESparseList$1Instance implements ESparseList$1{
     return this;
   }
 
+
+  @Override public Object mut$mapOpts$1(Object p0) {
+    for (int i = 0; i < list.length; i++) {
+      list[i] = optToNull((Opt$1) callMF$2(p0, optNullable(list[i])));
+    }
+
+    return this;
+  }
+
   @Override public Object mut$fillFrom$1(Object p0) {
     if (numHoles == 0) { return this; }
-
-    Stream<Object> s = ((Flow$1Instance) p0).s();
-    fillAvailableHoles(s);
+    int idx = 0;
+    ArrayList<Object> source = ((EList$1Instance) p0).xs;
+    for (int i = 0; i < this.list.length; i++) {
+        if (this.list[i] == null) {
+            this.list[i] = source.get(idx);
+            idx += 1;
+        }
+    }
 
     return this;
   }
 
   @Override public Object mut$fillAndExpand$1(Object p0) {
     SizedFlow$1Instance source = (SizedFlow$1Instance) p0;
-    long additionalSize = natToInt(source.read$size$0());
+    long additionalSize = this.numHoles - natToLong(source.read$size$0());
     check(
         additionalSize <= (Integer.MAX_VALUE - list.length),
         "This would cause the internal EList capacity to exceed Math.maxInt"
     );
-    Stream<Object> s = source.s();
     this.mut$increaseCapacity$1(
         Nat$0Instance.instance(list.length + additionalSize)
     );
-    fillAvailableHoles(s);
+    this.mut$fillFrom$1(p0);
 
     return this;
   }
 
-  private void fillAvailableHoles(Stream<Object> s) {
-    int[] holeIndex = {0};
-    s.sequential().takeWhile(_ -> numHoles > 0).forEach(e -> {
-       while (holeIndex[0] < list.length){
-        int i = holeIndex[0];
-        if (list[i] == null) {
-          list[i] = e;
-          numHoles--;
-          break;
-        }
-        holeIndex[0]++;
-      }
-    });
-  }
 
   @Override public Object mut$seqFlowOpts$0() {
     return Flows$0.of(
@@ -143,7 +161,7 @@ class ESparseList$1Instance implements ESparseList$1{
     );
   }
 
-  @Override public Object mut$flatSeqFlow$0() {
+  @Override public Object mut$seqFlowDefensive$0() {
     if (this.numHoles == 0) {
       return Flows$0.of(
           Arrays.stream(this.drain()),
@@ -158,7 +176,7 @@ class ESparseList$1Instance implements ESparseList$1{
     );
   }
 
-  @Override public Object mut$flatFlow$1(Object p0) {
+  @Override public Object mut$flowDefensive$1(Object p0) {
     if (this.numHoles == 0) {
       return Flows$0.of(
           Arrays.stream(this.drain()),
@@ -302,7 +320,7 @@ class ESparseList$1Instance implements ESparseList$1{
   }
 
   @Override public Object mut$remove$1(Object p0) {
-    long index = natToInt(p0);
+    long index = natToLong(p0);
     check(0 <= index && index <= list.length, "EList index out of range");
     int idx = (int) index;
     if (list[idx] != null) {
@@ -328,7 +346,7 @@ class ESparseList$1Instance implements ESparseList$1{
 
 
   @Override public Object mut$set$2(Object p0, Object p1) {
-    long index = natToInt(p0);
+    long index = natToLong(p0);
     check(0 <= index && index < list.length, "ESparseList index out of range");
     int idx = (int) index;
     boolean wasHole = list[idx] == null;
@@ -360,8 +378,8 @@ class ESparseList$1Instance implements ESparseList$1{
   }
 
   @Override public Object mut$trimTo$2(Object p0, Object p1) {
-    long start = natToInt(p0);
-    long end   = natToInt(p1);
+    long start = natToLong(p0);
+    long end = natToLong(p1);
     check(0 <= start && start <= end && end <= list.length,
         "ESparseList trimTo range out of bounds");
     int s = (int) start;
@@ -395,33 +413,32 @@ class ESparseList$1Instance implements ESparseList$1{
   }
 
   @Override public Object mut$mapInPlace$1(Object p0) {
-    if (this.numHoles == this.list.length) { return this; }
-
-    for (int i = 0; i < list.length; i++) {
-      if (list[i] == null) { continue; }
-      list[i] = callMF$2(p0, list[i]);
+    for (int i=0; i<list.length; i++) {
+      if (this.list[i] == null) {continue;}
+      this.list[i] = callMF$2(p0, this.list[i]);
     }
     return this;
   }
 
   @Override public Object mut$swap$2(Object p0, Object p1) {
-    long i = natToInt(p0);
-    long j = natToInt(p1);
-    check(0 <= i && i < list.length, "ESparseList swap index i out of range");
-    check(0 <= j && j < list.length, "ESparseList swap index j out of range");
-    Object tmp    = list[(int) i];
-    list[(int) i] = list[(int) j];
-    list[(int) j] = tmp;
-    // null/non-null counts don't change
+    final long index1 = natToLong(p0);
+    final long index2 = natToLong(p1);
+    if (index1 >= this.list.length) {
+      throw err("First Index "+index1+" must be smaller than the capacity "+this.list.length);
+    }
+    if (index2 >= this.list.length) {
+      throw err("Second Index "+index2+" must be smaller than the capacity "+this.list.length);
+    }
+    int i = (int) index1;
+    int j = (int) index2;
+    Object tmp = list[i];
+    list[i] = list[j];
+    list[j] = tmp;
     return this;
   }
 
   @Override public Object mut$shallow_clone$0() {
-    ESparseList$1Instance clone = new ESparseList$1Instance(list.length);
-    System.arraycopy(list, 0, clone.list, 0, list.length);
-    clone.numHoles = this.numHoles;
-    return clone;
+    return new ESparseList$1Instance(this);
   }
 }
-
 

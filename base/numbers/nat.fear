@@ -7,6 +7,7 @@ Nat: Sealed,DataType[Nat,Nat],SumNumber[Nat],InfoKey {
   -(x: Nat): Nat;                          /// checked sub; throws on underflow (below 0)
   *(x: Nat): Nat;                          /// checked mul; throws on overflow
   **(x: Nat): Nat;                         /// checked power; throws on overflow.
+  / (d: Nat) : Num;                        /// create a Num represening the exact result of this division; throws iff d==0
   .divExact(d: Nat): Nat;                  /// trunc toward 0; throws iff d==0
   .remExact(d: Nat): Nat;                  /// r = this - (this.div(d))*d; throws iff d==0;
   .rem(d: Nat): Opt[Nat] ->                /// r = this - (this.div(d))*d; .empty iff d==0;
@@ -23,7 +24,6 @@ Nat: Sealed,DataType[Nat,Nat],SumNumber[Nat],InfoKey {
       // See if this + delta.nat would underflow
       .else -> delta.abs <= this .then {this.indexOffsetExact(delta)};
       };
-  / (d: Nat) : Num;                        /// create a Num represening the exact result of this division; throws iff d==0
 
   .num: Num -> this / 1;                   /// converts to Num. Note Num can safely represent all `Nat`'s
   .int: Opt[Int];                          /// .some if this <= maxInt; .empty otherwise

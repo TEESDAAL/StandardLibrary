@@ -203,7 +203,7 @@ record Map$3Instance(OrderHashBy$1 keyOh, LinkedHashMap<MapKey,Object> elems) im
     long h= 0;
     for(var e: elems.entrySet()){
       long kh= e.getKey().hashCode();
-      long vh= natToInt(((base.OrderHash$1)byE.imm$$hash$1(e.getValue())).read$hash$0());
+      long vh= natToLong(((base.OrderHash$1)byE.imm$$hash$1(e.getValue())).read$hash$0());
       h += kh ^ vh;
     }
     return new Nat$0Instance(h);

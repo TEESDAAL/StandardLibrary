@@ -112,13 +112,13 @@ _TestCaps: {
       .do {UnitTestLog.log(_PlanLine#(`RUN`,st,2))}
       .do {ts.add(CheckInfos#(
         { _ -> c#; ._fetchTrace f -> c._fetchTrace f },
-        st)).done}
+        st)) |> (Done#)}
       .return {self};
 
     .checkWithSys c -> Block#
       .let[List[StackFrame]] st = {c._fetchTrace {sys.try.currentStackTrace}}
       .do {UnitTestLog.log(_PlanLine#(`RUN`,st,2))}
-      .do {ts.add(CheckInfos#(c,st)).done}
+      .do {ts.add(CheckInfos#(c,st)) |> (Done#)}
       .return {self};
 
     .disabledCheck c -> Block#(
