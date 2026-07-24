@@ -6,6 +6,8 @@ import java.util.stream.Stream;
 
 
 public interface _NumFlow$0 extends base.Sealed$0 {
+    _NumFlow$0 instance = new _NumFlow$0() {};
+
     default Object imm$bytes$2(Object p0, Object p1){
         byte start = Byte$0Instance.unwrap(p0);
         byte end = Byte$0Instance.unwrap(p1);
@@ -82,4 +84,6 @@ public interface _NumFlow$0 extends base.Sealed$0 {
                 n -> (Num$0Instance) n.imm$$plus$1(step)
         ).map(i -> i));
     }
+
+
 }
