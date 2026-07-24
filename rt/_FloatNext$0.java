@@ -1,6 +1,7 @@
 package base;
 
 public interface _FloatNext$0 extends base.Sealed$0 {
+    _FloatNext$0 instance = new _FloatNext$0() {};
     default Object imm$succ$1(Object p0) {
         return Float$0Instance.instance(
                 Math.nextUp(Float$0Instance.unwrap(p0))
