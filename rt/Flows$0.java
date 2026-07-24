@@ -22,7 +22,9 @@ public interface Flows$0 extends Sealed$0{
 
 record Flow$1Instance(Stream<Object> s) implements Flow$1{
   private static Error consumed(){ return err("Flow consumed"); }
-
+  static Flow$1Instance of(Stream<Object> stream) {
+    return new Flow$1Instance(stream);
+  }
   @Override public Object mut$map$1(Object p0){
     try{ return new Flow$1Instance(s.map(e->callF$2(p0,e))); }
     catch(IllegalStateException e){ throw consumed(); }

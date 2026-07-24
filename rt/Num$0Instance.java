@@ -63,7 +63,7 @@ public record Num$0Instance(BigInteger numerator, BigInteger denominator) implem
 
   private static Num$0Instance num(Object o){ return (Num$0Instance)o; }
 
-  private static int cmp(Num$0Instance a, Num$0Instance b){
+  static int cmp(Num$0Instance a, Num$0Instance b){
     return a.numerator.multiply(b.denominator).compareTo(b.numerator.multiply(a.denominator));
   }
   private static boolean lt(Num$0Instance a, Num$0Instance b){ return cmp(a,b) < 0; }
@@ -162,7 +162,6 @@ public record Num$0Instance(BigInteger numerator, BigInteger denominator) implem
     return instance(numerator.multiply(o.denominator), denominator.multiply(o.numerator));
   }
   @Override public Object imm$abs$0(){ return numerator.signum() < 0 ? instance(numerator.negate(), denominator) : this; }
-  @Override public Object imm$sqrt$0(){ return Float$0Instance.instance(Math.sqrt(numerator.doubleValue() / denominator.doubleValue())); }
   @Override public Object imm$floor$0(){ return instance(floorZ(numerator, denominator), one); }
   @Override public Object imm$ceil$0(){ return instance(ceilZ(numerator, denominator), one); }
   @Override public Object imm$trunc0$0(){ return instance(trunc0Z(numerator, denominator), one); }
@@ -182,32 +181,32 @@ public record Num$0Instance(BigInteger numerator, BigInteger denominator) implem
     return instance(q,one);
   }
   @Override public Object imm$isInteger$0(){ return bool(denominator.equals(one)); }
-  @Override public Object imm$int$0(){
+  @Override public Object imm$softInt$0(){
     var z= trunc0Z(numerator, denominator);
     return Int$0Instance.instance(clampIntZ(z));
   }
-  @Override public Object imm$nat$0(){
+  @Override public Object imm$softNat$0(){
     var z= trunc0Z(numerator, denominator);
     return Nat$0Instance.instance(clampNatBitsZ(z));
   }
-  @Override public Object imm$byte$0(){
+  @Override public Object imm$softByte$0(){
     var z= trunc0Z(numerator, denominator);
     return Byte$0Instance.instance(clampByteBitsZ(z));
   }
-  @Override public Object imm$float$0(){
+  @Override public Object imm$softFloat$0(){
     return Float$0Instance.instance(numerator.doubleValue() / denominator.doubleValue());
   }
-  @Override public Object imm$intExact$0(){
+  @Override public Object imm$getInt$0(){
     if (!denominator.equals(one)){ return optEmpty(); }
     if (numerator.compareTo(minInt) < 0 || numerator.compareTo(maxInt) > 0){ return optEmpty(); }
     return optSome(Int$0Instance.instance(numerator.intValue()));
   }
-  @Override public Object imm$natExact$0(){
+  @Override public Object imm$getNat$0(){
     if (!denominator.equals(one)){ return optEmpty(); }
     if (numerator.signum() < 0 || numerator.compareTo(maxNat) > 0){ return optEmpty(); }
     return optSome(Nat$0Instance.instance((int) numerator.longValue()));
   }
-  @Override public Object imm$byteExact$0(){
+  @Override public Object imm$getByte$0(){
     if (!denominator.equals(one)){ return optEmpty(); }
     if (numerator.signum() < 0 || numerator.compareTo(maxByte) > 0){ return optEmpty(); }
     return optSome(Byte$0Instance.instance((byte) numerator.intValue()));
@@ -218,13 +217,7 @@ public record Num$0Instance(BigInteger numerator, BigInteger denominator) implem
   }
   @Override public Object read$info$0(){ return Info$0.instance; }
   @Override public Object read$imm$0(){ return this; }
-  @Override public Object imm$clamp$2(Object p0, Object p1){
-    var lo= num(p0); var hi= num(p1);
-    if (lt(hi,lo)){ throw err("Num.clamp: lo>hi"); }
-    if (lt(this,lo)){ return lo; }
-    if (lt(hi,this)){ return hi; }
-    return this;
-  }
+
   @Override public Object imm$eqDelta$2(Object p0, Object p1){
     var exp= num(p0);
     var d= num(p1);

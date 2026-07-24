@@ -28,7 +28,7 @@ public record Int$0Instance(long val) implements Int$0,Norm$1{
   public static final long MIN_VALUE = Long.MIN_VALUE;
   public static Int$0 instance(long val){ return IntCache.getInt(val); }
 
-  private static long i(Object o){ return ((Int$0Instance)o).val; }
+  static long unwrap(Object o){ return ((Int$0Instance)o).val; }
   private static long unsignedLongFromNat(Object o){ return ((Nat$0Instance)o).val(); }
 
   private static byte clampByte(long x){
@@ -42,19 +42,20 @@ public record Int$0Instance(long val) implements Int$0,Norm$1{
     catch(ArithmeticException e){ throw err("Int.* overflow"); }
   }
 
+
   @Override public Object imm$nat$0(){ return Nat$0Instance.instance(val < 0 ? 0 : val); }
   @Override public Object imm$byte$0(){ return Byte$0Instance.instance(clampByte(val)); }
   @Override public Object imm$float$0(){ return Float$0Instance.instance((double)val); }
   @Override public Object imm$num$0(){ return Num$0Instance.instance(BigInteger.valueOf(val),BigInteger.ONE); }
-  @Override public Object imm$natExact$0(){ return val < 0 ? optEmpty() : optSome(Nat$0Instance.instance(val)); }
-  @Override public Object imm$byteExact$0(){ return (val < 0 || val > 255) ? optEmpty() : optSome(Byte$0Instance.instance((byte)val)); }
+  @Override public Object imm$getNat$0(){ return val < 0 ? optEmpty() : optSome(Nat$0Instance.instance(val)); }
+  @Override public Object imm$getByte$0(){ return (val < 0 || val > 255) ? optEmpty() : optSome(Byte$0Instance.instance((byte)val)); }
 
   @Override public Object imm$$plus$1(Object p0){
-    try{ return instance(Math.addExact(val,i(p0))); }
+    try{ return instance(Math.addExact(val, unwrap(p0))); }
     catch(ArithmeticException e){ throw err("Int.+ overflow"); }
   }
   @Override public Object imm$$dash$1(Object p0){
-    try{ return instance(Math.subtractExact(val,i(p0))); }
+    try{ return instance(Math.subtractExact(val, unwrap(p0))); }
     catch(ArithmeticException e){ throw err("Int.- overflow"); }
   }
   @Override public Object imm$$slash$1(Object p0){
@@ -64,7 +65,7 @@ public record Int$0Instance(long val) implements Int$0,Norm$1{
       unsignedLongToBigInteger(d)
     );
   }
-  @Override public Object imm$$star$1(Object p0){ return instance(mulChecked(val,i(p0))); }
+  @Override public Object imm$$star$1(Object p0){ return instance(mulChecked(val, unwrap(p0))); }
   @Override public Object imm$$star_star$1(Object p0) {
     long power = unsignedLongFromNat(p0);
     if (power == 0) { return Nat$0Instance.instance(1); }
@@ -83,7 +84,14 @@ public record Int$0Instance(long val) implements Int$0,Norm$1{
     // Long.MIN_VALUE correctly converted to Long.MAX_VALUE + 1
     return Nat$0Instance.instance(Math.abs(val));
   }
-  @Override public Object imm$sqrt$0(){ return Float$0Instance.instance(Math.sqrt((double)val)); }
+
+  @Override public Object imm$negAbs$0(){
+    // Long.MIN_VALUE correctly converted to Long.MAX_VALUE + 1
+    if (val < 0) {
+      return this;
+    }
+    return Int$0Instance.instance(-val);
+  }
 
   @Override public Object imm$sign$0() {
     if (val == 0L) {
@@ -99,13 +107,7 @@ public record Int$0Instance(long val) implements Int$0,Norm$1{
 
   @Override public Object read$info$0(){ return Info$0.instance; }
   @Override public Object read$imm$0(){ return this; }
-  @Override public Object imm$clamp$2(Object p0, Object p1){
-    long lo= i(p0), hi= i(p1);
-    if (lo > hi){ throw err("Int.clamp: lo>hi"); }
-    if (val < lo){ return instance(lo); }
-    if (val > hi){ return instance(hi); }
-    return this;
-  }
+
   @Override public Object imm$div$1(Object p0){
     long d= unsignedLongFromNat(p0);
     if (d == 0L){ throw err("Int.div: d==0"); }
@@ -126,7 +128,7 @@ public record Int$0Instance(long val) implements Int$0,Norm$1{
     if (d == 0L){ throw err("Int.rem: d==0"); }
     return instance(val % d);
   }
-  @Override public Object imm$divExact$1(Object p0){
+  @Override public Object imm$getDiv$1(Object p0){
     long d= unsignedLongFromNat(p0);
     if (d == 0L){ return optEmpty(); }
     if ((val % d) != 0L){ return optEmpty(); }
@@ -169,50 +171,30 @@ public record Int$0Instance(long val) implements Int$0,Norm$1{
     return Nat$0Instance.instance(len + val);
   }
 
-  @Override public Object imm$aluAddWrap$1(Object p0){ return instance(val + i(p0)); }
-  @Override public Object imm$aluSubWrap$1(Object p0){ return instance(val - i(p0)); }
-  @Override public Object imm$aluMulWrap$1(Object p0){ return instance(val * i(p0)); }
+  @Override public Object imm$aluAddWrap$1(Object p0){ return instance(val + unwrap(p0)); }
+  @Override public Object imm$aluSubWrap$1(Object p0){ return instance(val - unwrap(p0)); }
+  @Override public Object imm$aluMulWrap$1(Object p0){ return instance(val * unwrap(p0)); }
   @Override public Object imm$aluDiv$1(Object p0){
-    long x= i(p0);
+    long x= unwrap(p0);
     if (x == 0){ throw err("Int.aluDiv: divByZero"); }
     return instance(val / x);
   }
   @Override public Object imm$aluRem$1(Object p0){
-    long x= i(p0);
+    long x= unwrap(p0);
     if (x == 0){ throw err("Int.aluRem: divByZero"); }
     return instance(val % x);
   }
   @Override public Object imm$aluShiftLeft$1(Object p0){ return instance(val << (unsignedLongFromNat(p0))); }
   @Override public Object imm$aluShiftRight$1(Object p0){ return instance(val >> (unsignedLongFromNat(p0))); }
 
-  @Override public Object imm$aluXor$1(Object p0){ return instance(val ^ i(p0)); }
-  @Override public Object imm$aluAnd$1(Object p0){ return instance(val & i(p0)); }
-  @Override public Object imm$aluOr$1(Object p0){ return instance(val | i(p0)); }
+  @Override public Object imm$aluXor$1(Object p0){ return instance(val ^ unwrap(p0)); }
+  @Override public Object imm$aluAnd$1(Object p0){ return instance(val & unwrap(p0)); }
+  @Override public Object imm$aluOr$1(Object p0){ return instance(val | unwrap(p0)); }
   @Override public Object imm$aluNat$0(){ return Nat$0Instance.instance(val); }
   @Override public Object imm$aluByte$0(){ return Byte$0Instance.instance((byte)val); }
 
-  @Override public Object read$cmp$3(Object p0, Object p1, Object p2){ return ord(Long.compare(i(p0),i(p1)),p2); }
+  @Override public Object read$cmp$3(Object p0, Object p1, Object p2){ return ord(Long.compare(unwrap(p0), unwrap(p1)),p2); }
 
-  @Override public Object imm$$tilde_tilde$1(Object p0) {
-    long start = this.val;
-    long end = i(p0);
-    if (end < start) {
-      throw detErr("Valid ranges require end ("+end+") >= start ("+start+")");
-    }
-    return new Flow$1Instance(
-            LongStream.range(start, end).mapToObj(Int$0Instance::instance)
-    );
-  }
-  @Override public Object imm$$tilde_tilde_eq$1(Object p0) {
-    long start = this.val;
-    long end = i(p0);
-    if (end < start) {
-      throw detErr("Valid ranges require end ("+end+") >= start ("+start+")");
-    }
-    return new Flow$1Instance(
-            LongStream.rangeClosed(start, end).mapToObj(Int$0Instance::instance)
-    );
-  }
   @Override public Object imm$get$0(){ return this; }
   @Override public Object imm$norm$0(){ return this; }
 }

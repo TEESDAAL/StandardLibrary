@@ -1,0 +1,121 @@
+_NumAs: {
+  .int(n: Num): Bool -> n.isInteger && {n >= (Math.minInt.num)} && {n <= (Math.maxInt.num)};
+  .nat(n: Num): Bool -> n.isInteger && {n >= (0/1)} && {n <= (Math.maxNat.num)};
+  .byte(n: Num): Bool -> n.isInteger && {n >= (0/1)} && {n <= (Math.maxByte.num)};
+  }
+
+
+/// Num: unlimited-precision rational (exact arithmetic).
+Num: Sealed,DataType[Num,Num],SumNumber[Num],_AssertApprox[Num] {
+  +(x: Num): Num;                    /// exact add
+  -(x: Num): Num;                    /// exact sub
+  *(x: Num): Num;                    /// exact mul
+  /(x: Num): Num;                    /// exact div; throws iff x==0
+  **(x: Int): Num;                   /// Raise this to the power of x. x is an int because fraction powers could lead to inexpressible numbers.
+  .abs: Num;                         /// exact abs
+  .absNeg: Num;                      /// exact absNeg
+  .sign: Num;                        /// Return the sign of this number: +0/1 if x is 0, +1/1 if x is positive, -1/1 if x is negative.
+  .floor: Num;                       /// floor(this);
+  .ceil: Num;                        /// ceil(this);
+  .trunc0: Num;                      /// trunc toward 0;
+  .round: Num;                       /// round-to-nearest integer, ties-to-even (exact on rationals); result is an integer (denominator == 1)
+  .isInteger: Bool;                  /// true iff denominator == 1
+
+  /// `this.int` returns `.some` of `this` if this is an integer in [Math.minInt, Math.maxInt]; `.empty` otherwise
+  .int: Opt[Int] -> _NumAs.int this .then{this.softInt};
+
+  /// `this.nat` returns `.some` of `this` if this is an integer in [0, Math.maxNat]; `.empty` otherwise
+  .nat: Opt[Nat] -> _NumAs.nat this .then{this.softNat};
+
+  /// `this.byte` returns `.some` of `this` if this is an integer in [0, Math.maxByte]; `.empty` otherwise
+  .byte: Opt[Byte] -> _NumAs.byte this .then{this.softByte};
+
+  /// `this.float` returns `.some` of `this` if this is exactly representable as a 64bit float, `.empty` otherwise.
+  .float: Opt[Float];
+
+  /// `this.getInt` converts `this` to `Int` if this is an integer in [Math.minInt, Math.maxInt]; throws otherwise
+  .getInt: Int;
+
+  /// `this.getNat` converts `this` to `Nat` if this is an integer in [0, Math.maxNat]; throws otherwise
+  .getNat: Nat;
+
+  /// `this.getByte` converts `this` to `Byte` if this is an integer in [0, Math.maxByte]; throws otherwise
+  .getByte: Byte;
+  /// `this.getByte` converts `this` to `Float`, throws if not exactly representable.
+  .getFloat: Float;
+
+  .softInt: Int;                         /// clamp to [minInt,maxInt] after trunc0 (never throws)
+  .softNat: Nat;                         /// clamp to [0,maxNat] after trunc0 (never throws)
+  .softByte: Byte;                       /// clamp to [0,maxByte] after trunc0 (never throws)
+  .softFloat: Float;                     /// approximate; (never throws)
+
+
+  ~~(end: Num): ComparisonRange[Num] -> Block#(
+    Assert!(this <= end),
+    {
+      .start -> this;
+      .end -> end;
+      .contains n -> this < n && {n < end};
+
+      .leftClosed: False -> False;
+      .rightClosed: False -> False;
+      });
+
+  ~~=(endInclusive: Num): ComparisonRange[Num] -> Block#(
+    Assert!(this <= endInclusive),
+    {
+      .start -> this;
+      .end -> endInclusive;
+      .contains n -> this < n && {n <= endInclusive};
+      .leftClosed: False -> False;
+      .rightClosed: True -> True;
+      });
+
+  =~~(end: Num): FlowableRange[Num] -> Block#(
+    Assert!(this <= end),
+    {
+      .start -> this;
+      .end -> end;
+      .contains n -> this <= n && {n < end};
+      .flow step -> _NumFlow.numsOpen(this.imm, end, step)
+      });
+
+  =~~=(endInclusive: Num): ClampableRange[Num] -> Block#(
+    Assert!(this <= endInclusive),
+    {
+      .start -> this;
+      .end -> endInclusive;
+      .contains n -> this <= n && {n <= endInclusive};
+      .flow step -> _NumFlow.numsClosed(this.imm, endInclusive, step);
+      .clamp n -> Block#
+        .if {n >= endInclusive} .return {endInclusive}
+        .if {n <= this} .return {this}
+        .return {endInclusive}
+      });
+
+  .inRange(range: ComparisonRange[Num]): Bool -> range.contains(this);
+  .assertInRange(range: ComparisonRange[Num]): Void -> this.assertInRange(range, {``});
+  .assertInRange(range: ComparisonRange[Num], msg: read LazyInfo): Void -> Assert!(
+    this.inRange(range),
+    { msg#.info + (`Expected in range: `+ (_RangeToString#(range))
+      | `lo: `+(range.start)
+      | `hi: `+(range.end)
+      | `actual: `+ this
+      .info)});
+
+  .clamp(range: ClampableRange[Num]): Num -> range.clamp(this);
+
+  .hash -> this.str.hash;           /// hash via string
+  .info -> Infos.msg(this.str);      /// info via string
+  .close->::; .close->this;         /// fixpoint type closed
+  .sumNumber xs ->                  /// summing all numbers starting from this
+    xs.fold( {this}, {acc,e -> acc + e} );
+  .norm: Norm[Num];
+  }
+
+_RangeToString: {
+  #[N](range: ComparisonRange[N]): Str ->
+    range.rightClosed.match[Str]{.true -> "["; .false -> "("}
+      + "lo, hi"
+      + (range.rightClosed.match[Str]{.true -> "]"; .false -> ")"});
+}

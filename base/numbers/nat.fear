@@ -1,0 +1,107 @@
+// Nat: 64-bit unsigned (bitty, index-flavored). Ordering is UNSIGNED.
+// Note: / is not provided; use div/rem (divisor is Nat).
+Nat: Sealed,DataType[Nat,Nat],SumNumber[Nat] {
+  .succ: Nat -> this + 1;                  /// successor number; throws on overflow
+  .pred: Nat -> this - 1;                  /// predecessor number; throws on underflow
+  +(x: Nat): Nat;                          /// checked add; throws on overflow (past maxNat)
+  -(x: Nat): Nat;                          /// checked sub; throws on underflow (below 0)
+  *(x: Nat): Nat;                          /// checked mul; throws on overflow
+  **(x: Nat): Nat;                         /// checked power; throws on overflow.
+  /(d: Nat) : Num;                         /// create a Num represening the exact result of this division; throws iff d==0
+  .getDiv(d: Nat): Nat;                    /// trunc toward 0; throws iff d==0
+  .getRem(d: Nat): Nat;                    /// r = this - (this.div(d))*d; throws iff d==0;
+  .rem(d: Nat): Opt[Nat] ->                /// r = this - (this.div(d))*d; .empty iff d==0;
+    d == 0 .then {this.getRem(d)};
+  .div(d: Nat): Opt[Nat]                   /// .some if d!=0 and this.rem(d)==0; .empty otherwise
+    -> this.rem(d).match {
+      .empty -> {};
+      .some r -> r == 0 .then {this.getDiv(d)};
+      };
+
+  .softSqrt: Float;                            /// approximate sqrt
+
+  .getIndexOffset(delta: Int): Nat;           /// index helper: this + delta; throws on under/overflow
+  .indexOffset(delta: Int): Opt[Nat] -> delta >= +0 .if {
+      // See if this + delta.nat would overflow
+      .then -> delta.getNat <= (Math.maxNat - this) .then {this.getIndexOffset(delta)};
+      // See if this + delta.nat would underflow
+      .else -> delta.abs <= this .then {this.getIndexOffset(delta)};
+      };
+
+  .num: Num -> this / 1;                   /// converts to Num. Note Num can safely represent all `Nat`'s
+
+  /// .some if this <= maxInt; .empty otherwise
+  .int: Opt[Int] -> this <= (Math.maxInt.getNat)
+    .then {this.softInt};
+  /// .some if this <= maxByte; .empty otherwise
+  .byte: Opt[Byte];
+  .float: Opt[Float];                      /// .some if this is exactly representable; .empty otherwise
+
+  .getInt: Int;                            /// converts if this <= maxInt; throws otherwise
+  .getByte: Byte;                          /// converts if this <= maxByte; throws otherwise
+  .getFloat: Float;                        /// converts if this is exactly representable; throws otherwise
+
+  .softInt: Int;                        /// converts by clamping to [0,maxInt]
+  .softByte: Byte;                      /// converts by clamping to [0,maxByte]
+  .softFloat: Float;                    /// converts to the closest representable number
+
+  .aluAddWrap(x: Nat): Nat;                /// u64 wraparound add (mod 2^64)
+  .aluSubWrap(x: Nat): Nat;                /// u64 wraparound sub (mod 2^64)
+  .aluMulWrap(x: Nat): Nat;                /// u64 wraparound mul (mod 2^64)
+  .aluDiv(x: Nat): Nat;                    /// u64 trunc division; throws iff x == 0
+  .aluRem(x: Nat): Nat;                    /// paired with aluDiv; throws iff x == 0
+  .aluShiftLeft(bits: Nat): Nat;           /// u64 shift-left; effective shift = bits & 63 (i.e., modulo 64).
+  .aluShiftRight(bits: Nat): Nat;          /// u64 logical shift-right; effective shift = bits & 63.
+  .aluXor(x: Nat): Nat;                    /// u64 xor
+  .aluAnd(x: Nat): Nat;                    /// u64 and
+  .aluOr(x: Nat): Nat;                     /// u64 or
+  .aluInt: Int;                            /// reinterpret u64 bits as i64 Int (bit-cast)
+  .aluByte: Byte;                          /// low 8 bits (wrap), not clamp
+
+  /// `this~~n` returns a range from this+1 to n-1
+  ~~(end: Nat): read Range[Nat] -> this.imm + 1 =~~= (end - 1);
+
+  /// `this~~n` returns a range from `this+1` to `n`
+  ~~=(endInclusive: Nat): read Range[Nat] -> this.imm + 1 =~~= endInclusive;
+
+  /// `this=~~n` returns a range from `this` to `n-1`
+  =~~(end: Nat): read Range[Nat] -> this =~~=(end - 1);
+
+  /// `this=~~=n` returns a range from `this` to `n`
+  =~~=(endInclusive: Nat): read Range[Nat] -> Block#(
+    Assert!(this <= endInclusive),
+    {'self
+      .size -> this.imm - endInclusive;
+      .start -> this;
+      .end -> endInclusive;
+      .flow -> _NumFlow.nats(this.imm, endInclusive);
+      // Performance question here, should this be magic
+      .flow step -> self.flow.filter{(:: - (this.imm)).getRem(step) == 0};
+      .contains n -> this <= n && { n <= endInclusive};
+      .clamp n -> Block#
+        .if {n <= this} .return {this.imm}
+        .if {n >= endInclusive} .return {endInclusive}
+        .return {n.imm};
+    });
+
+
+  .inRange(range: Range[Nat]): Bool -> range.contains(this);
+  .assertInRange(range: Range[Nat]): Void -> this.assertInRange(range, {``});
+  .assertInRange(range: Range[Nat], msg: read LazyInfo): Void -> Assert!(
+    this.inRange(range),
+    { msg#.info + (`Expected in range: `+ (_RangeToString#(range))
+      | `lo: `+(range.start)
+      | `hi: `+(range.end)
+      | `actual: `+this
+      .info)});
+
+  .clamp(range: Range[Nat]): Nat -> range.clamp(this);
+
+  .hash -> this.str.hash;                 /// hash via str
+  .info -> Infos.msg(this.str);            /// info via str
+  .close->::; .close->this;               /// fixpoint type closed
+  .sumNumber xs ->                        /// summing all numbers starting from this
+    xs.fold( {this}, {acc,e -> acc + e} );
+  .hashWith(other: Nat): Nat -> this.aluMulWrap(31).aluAddWrap(other);
+  .norm: Norm[Nat];
+  }

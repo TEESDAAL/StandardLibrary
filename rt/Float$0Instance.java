@@ -32,7 +32,12 @@ public record Float$0Instance(double val) implements Float$0{
     if (!Double.isFinite(x)){ return false; }
     return x == Math.rint(x);
   }
-  @Override public Object imm$signnum$0() {
+
+  public static double unwrap(Object p0) {
+     return ((Float$0Instance) p0).val;
+  }
+
+  @Override public Object imm$signOrNaN$0() {
     return Float$0Instance.instance(Math.signum(this.val));
   }
   @Override public Object imm$$star_star$1(Object p0){ return instance(Math.pow(val,f(p0))); }
@@ -76,22 +81,22 @@ public record Float$0Instance(double val) implements Float$0{
     if (neg){ n= n.negate(); }
     return Num$0Instance.instance(n,d);
   }
-  @Override public Object imm$numExact$0(){
+  @Override public Object imm$getNum$0(){
     if (Double.isNaN(val) || Double.isInfinite(val)){ return optEmpty(); }
     return optSome(numExactFinite(val));
   }
 
-  @Override public Object imm$intExact$0(){
+  @Override public Object imm$getInt$0(){
     if (!isIntegral(val)){ return optEmpty(); }
     if (val < (double)Integer.MIN_VALUE || val > (double)Integer.MAX_VALUE){ return optEmpty(); }
     return optSome(Int$0Instance.instance((int)val));
   }
-  @Override public Object imm$natExact$0(){
+  @Override public Object imm$getNat$0(){
     if (!isIntegral(val)){ return optEmpty(); }
     if (val < 0.0d || val > MAX_UNSIGNED_VALUE_FLOAT){ return optEmpty(); }
     return optSome(Nat$0Instance.instance((int)((long)val)));
   }
-  @Override public Object imm$byteExact$0(){
+  @Override public Object imm$getByte$0(){
     if (!isIntegral(val)){ return optEmpty(); }
     if (val < 0.0d || val > 255.0d){ return optEmpty(); }
     return optSome(Byte$0Instance.instance((byte)((int)val)));
@@ -100,8 +105,8 @@ public record Float$0Instance(double val) implements Float$0{
   @Override public Object imm$$dash$1(Object p0){ return instance(val - f(p0)); }
   @Override public Object imm$$star$1(Object p0){ return instance(val * f(p0)); }
   @Override public Object imm$$slash$1(Object p0){ return instance(val / f(p0)); }
-  @Override public Object imm$abs$0(){ return instance(Math.abs(val)); }
-  @Override public Object imm$sqrt$0(){ return instance(Math.sqrt(val)); }
+  @Override public Object imm$absOrNaN$0(){ return instance(Math.abs(val)); }
+  @Override public Object imm$sqrtOrNaN$0(){ return instance(Math.sqrt(val)); }
   @Override public Object read$str$0(){
     if (Double.isNaN(val)){ return Str$0Instance.instance("(+0.0 / +0.0)"); }
     if (val == Double.POSITIVE_INFINITY){ return Str$0Instance.instance("(+1.0 / +0.0)"); }
@@ -114,14 +119,7 @@ public record Float$0Instance(double val) implements Float$0{
   }
   @Override public Object read$info$0(){ return Info$0.instance; }
   @Override public Object read$imm$0(){ return this; }
-  @Override public Object imm$clamp$2(Object p0,Object p1){
-    double lo= f(p0);
-    double hi= f(p1);
-    if (cmpFearless(lo,hi) > 0){ throw err("Float.clamp: lo>hi"); }
-    if (cmpFearless(val,lo) < 0){ return instance(lo); }
-    if (cmpFearless(val,hi) > 0){ return instance(hi); }
-    return this;
-  }
+
   @Override public Object imm$eqDelta$2(Object p0, Object p1){
     double exp= f(p0), d= f(p1);
     if (Double.isNaN(exp) || Double.isNaN(d) || Double.isNaN(val)){ return bool(false); }
@@ -137,9 +135,9 @@ public record Float$0Instance(double val) implements Float$0{
     if (r >= (double)Int$0Instance.MAX_VALUE){ return Int$0Instance.instance(Int$0Instance.MAX_VALUE); }
     return Int$0Instance.instance((int)r);
   }
-  @Override public Object imm$ceil$0(){ return Int$0Instance.instance((int)Math.ceil(val)); }
-  @Override public Object imm$floor$0(){ return Int$0Instance.instance((int)Math.floor(val)); }
-  @Override public Object imm$trunc0$0(){ return Int$0Instance.instance(clampTrunc0ToInt(val)); }
+  @Override public Object imm$softCeil$0(){ return Int$0Instance.instance((int)Math.ceil(val)); }
+  @Override public Object imm$softFloor$0(){ return Int$0Instance.instance((int)Math.floor(val)); }
+  @Override public Object imm$softTrunc0$0(){ return Int$0Instance.instance(clampTrunc0ToInt(val)); }
   @Override public Object imm$isNaN$0(){ return bool(Double.isNaN(val)); }
   @Override public Object imm$isInfinite$0(){ return bool(Double.isInfinite(val)); }
   @Override public Object imm$isPosInfinity$0(){ return bool(val == Double.POSITIVE_INFINITY); }

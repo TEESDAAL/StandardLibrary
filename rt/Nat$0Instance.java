@@ -80,6 +80,12 @@ public record Nat$0Instance(long val) implements Nat$0,Norm$1 {
     if (overflow){ throw err("Nat.* overflow"); }
     return a * b;
   }
+
+  /// WARNING - THIS LONG IS UNSIGNED
+  public static long unwrap(Object p0) {
+    return ((Nat$0Instance) p0).val;
+  }
+
   @Override public Object imm$$slash$1(Object p0){
     long d=n(p0);
     return Num$0Instance.instance(
@@ -155,7 +161,7 @@ public record Nat$0Instance(long val) implements Nat$0,Norm$1 {
   /**
    * Is this method named the right thing?
    */
-  @Override public Object imm$intExact$0() {
+  @Override public Object imm$getInt$0() {
     if (Long.compareUnsigned(val, Long.MAX_VALUE) > 0) {
       return optEmpty();
     }
@@ -163,7 +169,7 @@ public record Nat$0Instance(long val) implements Nat$0,Norm$1 {
     return optSome(Int$0Instance.instance(val));
   }
 
-  @Override public Object imm$byteExact$0(){
+  @Override public Object imm$getByte$0(){
     return Long.compareUnsigned(val,255) > 0 ? optEmpty() : optSome(Byte$0Instance.instance((byte)val));
   }
   @Override public Object imm$$plus$1(Object p0){ return instance(addChecked(val,n(p0))); }
@@ -184,7 +190,7 @@ public record Nat$0Instance(long val) implements Nat$0,Norm$1 {
     return Nat$0Instance.instance(result);
   }
 
-  @Override public Object imm$sqrt$0(){
+  @Override public Object imm$softSqrt$0(){
     return Float$0Instance.instance(
             Math.sqrt(unsignedLongToDouble(val))
     );
@@ -192,30 +198,19 @@ public record Nat$0Instance(long val) implements Nat$0,Norm$1 {
   @Override public Object read$str$0(){ return Str$0Instance.instance(Long.toUnsignedString(val)); }
   @Override public Object read$info$0(){ return Info$0.instance; }
   @Override public Object read$imm$0(){ return this; }
-  @Override public Object imm$clamp$2(Object p0, Object p1){
-    long lo= n(p0), hi= n(p1);
-    if (Long.compareUnsigned(lo,hi) > 0){ throw err("Nat.clamp: lo>hi"); }
-    if (Long.compareUnsigned(val,lo) < 0){ return instance(lo); }
-    if (Long.compareUnsigned(val,hi) > 0){ return instance(hi); }
-    return this;
-  }
-  @Override public Object imm$div$1(Object p0){
+
+  @Override public Object imm$getDiv$1(Object p0){
     long d= n(p0);
     if (d == 0){ throw err("Nat.div: d==0"); }
     return instance(Long.divideUnsigned(val,d));
   }
-  @Override public Object imm$rem$1(Object p0){
+  @Override public Object imm$getRem$1(Object p0){
     long d= n(p0);
     if (d == 0){ throw err("Nat.rem: d==0"); }
     return instance(Long.remainderUnsigned(val,d));
   }
-  @Override public Object imm$divExact$1(Object p0){
-    long d= n(p0);
-    if (d == 0){ return optEmpty(); }
-    if (Long.remainderUnsigned(val,d) != 0){ return optEmpty(); }
-    return optSome(instance(Long.divideUnsigned(val,d)));
-  }
-  @Override public Object imm$indexOffset$1(Object p0){
+
+  @Override public Object imm$getIndexOffset$1(Object p0){
     long offset = i(p0);
 
     if (offset <= 0) {
@@ -248,52 +243,7 @@ public record Nat$0Instance(long val) implements Nat$0,Norm$1 {
   @Override public Object imm$aluByte$0(){ return Byte$0Instance.instance((byte)val); }
 
   @Override public Object read$cmp$3(Object p0, Object p1, Object p2){ return ord(Long.compareUnsigned(n(p0),n(p1)),p2); }
-  @Override public Object imm$$tilde_tilde$1(Object p0){
-    long start= this.val;
-    long until= ((Nat$0Instance)p0).val;
 
-    if (Long.compareUnsigned(until, start) < 0) {
-      throw detErr("Valid ranges require end ("+until+") >= start ("+start+")");
-    }
-    // Don't need to worry about overflow :)
-    if (
-            Long.compareUnsigned(until, Long.MAX_VALUE) < 0
-                    || Long.compareUnsigned(start, Long.MAX_VALUE) > 0
-    ) {
-      return new Flow$1Instance(
-              LongStream.range(start, until)
-                      .<Object>mapToObj(Nat$0Instance::new)
-      );
-    }
-
-    return new Flow$1Instance(LongStream.concat(
-            LongStream.rangeClosed(start,Long.MAX_VALUE),
-            LongStream.range(Long.MIN_VALUE, until)
-    ).mapToObj(Nat$0Instance::new));
-  }
-  @Override public Object imm$$tilde_tilde_eq$1(Object p0){
-   long start= this.val;
-    long until= ((Nat$0Instance)p0).val;
-
-    if (Long.compareUnsigned(until, start) < 0) {
-      throw detErr("Valid ranges require end ("+until+") >= start ("+start+")");
-    }
-    // Don't need to worry about overflow :)
-    if (
-            Long.compareUnsigned(until, Long.MAX_VALUE) < 0
-                    || Long.compareUnsigned(start, Long.MAX_VALUE) > 0
-    ) {
-      return new Flow$1Instance(
-              LongStream.rangeClosed(start, until)
-                      .<Object>mapToObj(Nat$0Instance::new)
-      );
-    }
-
-    return new Flow$1Instance(LongStream.concat(
-            LongStream.rangeClosed(start,Long.MAX_VALUE),
-            LongStream.rangeClosed(Long.MIN_VALUE, until)
-    ).mapToObj(Nat$0Instance::new));
-  }
   @Override public Object imm$norm$0(){ return this; }
   @Override public Object imm$get$0(){ return this; }
 }

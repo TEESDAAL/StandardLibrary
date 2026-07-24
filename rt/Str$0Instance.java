@@ -85,7 +85,7 @@ public record Str$0Instance(String val) implements Str$0,Norm$1{
     "[+-]?(?:[0-9](?:[0-9_]*[0-9])?(?:\\.[0-9](?:[0-9_]*[0-9])?)?)/(?:[0-9](?:[0-9_]*[0-9])?(?:\\.[0-9](?:[0-9_]*[0-9])?)?)");
   static final long maxNatU= -1;
   static final long maxByteU= 255L;
-  @Override public Object imm$intExact$0(){
+  @Override public Object imm$getInt$0(){
     if (!signedInt.matcher(val).matches()){ return optEmpty(); }
     try{ return optSome(Int$0Instance.instance(Long.parseLong(no_(val)))); }
     catch(NumberFormatException e){ return optEmpty(); }
@@ -130,14 +130,14 @@ public record Str$0Instance(String val) implements Str$0,Norm$1{
     try{ return optSome(Float$0Instance.instance(Double.parseDouble(val))); }
     catch(NumberFormatException e){ return optEmpty(); }
   }
-  @Override public Object imm$natExact$0(){
+  @Override public Object imm$getNat$0(){
     if (!unsignedInt.matcher(val).matches()){ return optEmpty(); }
     try{
       return optSome(Nat$0Instance.instance(Long.parseUnsignedLong(no_(val))));
     }
     catch(NumberFormatException e){ return optEmpty(); }
   }
-  @Override public Object imm$byteExact$0(){
+  @Override public Object imm$getByte$0(){
     if (!unsignedInt.matcher(val).matches()){ return optEmpty(); }
     try{
       int x= Integer.parseInt(no_(val));
@@ -146,7 +146,7 @@ public record Str$0Instance(String val) implements Str$0,Norm$1{
     }
     catch(NumberFormatException e){ return optEmpty(); }
   }
-  @Override public Object imm$numExact$0(){
+  @Override public Object imm$getNum$0(){
     if (!signedRational.matcher(val).matches()){ return optEmpty(); }
     try{
       String t= no_(val);
@@ -170,7 +170,7 @@ public record Str$0Instance(String val) implements Str$0,Norm$1{
       return new Dec(new BigInteger(s.substring(0,dot)+s.substring(dot+1)), s.length()-dot-1);
     }
   }
-  @Override public Object imm$floatExact$0(){
+  @Override public Object imm$getFloat$0(){
     if (!signedFloat.matcher(val).matches()){ return optEmpty(); }
     try{
       String x= no_(val);

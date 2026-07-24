@@ -18,6 +18,9 @@ Bool: Sealed,DataType[Bool,Bool] {
 
   .match[R:**](m: mut BoolMatch[R]): R -> this?{.then->m.true; .else->m.false};
 
+  /// `this.then(f)` returns `.some f#` if `this == True` otherwise `.empty`.
+  .then[R:*](mut MF[R]): mut Opt[R];
+
   .close -> this; .close -> ::;
 
   .cmp a, b, m -> a.imm?{
@@ -32,6 +35,8 @@ Bool: Sealed,DataType[Bool,Bool] {
   .info -> Infos.msg(this.str);
   .assertTrue: Void -> this.assertEq True;
   .assertFalse: Void -> this.assertEq False;
+  .assertTrue(msg: read LazyInfo): Void -> this.assertEq(True, msg);
+  .assertFalse(msg: read LazyInfo): Void -> this.assertEq(False, msg);
   }
 
 True: Bool {
@@ -41,6 +46,7 @@ True: Bool {
   || b -> this;
   .not -> False;
   .if f -> f.then;
+  .then f -> Opts#(f#);
   .imm -> True;
   }
 
@@ -51,5 +57,6 @@ False: Bool {
   || b -> b#;
   .not -> True;
   .if f -> f.else;
+  .then _ -> {};
   .imm -> False;
   }

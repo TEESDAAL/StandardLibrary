@@ -1,0 +1,82 @@
+/// Byte: 8-bit unsigned [0,255]. Ordering is UNSIGNED.
+/// Note: / is not provided; use div/rem (divisor is Nat).
+Byte: Sealed,DataType[Byte,Byte],SumNumber[Byte] {
+  +(x: Byte): Byte;                            /// checked add; throws on overflow (past 255)
+  -(x: Byte): Byte;                            /// checked sub; throws on underflow (below 0)
+  *(x: Byte): Byte;                            /// checked mul; throws on overflow
+  **(x: Byte): Byte;                           /// checked power; throws on overflow
+  /(x: Nat): Num;
+  .getDiv(d: Nat): Byte;                     /// trunc toward 0; throws iff d == 0
+  .getRem(d: Nat): Byte;                     /// r = this - (this.div(d))*d; throws iff d == 0
+
+  .rem(d: Nat): Opt[Byte]                      /// .some of this - (this.div(d))*d; .empty d == 0
+    -> this == (0.getByte) .then {this.getRem(d)};
+  .div(d: Nat): Opt[Byte]                      /// .some if d != 0 and this.rem(d) == 0; .empty otherwise
+    -> this == (0.getByte) .then {this.getDiv(d)};
+  .softSqrt: Float;                                /// approximate sqrt
+
+  .nat: Nat;                                   /// exact widen
+  .int: Int;                                   /// exact widen
+  .float: Float;                               /// exact widen
+  .num: Num;                                   /// exact widen to rational
+
+  .aluAddWrap(x: Byte): Byte;                  /// u8 wraparound add (mod 256)
+  .aluSubWrap(x: Byte): Byte;                  /// u8 wraparound sub (mod 256)
+  .aluMulWrap(x: Byte): Byte;                  /// u8 wraparound mul (mod 256)
+  .aluDiv(x: Byte): Byte;                      /// u8 trunc division; throws iff x == 0
+  .aluRem(x: Byte): Byte;                      /// paired with aluDiv; throws iff x == 0
+  .aluShiftLeft(bits: Nat): Byte;              /// u8 shift-left; effective shift = bits & 7 (i.e., modulo 8).
+  .aluShiftRight(bits: Nat): Byte;             /// u8 logical shift-right; effective shift = bits & 7.
+  .aluXor(x: Byte): Byte;                      /// u8 xor
+  .aluAnd(x: Byte): Byte;                      /// u8 and
+  .aluOr(x: Byte): Byte;                       /// u8 or
+
+  /// `this~~n` returns a range from this+1 to n-1
+  //> .check{2.getByte~~(5.getByte).list .assertEq({::}, Lists#(3.getByte, 4.getByte))}
+  ~~(end: Byte): Range[Byte] -> this + (1.getByte) =~~= (end - (1.getByte));
+
+  /// `this~~n` returns a range from `this+1` to `n`
+  //> .check{2.getByte~~(5.getByte).list .assertEq({::}, Lists#(3.getByte, 4.getByte, 5.getByte))}
+  ~~=(endInclusive: Byte): Range[Byte] -> this + (1.getByte) =~~= endInclusive;
+
+  /// `this=~~n` returns a range from `this` to `n-1`
+  //> .check{2.getByte~~(5.getByte).list .assertEq({::}, Lists#(2.getByte, 3.getByte, 4.getByte))}
+  =~~(end: Byte): Range[Byte] -> this=~~=(end - (1.getByte));
+
+  /// `this=~~=n` returns a range from `this` to `n`
+  //> .check{2.getByte~~(5.getByte).list .assertEq({::}, Lists#(2.getByte, 3.getByte, 4.getByte, 5.getByte))}
+  =~~=(endInclusive: Byte): Range[Byte] -> Block#(
+    Assert!(this <= endInclusive),
+    {'self
+      .size -> this - endInclusive .nat;
+      .start -> this;
+      .end -> endInclusive;
+      .flow -> _NumFlow.bytes(this, endInclusive);
+      // Performance question here, should this be magic
+      .flow step -> self.flow.filter{(:: - (this)).getRem(step.nat) == (0.getByte)};
+      .contains n -> this <= n && { n <= endInclusive};
+      .clamp n -> Block#
+        .if {n <= this} .return {this}
+        .if {n >= endInclusive} .return {endInclusive}
+        .return {n.imm};
+      });
+
+  .inRange(range: Range[Byte]): Bool -> range.contains(this);
+  .assertInRange(range: Range[Byte]): Void -> this.assertInRange(range, {``});
+  .assertInRange(range: Range[Byte], msg: read LazyInfo): Void -> Assert!(
+    this.inRange(range),
+    { msg#.info + (`Expected in range: `+ (_RangeToString#(range))
+      | `lo: `+(range.start)
+      | `hi: `+(range.end)
+      | `actual: `+this
+      .info)});
+
+  .clamp(range: Range[Byte]): Byte -> range.clamp(this);
+
+  .hash -> this.str.hash;                      /// hash via str
+  .info -> Infos.msg(this.str);                 /// info via str
+  .close->::; .close->this;                    /// fixpoint type closed
+  .sumNumber xs ->                             /// summing all numbers starting from this
+    xs.fold( {this}, {acc,e -> acc + e} );
+  .norm: Norm[Byte];
+  }

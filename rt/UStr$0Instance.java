@@ -45,7 +45,7 @@ public record UStr$0Instance(int[] val) implements UStr$0{
 
   @Override public Object imm$isStr$0(){ return bool(isStr(val)); }
 
-  @Override public Object imm$strExact$0(){
+  @Override public Object imm$getStr$0(){
     return isStr(val)
       ? optSome(Str$0Instance.instance(new String(val,0,val.length)))
       : optEmpty();

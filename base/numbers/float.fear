@@ -1,0 +1,215 @@
+/// Float: 64 bits IEEE values. Note: ==/order instead follow the usual rules:
+/// - NaN == NaN (all different NaNs equal); NaN is greater than everything else including +Inf
+/// - -0.0 == +0.0
+/// Method hash must respect this ordering
+Float: Sealed,DataType[Float,Float],SumNumber[Float],_AssertApprox[Float] {
+  +(x: Float): Float;                /// IEEE add
+  -(x: Float): Float;                /// IEEE sub
+  *(x: Float): Float;                /// IEEE mul
+  /(x: Float): Float;                /// IEEE div: 0 yields +/-Inf or NaN (never throws)
+  **(x: Float): Float;               /// IEEE pow
+
+  .absOrNaN: Float;              /// IEEE abs
+  /// `this.abs` returns the .some of `this` if `this >= 0`, .some of `-this` if `this < 0`,
+  /// .empty if `this` is NaN;
+  .abs: Opt[Float] -> this.isNaN.not .then {this.absOrNaN};
+  /// `this.abs` returns the `this` if `this >= 0`, `-this` otherwise;
+  /// Throws if `this` is NaN
+  .getAbs: Float ->
+    this.isNaN .if {
+      .then -> Error.msg "Cannot take the absolute value of NaN";
+      .else -> this.absOrNaN;
+      };
+
+
+  .negAbsOrNaN: Float -> this.absOrNaN * -1.0;
+
+  .negAbs: Opt[Float] -> this.isNaN.not .then {this.absOrNaN * -1.0};
+
+  .getNegAbs: Float -> this.getAbs * -1.0;
+
+  .sqrtOrNaN: Float;             /// IEEE sqrt; returns NaN iff this is negative (excluding -0)
+  /// `this.sqrt` returns .some of the IEEE sqrt of x if x is positive and not NaN, .empty otherwise.
+  .sqrt: Opt[Float] -> this.isNaN.not && {this >= -0.0} .then {this.sqrtOrNaN};
+  /// `this.sqrt` returns .some of the IEEE sqrt of x if x is positive and not NaN, throws otherwise
+  .getSqrt: Float -> this.isNaN || {this < -0.0} .if {
+    .then -> Error.msg("Cannot take the sqrt of "+this);
+    .else -> this.sqrtOrNaN;
+    };
+
+  /// `this.signOrNaN` returns the sign of this number: +/-0.0 if x is +/-0.0, +1.0 if x is positive, -1.0 if x is negative, NaN if x is NaN.
+  .signOrNaN: Float;
+  .sign: Opt[Float] -> this.isNaN.not .then {this.signOrNaN};
+  .getSign: Float -> this.isNaN .if {
+    .then -> Error.msg "Cannot get the sign of NaN";
+    .else -> this.signOrNaN;
+    };
+
+
+  /// `this.softFloor` returns an integer given by clamping `this` between `Math.minInt` and `Math.maxInt`
+  /// and rounding the resulting float towards -infinity.
+  .softFloor: Int;
+  /// `this.floor` returns .some this.softFloor if this in [`Math.minInt`, `Math.maxInt`]  .empty otherwise.
+  .floor: Opt[Int] -> (Math.minInt.softFloat <= this && {this <= (Math.maxInt.softFloat)})
+    .then{this.softFloor};
+
+  /// `this.getFloor` returns this as an integer, rounding towards -infinity, throws if this in [`Math.minInt`, `Math.maxInt`]  .empty otherwise.
+  .getFloor: Int -> (Math.minInt.softFloat <= this && {this <= (Math.maxInt.softFloat)}) .if {
+    .then -> this.softFloor;
+    .else -> Error.msg("Floor expected finite number, got "+this);
+    };
+
+  /// `this.softCeil` returns an integer given by clamping `this` between `Math.minInt` and `Math.maxInt`
+  /// and rounding the resulting float towards infinity.
+  .softCeil: Int;
+  /// `this.ceil` returns .some(this.softFloor) if this in [`Math.minInt`, `Math.maxInt`]  .empty otherwise.
+  .ceil: Opt[Int] -> (Math.minInt.softFloat <= this && {this <= (Math.maxInt.softFloat)}) .then{this.softCeil};
+  /// `this.getCeil` returns this as an integer, rounding towards -infinity, throws if this in [`Math.minInt`, `Math.maxInt`]  .empty otherwise.
+  .getCeil: Int -> (Math.minInt.softFloat <= this && {this <= (Math.maxInt.softFloat)}) .if {
+    .then -> this.softCeil;
+    .else -> Error.msg("ceil expected finite number, got "+this);
+    };
+
+  .softTrunc0: Int;
+  .trunc0: Opt[Int] -> (Math.minInt.softFloat <= this && {this <= (Math.maxInt.softFloat)}) .then{this.softTrunc0};
+  .getTrunc0: Int -> (Math.minInt.softFloat <= this && {this <= (Math.maxInt.softFloat)}) .if {
+    .then -> this.softTrunc0;
+    .else -> Error.msg("Cannot trunc0 "+this);
+    };
+
+   /// clamp into Int range, round-to-nearest integer, ties-to-even; NaN->0; +Inf->maxInt; -Inf->minInt (never throws)
+  .softRound: Int;
+  .round: Opt[Int] ->  (Math.minInt.softFloat <= this && {this <= (Math.maxInt.softFloat)}) .then{this.softRound};
+  .getRound: Int ->  (Math.minInt.softFloat <= this && {this <= (Math.maxInt.softFloat)}) .if {
+    .then -> this.softRound;
+    .else -> Error.msg("Cannot round "+this);
+    };
+
+  .isNaN: Bool;                      /// true iff NaN (any payload)
+  .isInfinite: Bool;                 /// true iff +/-Inf
+  .isPosInfinity: Bool;              /// true iff +Inf
+  .isNegInfinity: Bool;              /// true iff -Inf
+  .isNegZero: Bool;                  /// true iff raw bits are -0.0
+  .isPosZero: Bool;                  /// true iff raw bits are +0.0
+  .isFinite: Bool ->            /// return .empty if this is NaN, or Infinity .some of this otherwise.
+      this.match({
+      .posInf -> False; .negInf -> False; .nan -> False;
+      .posZero -> True; .negZero -> True;
+      .regular x -> True;
+      });
+
+  .ieeeEq(x: Float): Bool;           /// IEEE == (NaN != NaN), but still +0.0 == -0.0
+  .ieeeSameBits(x: Float): Bool;     /// raw bits compare: it distinguishes NaN payloads and signed zero
+  .ieeeStr: Str;                     /// IEEE 754 round-trip decimal string for this Float (includes NaN/Inf)
+  .ieeeRemainder(d: Float): Float;   /// IEEE remainder r = x - n*d with n nearest integer to x/d (ties-to-even)
+
+
+  .int: Opt[Int];               /// .some if is an integer in [minInt,maxInt]; .empty otherwise
+  .nat: Opt[Nat];               /// .some if is an integer in [0,maxNat]; .empty otherwise
+  .byte: Opt[Byte];             /// .some if is an integer in [0,maxByte]; .empty otherwise
+  .num: Opt[Num];               /// .some if finite; .empty on NaN/Inf
+
+  .softInt: Int;                    /// clamp+trunc0; NaN->0; +Inf->maxInt; -Inf->minInt (never throws)
+  .softNat: Nat;                    /// clamp+trunc0; NaN->0; +Inf->maxNat; -Inf->0 (never throws)
+  .softByte: Byte;                  /// clamp+trunc0; NaN->0; +Inf->maxByte; -Inf->0 (never throws)
+
+  .getInt: Int;               /// converts if is an integer in [minInt,maxInt]; throws otherwise
+  .getNat: Nat;               /// converts if is an integer in [0,maxNat]; throws otherwise
+  .getByte: Byte;             /// converts if is an integer in [0,maxByte]; throws otherwise
+  .getNum: Num;               /// converts if finite; throws on NaN/Inf
+
+  .hash -> this.imm.isNegZero?{.then->`0.0`.hash; .else->this.imm.ieeeStr.hash};/// hash via str
+  .close->::; .close->this;         /// fixpoint type closed
+  .sumNumber xs ->                  /// summing all numbers starting from this
+    xs.fold( {this}, {acc,e -> acc + e} );
+
+  /// Match over all the special variants of float weirdness.
+  /// Allows to match over +/-0.0, NaN, +/-inf, and pass a custom function for
+  /// the other regular numbers.
+  .match[R:*](m: mut FloatMatch[R]): R ->
+    this.isPosZero .then {m.posZero}
+    || {this.isNegZero .then {m.negZero}}
+    || {this.isPosInfinity .then {m.posInf}}
+    || {this.isNegInfinity .then {m.negInf}}
+    || {this.isNaN .then {m.nan}}
+    .orLazy{ m.regular this};
+
+  /// Try to convert this float into a Degree
+  /// Returns .some if this is finite, .empty otherwise
+  .deg: Opt[Degree] -> this.isFinite.then{{this}};
+
+  /// Try to convert this float into a Degree
+  /// Returns .some if this is finite, .empty otherwise
+  .getDeg: Degree -> this.isFinite .if {
+    .then -> {this};
+    .else -> Error.msg("Invalid angle, "+this+" is not finite.");
+    };
+
+  /// Try to convert this float into a Radian
+  /// Returns .some if this is finite, .empty otherwise
+  .rad: Opt[Radian] -> this.isFinite.then{{this}};
+
+  /// `this.getRad` returns `this` as a Radian.
+  /// Throws if `this` is NaN or +/- Infinity
+  .getRad: Radian -> this.isFinite .if {
+    .then -> {this};
+    .else -> Error.msg("Invalid angle, "+this+" is not finite.");
+    };
+
+
+  /// `this~~n` returns a range from this+1 to n-1
+  ~~(end: Float): read Range[Float] -> _FloatNext.succ(this.imm) =~~=(_FloatNext.pred(end));
+
+  /// `this~~n` returns a range from `this+1` to `n`
+  ~~=(endInclusive: Float): read Range[Float] -> _FloatNext.succ(this.imm) =~~= endInclusive;
+
+  /// `this=~~n` returns a range from `this` to `n-1`
+  =~~(end: Float): read Range[Float] -> this =~~=(_FloatNext.pred(end));
+
+  /// `this=~~=n` returns a range from `this` to `n`
+  =~~=(endInclusive: Float): read Range[Float] -> Block#(
+    Assert!(this <= endInclusive),
+    {'self
+      .size -> this.imm - endInclusive .getNat;
+      .start -> this;
+      .end -> endInclusive;
+      .flow -> _NumFlow.floats(this.imm, endInclusive);
+      .flow step -> _NumFlow.floats(this.imm, endInclusive, step);
+      .contains n -> this <= n && { n <= endInclusive};
+      .clamp n -> Block#
+        .if {n <= this} .return {this.imm}
+        .if {n >= endInclusive} .return {endInclusive}
+        .return {n.imm};
+      });
+
+  .inRange(range: Range[Float]): Bool -> range.contains(this);
+  .assertInRange(range: Range[Float]): Void -> this.assertInRange(range, {``});
+  .assertInRange(range: Range[Float], msg: read LazyInfo): Void -> Assert!(
+    this.inRange(range),
+    { msg#.info + (`Expected in range: `+ (_RangeToString#(range))
+      | `lo: `+(range.start)
+      | `hi: `+(range.end)
+      | `actual: `+this
+      .info)});
+
+  .clamp(range: Range[Float]): Float -> range.clamp(this);
+  }
+
+_FloatNext: Sealed {
+  .succ(Float): Float -> Magic!;
+  .pred(Float): Float -> Magic!;
+  }
+
+/// A matcher for floats, has all the special cases of float:
+/// 1. Regular floats (which are none of the following)
+/// 2. +0.0 and -0.0 (numbers can get rounded/FPE'd to these)
+/// 3. +inf and -inf
+/// 4. NaN
+FloatMatch[R:**]: {
+  mut .regular(x: Float): R;
+  mut .posZero: R;
+  mut .negZero: R;
+  mut .posInf: R;
+  mut .negInf: R;
+  mut .nan: R;
+  }
