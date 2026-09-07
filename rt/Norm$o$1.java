@@ -1,11 +1,9 @@
 package base;
 
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 
 public interface Norm$o$1 extends base.Sealed$2o$0 {
@@ -60,25 +58,4 @@ interface Cache{
     if (e == null){ return fresh.computeNow(f); }
     return e.joinWait(time,f);
   }
-}
-record Cache0(AtomicReference<Entry> entry, long time, CacheF$2p$1 f) implements Cache{
-  public Cache0(long time,CacheF$2p$1 f){ this(new AtomicReference<Entry>(),time,f);}
-  public Cache0(long time,CacheMemo$lk$1 f){ this(new AtomicReference<Entry>(),time, new CacheF$2p$1(){public Object imm$$hash$0(){ return new Norm(f.imm$$hash$0());}});}
-  public Entry former(Object k, Entry candidate){ return entry.compareAndExchange(null,candidate); }
-  public Object get(){ return get(null,f::imm$$hash$0,time); }
-}
-record Cache1(ConcurrentHashMap<Object,Entry> map, long time, CacheF$2p$2 f) implements Cache{
-  public Cache1(long time,CacheF$2p$2 f){this(new ConcurrentHashMap<Object,Entry>(),time,f);}
-  public Cache1(long time,CacheMemo$lk$2 f){ this(new ConcurrentHashMap<Object,Entry>(),time, new CacheF$2p$2(){public Object imm$$hash$1(Object p0){ return new Norm(f.imm$$hash$1(p0));}});}
-  public Cache1(long time,Repr$o$1 repr){ this(new ConcurrentHashMap<Object,Entry>(),time, new CacheF$2p$2(){public Object imm$$hash$1(Object f){ return ((CacheReprF$175$2)f).imm$$hash$1(repr.read$look$1(new F$3$2(){public Object read$$hash$1(Object x){ return x;}}));}});}
-  public Entry former(Object k, Entry candidate){ return map.putIfAbsent(k,candidate); }
-  public Object get(Object a){ return get(a,()->f.imm$$hash$1(a),time); }
-}
-record Cache2(ConcurrentHashMap<Object,Entry> map, long time,CacheF$2p$3 f) implements Cache{
-  public Cache2(long time,CacheF$2p$3 f){this(new ConcurrentHashMap<Object,Entry>(),time,f);}
-  public Cache2(long time,CacheMemo$lk$3 f){ this(new ConcurrentHashMap<Object,Entry>(),time, new CacheF$2p$3(){public Object imm$$hash$2(Object p0,Object p1){ return new Norm(f.imm$$hash$2(p0,p1));}});}
-  public Cache2(long time,Repr$o$1 repr){ this(new ConcurrentHashMap<Object,Entry>(),time, new CacheF$2p$3(){public Object imm$$hash$2(Object f,Object n){ return ((CacheReprF$175$3)f).imm$$hash$2(repr.read$look$1(new F$3$2(){public Object read$$hash$1(Object x){ return x;}}),n);}});}
-  public record Key(Object a, Object b){}
-  public Entry former(Object k, Entry candidate){ return map.putIfAbsent(k,candidate); }
-  public Object get(Object a, Object b){ return get(new Key(a,b),()->f.imm$$hash$2(a,b),time); }
 }
