@@ -81,8 +81,7 @@ final class ESet$s$1Instance implements ESet$s$1 {
         return this;
     }
     @Override public Object mut$removeIf$1(Object p0) {
-        ESet$s$1Instance eset = (ESet$s$1Instance) p0;
-        for (MapKey m : eset.set.keySet()) {
+        for (MapKey m : new ArrayList<>(this.set.keySet())) {
             if (isTrue(callMF$2(p0, extractKey(m)))) {
                 this.set.remove(m);
             }

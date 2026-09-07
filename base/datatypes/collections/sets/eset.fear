@@ -12,16 +12,20 @@ ESet[E]: Pipe[ESet[E]] {
 
   /// `this.isEmpty` returns `True` if `this` has no elements.
   /// Equivalent to: ``this.size == 0``
-  //>   .let s={ESets#[Nat, Nat]{::}}
-  //>   .check{s.isEmpty .assertTrue}
-  //>   .check{s.add(1).isEmpty .assertFalse}
+  //>   .check{Block#
+  //>     .let s={ESets#[Nat, Nat]{::}}
+  //>     .do{s.isEmpty .assertTrue}
+  //>     .do{s.add(1).isEmpty .assertFalse}
+  //>     .done}
   read .isEmpty: Bool -> this.size == 0;
 
   /// `this.notEmpty` returns `True` if `this` has any elements.
   /// Equivalent to: ``this.isEmpty.not``
-  //>   .let s={ESets#[Nat, Nat] {::}}
-  //>   .check{s.notEmpty .assertFalse}
-  //>   .check{s.add(1).notEmpty .assertTrue}
+  //>   .check{Block#
+  //>     .let s={ESets#[Nat, Nat] {::}}
+  //>     .do{s.notEmpty .assertFalse}
+  //>     .do{s.add(1).notEmpty .assertTrue}
+  //>     .done}
   read .notEmpty: Bool -> this.isEmpty.not;
 
 
@@ -34,11 +38,9 @@ ESet[E]: Pipe[ESet[E]] {
   //>   .check{eset.contains(3) .assertFalse}
   read .contains(E): Bool;
 
-  /// ``this.contains(e)`` returns `True` if ``e`` is present in `this`.
-  //>   .let eset={ESets#[Nat,Nat]{::}.add(1).add(2)}
-  //>   .let inner={ESets#{::} .add 1}
-  //>   .check{eset.containsAll(inner) .assertTrue}
-  //>   .check{eset.contains(inner.add(3)) .assertFalse}
+  /// ``this.containsAll(other)`` returns `True` if every element of ``other`` is present in `this`.
+  //>   .check{ESets#[Nat,Nat]{::}.add(1).add(2).containsAll(ESets#{::}.add(1)) .assertTrue}
+  //>   .check{ESets#[Nat,Nat]{::}.add(1).add(2).containsAll(ESets#{::}.add(1).add(3)) .assertFalse}
   read .containsAll(ESet[E]): Bool;
 
   /// ``this.add(e)`` adds ``e`` to this and returns this to allow method chaining.
@@ -49,23 +51,26 @@ ESet[E]: Pipe[ESet[E]] {
   /// ``this.remove e`` removes ``e`` from this set if it is present, and returns `this`.
   //>   .check{ESets#{::} .add 2 .add 3 .remove 2 .remove 3 .isEmpty .assertTrue}
   //>   .check{ESets#{::} .add 1 .remove 2 .contains 1 .assertTrue}
-  mut .remove(E): ESet[E];
+  mut .remove(E): mut ESet[E];
 
   /// ``this.take(e)`` removes and returns ``e`` if it exists, otherwise returns .empty
-  //>   .let eset={Flows(+1, -2).eset({::}, {::.imm.abs})}
-  //>   .check{eset.take(-1)! .assertEq +1}
-  //>   .check{eset.take(-1).isEmpty .assertTrue}
-  //>   .check{eset.size .assertEq 1}
+  //>   .check{Block#
+  //>     .let eset={ESets#({::.imm.abs}).add(+1).add(-2)}
+  //>     .do{eset.take(-1)! .assertEq +1}
+  //>     .do{eset.take(-1).isEmpty .assertTrue}
+  //>     .do{eset.size .assertEq 1}
+  //>     .done}
   mut .take(elem: E): Opt[E] -> Block#
     .let e={this.opt(elem)}
     .do {e.ifSome{Block#(this.remove ::, Void)}}
     .return {e};
 
   /// ``this.getTake(e)`` removes and returns ``e``, throws if it doesn't exist.
-  //>   .let eset={Flows(+1, -2).eset({::}, {::.imm.abs})}
-  //>   .check{eset.take(-1)! .assertEq +1}
-  //>   .check{eset.take(-1).isEmpty .assertTrue}
-  //>   .check{eset.size .assertEq 1}
+  //>   .check{Block#
+  //>     .let eset={ESets#({::.imm.abs}).add(+1).add(-2)}
+  //>     .do{eset.getTake(-1) .assertEq +1}
+  //>     .do{eset.size .assertEq 1}
+  //>     .done}
   mut .getTake(elem: E): E -> Block#
     .let e={this.get(elem)}
     .do {this.remove e .void}
@@ -73,22 +78,28 @@ ESet[E]: Pipe[ESet[E]] {
 
   /// `this.clear` removes all the elements from this and returns this to allow method chaining.
   /// Note this operation mutates `this`.
-  //>   .let eset={ESets#[Nat, Nat]{::}.add(1).add(2)}
-  //>   .check{eset.size .assertEq 2}
-  //>   .check{eset.clear.isEmpty .assertTrue}
-  //>   .check{eset.isEmpty .assertTrue}
+  //>   .check{Block#
+  //>     .let eset={ESets#[Nat, Nat]{::}.add(1).add(2)}
+  //>     .do{eset.size .assertEq 2}
+  //>     .do{eset.clear.isEmpty .assertTrue}
+  //>     .do{eset.isEmpty .assertTrue}
+  //>     .done}
   mut .clear: mut ESet[E];
 
   /// ``this.addAll eset`` adds all of the elements of ``eset`` to `this` without draining ``eset``.
   /// Note this operation mutates `this`.
-  //>   .let eset={ESets#[Nat, Nat]{::}.add(1).add(2)}
-  //>   .check{eset.addAll(Flows#(2,3,4).eset({::}, {::})).size == 4}
+  //>   .check{Block#
+  //>     .let eset={ESets#[Nat, Nat]{::}.add(1).add(2)}
+  //>     .do{(eset.addAll(ESets#[Nat, Nat]{::}.add(2).add(3).add(4)).size == 4) .assertTrue}
+  //>     .done}
   mut .addAll(ESet[E]): mut ESet[E];
 
   /// ``this.removeAll eset`` removes all of the elements of `eset` from `this` without draining `eset`.
   /// Note this operation mutates `this`.
-  //>   .let eset={ESets#[Nat, Nat]{::}.add(1).add(2)}
-  //>   .check{eset.removeAll(Flows#(2,3,4).eset({::}, {::})).size == 1}
+  //>   .check{Block#
+  //>     .let eset={ESets#[Nat, Nat]{::}.add(1).add(2)}
+  //>     .do{(eset.removeAll(ESets#[Nat, Nat]{::}.add(2).add(3).add(4)).size == 1) .assertTrue}
+  //>     .done}
   mut .removeAll(eset: ESet[E]): mut ESet[E] -> Block#(
     this.removeIf{eset.contains ::},
     this
@@ -108,10 +119,12 @@ ESet[E]: Pipe[ESet[E]] {
 
   /// ``this.getOrInsert(e)`` returns the element in `this` equal to ``e`` under `this`'s orderHash,
   /// inserting it first if it doesn't exist;
-  //>   .let eset={Flows(+1, -2).eset({::}, {::.imm.abs})}
-  //>   .check{eset.getOrInsert(-1) .assertEq +1}
-  //>   .check{eset.getOrInsert(+3) .assertEq +3}
-  //>   .check{eset.size .assertEq 3}
+  //>   .check{Block#
+  //>     .let eset={ESets#({::.imm.abs}).add(+1).add(-2)}
+  //>     .do{eset.getOrInsert(-1) .assertEq +1}
+  //>     .do{eset.getOrInsert(+3) .assertEq +3}
+  //>     .do{eset.size .assertEq 3}
+  //>     .done}
   mut .getOrInsert(elem: E): E -> this.opt(elem).match {
     .some e -> e;
     .empty -> Block#(this.add elem, elem)
@@ -129,27 +142,33 @@ ESet[E]: Pipe[ESet[E]] {
   /// Note this operation mutates `this`.
   //>   .check{ESets#[Int, Int]{::}
   //>     .add(+1).add(-2).add(+3)
-  //>     .distinctBy({::.imm.sign}).set.str{::} .assertEq "{+1, -2}"}
+  //>     .distinctBy({::.imm.sign}).set.str{::} .assertEq "{-2, +1}"}
   mut .distinctBy[K](by: OrderHashBy[imm E, K]): mut ESet[E];
 
   /// `this.seqFlow` returns a sequential flow over the elements of `this`.
   /// Note this operation drains `this`, so any future accesses to this will point to an empty ESet.
-  //>   .let eset={ESets#[Int, Int]{::}.add(+1).add(-2).add(+3)}
-  //>   .check{eset.seqFlow.list.str{::} .assertEq "[+1, -2, +3]"}
-  //>   .check{eset.isEmpty .assertTrue}
+  //>   .check{Block#
+  //>     .let eset={ESets#[Int, Int]{::}.add(+1).add(-2).add(+3)}
+  //>     .do{eset.seqFlow.list.str{::} .assertEq "[+1, -2, +3]"}
+  //>     .do{eset.isEmpty .assertTrue}
+  //>     .done}
   mut .seqFlow: mut Flow[E];
 
   /// `this.flow` returns a potentially parallel flow over the elements of `this`.
   /// Note this operation drains `this`, so any future accesses to this will point to an empty ESet.
-  //>   .let eset={ESets#[Int, Int]{::}.add(+1).add(-2).add(+3)}
-  //>   .check{eset.flow.list.str{::} .assertEq "[+1, -2, +3]"}
-  //>   .check{eset.isEmpty .assertTrue}
+  //>   .check{Block#
+  //>     .let eset={ESets#[Int, Int]{::}.add(+1).add(-2).add(+3)}
+  //>     .do{eset.flow.list.str{::} .assertEq "[+1, -2, +3]"}
+  //>     .do{eset.isEmpty .assertTrue}
+  //>     .done}
   mut .flow: mut Flow[E];
 
   /// `this.set` returns a Set of all the elements of `this`.
   /// Note this operation drains `this`, so any future accesses to this will point to an empty ESet.
-  //>   .let eset={ESets#[Int, Int]{::}.add(+1).add(-2).add(+3)}
-  //>   .check{eset.set.str .assertEq "{+1, -2, +3}"}
-  //>   .check{eset.isEmpty .assertTrue}
+  //>   .check{Block#
+  //>     .let eset={ESets#[Int, Int]{::}.add(+1).add(-2).add(+3)}
+  //>     .do{eset.set.str .assertEq "{-2, +1, +3}"}
+  //>     .do{eset.isEmpty .assertTrue}
+  //>     .done}
   mut .set: Set[E];
   }

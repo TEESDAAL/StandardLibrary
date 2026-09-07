@@ -146,8 +146,8 @@ Degree: Angle[Degree] {
 
   .rad: Radian -> this# * (Math.pi) / +180.0 .getRad;
   /// `this.normalize` returns a new angle into converted into the range [0, 360);
-  //>   .check{ -45.0.degree.normalize .assertEq(315.0.degree) }
-  //>   .check{ 40.degree.normalize .assertEq(40.0.degree) }
+  //>   .check{ -45.0.getDeg.normalize .assertEq(315.0.getDeg) }
+  //>   .check{ 40.0.getDeg.normalize .assertEq(40.0.getDeg) }
   .normalize -> Math.euclideanMod(this#, +360.0).getDeg;
 
   .close -> this;

@@ -36,9 +36,9 @@ _NumFlow$5k$0 instance = new _NumFlow$5k$0() {};
   }
 
   default Object imm$ints$3(Object p0, Object p1, Object p2){
-    long start = Byte$o$0Instance.unwrap(p0);
-    long end = Byte$o$0Instance.unwrap(p1);
-    long step = Byte$o$0Instance.unwrap(p2);
+    long start = Int$c$0Instance.unwrap(p0);
+    long end = Int$c$0Instance.unwrap(p1);
+    long step = Int$c$0Instance.unwrap(p2);
     assert start <= end;
     assert step > 0;
     return Flow$o$1Instance.of(
@@ -66,14 +66,14 @@ _NumFlow$5k$0 instance = new _NumFlow$5k$0() {};
   }
 
   default Object imm$nats$3(Object p0, Object p1, Object p2){
-    long start = Byte$o$0Instance.unwrap(p0);
-    long end = Byte$o$0Instance.unwrap(p1);
-    long step = Byte$o$0Instance.unwrap(p2);
+    long start = Nat$c$0Instance.unwrap(p0);
+    long end = Nat$c$0Instance.unwrap(p1);
+    long step = Nat$c$0Instance.unwrap(p2);
     assert Long.compareUnsigned(start, end) <= 0;
     assert Long.compareUnsigned(step, 0) > 0;
     return Flow$o$1Instance.of(
       Stream.iterate(start, d -> Long.compareUnsigned(d, end) <= 0, d -> d + step)
-        .map(Int$c$0Instance::instance)
+        .map(Nat$c$0Instance::instance)
     );
   }
 
