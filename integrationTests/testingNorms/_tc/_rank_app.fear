@@ -150,6 +150,20 @@ MainZeroArity:Main{s->Block#
   .done
   }
 
+///A generic (non-arity-0) CacheF implementor: one compiled type shared by
+///every List[T] instantiation, so its cache field is one shared slot -- safe
+///here because what gets cached is keyed by the argument, not by T.
+ListSizeF[T]: CacheF[List[T],Nat]{ a-> Block#(Debug#("listSizeF"),a.get.size) }
+UseListSizeF:{ #[T](a: Norm[List[T]]): Nat -> Cache.of(a,ListSizeF[T]) }
+MainGenericCacheField:Main{s->Block#
+  .let natList= {Lists#(1,2,3).norm{::.norm}}
+  .let strList= {Lists#("a","b").norm{::.norm}}
+  .do{ Debug#(UseListSizeF#(natList)) }
+  .do{ Debug#(UseListSizeF#(natList)) }
+  .do{ Debug#(UseListSizeF#(strList)) }
+  .done
+  }
+
 ///Strings long enough to be interned by .norm: two equal ones built apart are
 ///the same Norm, so they share a cache entry, while a different one does not.
 LongStr:{ #(pre: Str): Str -> pre+"0123456789012345678901234567890123456789012345678901234567890123456789" }
