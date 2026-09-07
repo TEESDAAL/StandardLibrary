@@ -5,7 +5,6 @@ public interface CacheReprF$175$2 extends base.CacheHandler$4sg$0{
   }
   default Object imm$_get$1(Object p0){
     var a$= (Repr$o$1)p0;
-    return CacheReprF$175$2.myCache.computeIfAbsent(a$,v->new Cache1(1,v)).get(this);
+    return a$._reprCacheGet(this,()->this.imm$$hash$1(a$.read$look$1(new F$3$2(){public Object read$$hash$1(Object x){ return x;}})),1);
   }
-  java.util.concurrent.ConcurrentHashMap<Repr$o$1, Cache1> myCache= new java.util.concurrent.ConcurrentHashMap<>();
 }
