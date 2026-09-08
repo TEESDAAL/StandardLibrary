@@ -240,12 +240,6 @@ abstract class AWidget implements Widget$2o$1{
     frame.height((HeightNat$lg$0) t, "text size");
     return reStyle(() -> textSize = (HeightNat$lg$0) t);
   }
-  //TODO: this can stay in pure fearless. Is there any other code we can remove from Java in this way?
-  // Alias: .textHeight(n) is .textSize(Height#n), following the inset pattern
-  // of a Nat overload wrapping the dimension-typed one.
-  //public Object mut$textHeight$1(Object n){
-  //  return mut$textSize$1(HeightNat$lg$0.instance.read$$hash$1((Nat$c$0) n));
-  //}
   public Object read$textSize$0(){ return textSize; }
   @Override public Object mut$autoWidth$0(){ return reStyle(() -> preferredWidth = null); }
   @Override public Object mut$autoHeight$0(){ return reStyle(() -> preferredHeight = null); }

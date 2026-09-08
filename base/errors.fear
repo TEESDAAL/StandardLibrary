@@ -1,7 +1,7 @@
 _Throw:{
   .deterministic[R:**](info:Info):R ->Magic!;
   .nonDeterministic[R:**](info:Info):R ->Magic!;
-  .stackTrace:Info->Magic!//TODO: is this used?
+  .stackTrace:Info->Magic!
   }
 
 /// Exception classes (observability):
