@@ -18,7 +18,7 @@ PipeReenterFlowTests: Test {::
 PipeExtensionMethodsTests: Test {::
   .check{+3|>NewAdd# +4.assertEq +7}
   .check{+1|>NewSum3#(+2,+3,+4).assertEq +10}
-  .check{Lists# +5|> AddFirst# +7.assertEq +12}
+  .check{(Lists# +5).as{::}|> AddFirst# +7.assertEq +12}
   }
 
 PipeViaDataTypeByTests: Test {::

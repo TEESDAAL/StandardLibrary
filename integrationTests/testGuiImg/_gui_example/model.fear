@@ -17,7 +17,7 @@ Division Model - Gui and closing the loop
 
 
   .let model={Slots#[mut Model]}
-  .let canvas={Slots#[Pane]}
+  .let canvas={Slots#[mut Pane]}
   .let[mut Gui] gui= {mut Gui{.canvas->canvas; .model->model!;}}
 The main defines the 'gui fields' as slots that are filled later
 and the model will never see them

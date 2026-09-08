@@ -23,7 +23,7 @@ Foo:base.Main{s->Block#
   .do{ g.run Gui05 }
   .do{ g.run Gui06 }
   .do{ g.run Gui07 }
-  .let label={Slots#[Label]}
+  .let label={Slots#[mut Label]}
   .do{ g.run mut Gui08{label} }  
   .done
   }

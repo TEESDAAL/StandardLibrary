@@ -33,9 +33,11 @@ ESet[E]: Pipe[ESet[E]] {
   read .orderHash: OrderHashBy[E];
 
   /// ``this.contains(e)`` returns `True` if ``e`` is present in `this`.
-  //>   .let eset={ESets#[Nat,Nat]{::}.add(1).add(2)}
-  //>   .check{eset.contains(1) .assertTrue}
-  //>   .check{eset.contains(3) .assertFalse}
+  //>   .check{Block#
+  //>     .let eset={ESets#[Nat,Nat]{::}.add(1).add(2)}
+  //>     .do{eset.contains(1) .assertTrue}
+  //>     .do{eset.contains(3) .assertFalse}
+  //>     .done}
   read .contains(E): Bool;
 
   /// ``this.containsAll(other)`` returns `True` if every element of ``other`` is present in `this`.

@@ -49,7 +49,7 @@ Presentation2: base.Main { sys -> Block#
   .let height = { 500 }
   .let width  = { (height * 5).aluDiv 2 }
   .let model  = { Slots#[mut Model] }
-  .let canvas = { Slots#[Pane] }
+  .let canvas = { Slots#[mut Pane] }
   .let gui    = { Guis#(model, canvas, width, height) }
   .do { model.fill(Models#(gui, width, height)) }
   .do { sys.gui.run gui }

@@ -200,7 +200,7 @@ Color:DataType[Color,Color]{
   }
 Widget[S]:{
   mut .self:mut S;
-  mut .save(mut Consumer[S]):mut S;
+  mut .save(mut Consumer[mut S]):mut S;
   mut .topInset(Nat):mut S;
   mut .topInset'(HeightNat):mut S;
   mut .bottomInset(Nat):mut S;

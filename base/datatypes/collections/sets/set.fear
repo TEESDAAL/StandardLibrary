@@ -208,7 +208,7 @@ Set[E]: Sealed,DataType[Set[E],Set[E],E,E] {
 
   /// `this.seqFlow` returns a sequential flow over the elements of `this`.
   //>   .check{Sets#({::}, 1, 2, 3).seqFlow.list .assertEq({::}, Lists#(1, 2, 3))}
-  .seqFlow: mut Flow[E] -> this.list.seqFlow;
+  .seqFlow: mut Flow[E] -> this.list.flow;
 
   /// ``this.str(by)`` returns a string representation of this set,
   /// using `by` as the ToStr for each element.
@@ -279,5 +279,5 @@ Set[E]: Sealed,DataType[Set[E],Set[E],E,E] {
   /// `this.list` returns a sorted list of all the elements. The sorted order is the order specified by `this.orderHash`
   /// Note: This list is zero cost as this collection maintains a sorted list.
   //>   .check{ Sets#({::.imm.abs}, -3, +2, -1).list.assertEq({::}, Lists#(-1, +2, -3)) }
-  .list: mut List[imm E];
+  .list: List[imm E];
   }
