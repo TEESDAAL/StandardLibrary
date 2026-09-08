@@ -1,7 +1,7 @@
 package base;
 
-public interface _FloatsBetween extends base.Sealed$2o$0 {
-  _FloatsBetween instance = new _FloatsBetween() {};
+public interface _FloatsBetween$9j4$0 extends base.Sealed$2o$0 {
+  _FloatsBetween$9j4$0 instance = new _FloatsBetween$9j4$0() {};
 
   // Other than at -0.0 and 0.0:
   // Double.doubleToRawLongBits(d) + 1  == Double.doubleToRawLongBits(Math.nextUp(d))
