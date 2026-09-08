@@ -160,7 +160,7 @@ _TestCaps: {
 
     mut .run: Void ->
       ts.seqFlow.forEach { ci->
-        UnitTestLog.log(_AddToLog#(ci.stackTrace,sys.try#(sys.iso.close,{ t -> ci.check#t })))
+        UnitTestLog.log(_AddToLog#(ci.stackTrace,sys.try#(sys.iso.close,{ t: iso System -> ci.check#t })))
       }
     }
   }
