@@ -78,8 +78,8 @@ Set[E]: Sealed,DataType[Set[E],Set[E],E,E] {
 
   /// ``this.union(by, other)`` returns a new set containing all the elements of `this` and ``other`` using the given ``by``.
   /// Equivalent to ``this ++ (by, other)``
-  //-   .let s1={Sets#({::}, +1, +2)}
-  //-   .let s2={Sets#({::}, +2, +3)}
+  //>   .let s1={Sets#({::}, +1, +2)}
+  //>   .let s2={Sets#({::}, +2, +3)}
   //>   .check{s1.union({::}, s2) .assertEq({::}, Sets#({::}, +1, +2, +3))}
   //>   .check{s1.union({::.imm.abs.getInt}, Sets#({::}, -1, -2)) .assertEq({::}, s1)}
   .union[K](by: OrderHashBy[E, K], other: Set[E]): Set[E];
@@ -87,31 +87,31 @@ Set[E]: Sealed,DataType[Set[E],Set[E],E,E] {
 
   /// ``this ++ other`` returns the union of `this` and `other`, using this's orderHash.
   /// Equivalent to ``this.union(this.orderHash, other)``, and ``this.union(other)``.
-  //-   .let s1={Sets#({::}, 1, 2)}
-  //-   .let s2={Sets#({::}, 2, 3)}
+  //>   .let s1={Sets#({::}, 1, 2)}
+  //>   .let s2={Sets#({::}, 2, 3)}
   //>   .check{s1 ++ s2 .assertEq({::}, Sets#({::}, 1, 2, 3))}
   ++(other: Set[E]): Set[E] -> this.union(this.orderHash, other);
 
   /// ``this.intersection(by, other)`` returns a new set containing only elements
   /// present in both this and other, keyed by the given ``by``.
-  //-   .let s1={Sets#({::}, 1, 2)}
-  //-   .let s2={Sets#({::}, 2, 3)}
+  //>   .let s1={Sets#({::}, 1, 2)}
+  //>   .let s2={Sets#({::}, 2, 3)}
   //>   .check{s1.intersection({::}, s2) .assertEq({::}, Sets#({::}, 2))}
   //>   .check{Sets#({::}, 1, 2, 3).intersection({::}, Sets#({::})) .isEmpty .assertTrue}
   .intersection[K](by: OrderHashBy[E, K], other: Set[E]): Set[E];
 
   /// ``this & other`` returns the intersection of this and other, using this's orderHash.
   /// Equivalent to: ``this.intersection(this.orderHash, other)``
-  //-   .let s1={Sets#({::}, 1, 2)}
-  //-   .let s2={Sets#({::}, 2, 3)}
+  //>   .let s1={Sets#({::}, 1, 2)}
+  //>   .let s2={Sets#({::}, 2, 3)}
   //>   .check{s1 & s2 .assertEq({::}, Sets#({::}, 2))}
   &(other: Set[E]): Set[E] -> this.intersection(this.orderHash, other);
 
 
   /// ``this.difference(by, other)`` returns a new set with all elements of other removed from `this`,
   /// using the given `by` to determine equality.
-  //-   .let s1={Sets#({::}, +1, +2, +3)}
-  //-   .let s2={Sets#({::}, +2)}
+  //>   .let s1={Sets#({::}, +1, +2, +3)}
+  //>   .let s2={Sets#({::}, +2)}
   //>   .check{s1.difference({::}, s2) .assertEq({::}, Sets#({::}, +1, +3))}
   //>   .check{s1.difference({::.imm.abs.getInt}, Sets#({::}, -2)) .assertEq({::}, Sets#({::}, +1, +3))}
   .difference[K](by: OrderHashBy[E, K], other: Set[E]): Set[E] -> Block#
@@ -121,15 +121,15 @@ Set[E]: Sealed,DataType[Set[E],Set[E],E,E] {
   /// ``this -- other`` returns a set containing the elements in this that are not in other,
   /// using this's orderHash.
   /// Equivalent to: ``this.difference(this.orderHash, other)``
-  //-   .let s1={Sets#({::}, 1, 2, 3)}
-  //-   .let s2={Sets#({::}, 2)}
+  //>   .let s1={Sets#({::}, 1, 2, 3)}
+  //>   .let s2={Sets#({::}, 2)}
   //>   .check{s1 -- s2 .assertEq({::}, Sets#({::}, 1, 3))}
   --(other: Set[E]): Set[E] -> this.difference(this.orderHash, other);
 
   /// ``this.symmetricDifference(by, other)`` returns elements present in exactly one of
   /// this or other, using the given `by`.
-  //-   .let s1={Sets#({::}, 1, 2, 3)}
-  //-   .let s2={Sets#({::}, 2, 4)}
+  //>   .let s1={Sets#({::}, 1, 2, 3)}
+  //>   .let s2={Sets#({::}, 2, 4)}
   //>   .check{s1.symmetricDifference({::}, s2) .assertEq({::}, Sets#({::}, 1, 3, 4))}
   .symmetricDifference[K](by: OrderHashBy[E, K], other: Set[E]): Set[E]
     -> this.union(by, other).difference(by, this.intersection(by, other));
@@ -137,8 +137,8 @@ Set[E]: Sealed,DataType[Set[E],Set[E],E,E] {
   /// ``this.symmetricDifference(other)`` returns elements present in exactly one of this or other,
   /// using this's orderHash.
   /// Equivalent to: ``this.symmetricDifference(this.orderHash, other)``
-  //-   .let s1={Sets#({::}, 1, 2, 3)}
-  //-   .let s2={Sets#({::}, 2, 4)}
+  //>   .let s1={Sets#({::}, 1, 2, 3)}
+  //>   .let s2={Sets#({::}, 2, 4)}
   //>   .check{s1.symmetricDifference(s2) .assertEq({::}, Sets#({::}, 1, 3, 4))}
   .symmetricDifference(other: Set[E]): Set[E]
     -> this.symmetricDifference(this.orderHash, other);
@@ -152,7 +152,7 @@ Set[E]: Sealed,DataType[Set[E],Set[E],E,E] {
   /// ``this.containsAll(other)`` returns `True` if every element of other is present in `this`,
   /// using this's orderHash.
   /// Equivalent to: ``this.containsAll(this.orderHash, other)``
-  //-   .let s1={Sets#({::}, 1, 2, 3)}
+  //>   .let s1={Sets#({::}, 1, 2, 3)}
   //>   .check{s1.containsAll(Sets#({::}, 1, 2)) .assertTrue}
   //>   .check{s1.containsAll(Sets#({::}, 1, 2, 4)) .assertFalse}
   .containsAll(other: Set[E]): Bool -> this.containsAll(this.orderHash, other);
@@ -198,7 +198,7 @@ Set[E]: Sealed,DataType[Set[E],Set[E],E,E] {
   /// Note:
   /// - this new set may not contain all of the elements of this as elements that are considered equal under ``by`` will be deduplicated.
   /// - The complexity of this operation is O(nlog(n)) as it needs to sort the elements of this using``by``.
-  //-   .let s={Sets#({::}, +1, -1, +2, -2)}
+  //>   .let s={Sets#({::}, +1, -1, +2, -2)}
   //>   .check{s.distinctBy({::.imm.abs}).str{::} .assertEq "{-1, -2}"}
   .distinctBy[K](by: OrderHashBy[E, K]): Set[E];
 
@@ -255,7 +255,7 @@ Set[E]: Sealed,DataType[Set[E],Set[E],E,E] {
   /// Note the ordering of the set elements is given by their orderHash, not the given `by`.
   /// Returns `m.lt` otherwise.
   /// if you want two sets ignoring their original order, you should use `this.setCmp`
-  //-   .let empty={Sets#[Nat,Nat]({::})}
+  //>   .let empty={Sets#[Nat,Nat]({::})}
   //>   .check{empty.cmp({::}, Sets#({::}, 1, 2, 3), Sets#({::}, 2, 3, 1), {.eq -> 0; .lt -> 1; .gt -> 2}) .assertEq 0}
   //>   .check{empty.cmp({::}, Sets#({::}, 3, 1, 2), Sets#({::}, 0, 1, 2, 3),  {.eq -> 0; .lt -> 1; .gt -> 2}) .assertEq 2}
   //>   .check{empty.cmp({::}, Sets#({::}, 1, 2, 3), Sets#({::}, 1, 2), {.eq -> 0; .lt -> 1; .gt -> 2}) .assertEq 2}
@@ -265,8 +265,8 @@ Set[E]: Sealed,DataType[Set[E],Set[E],E,E] {
   /// Equivalent to ``this.cmp(this.orderHash, a, b, m)``.
   /// Note the ordering of the set elements is given by their orderHash, not the given ``by``.
   /// if you want two sets ignoring their original order, you should use `this.setCmp`
-  //-   .let s1={Sets#({::}, +1, +2, +3)}
-  //-   .let s2={Sets#({::}, -2, -3, -1)}
+  //>   .let s1={Sets#({::}, +1, +2, +3)}
+  //>   .let s2={Sets#({::}, -2, -3, -1)}
   //>   .check{Sets#[Int,Int]({::.imm.abs.getInt}).cmp(s1, s2, {.eq -> 0; .lt -> 1; .gt -> 2}) .assertEq 1}
   .cmp[R:**](a: read Set[E], b: read Set[E], m: mut OrderMatch[R]): R
     -> this.cmp(this.orderHash, a, b, m);
