@@ -76,17 +76,17 @@ Num: Sealed,DataType[Num,Num],SumNumber[Num],_AssertApprox[Num] {
   /// ``[Math.minInt, Math.maxInt]``, `.empty` otherwise.
   //>   .check{5 .int .assertEq({::}, Opts# +5)}
   //>   .check{1 / 2 .int .assertEmpty {::}}
-  .int: Opt[Int] -> _NumIs.int this .toOpt {this.softInt};
+  .int: Opt[Int];
 
   /// `this.nat` returns `.some` of `this` as a `Nat` if `this` is an integer in ``[0, Math.maxNat]``, `.empty` otherwise.
   //>   .check{5/1 .nat .assertEq({::}, Opts# 5)}
   //>   .check{-5/1 .nat .assertEmpty {::}}
-  .nat: Opt[Nat] -> _NumIs.nat this .toOpt {this.softNat};
+  .nat: Opt[Nat];
 
   /// `this.byte` returns `.some` of `this` as a `Byte` if `this` is an integer in ``[0, Math.maxByte]``, `.empty` otherwise.
   //>   .check{5/1 .byte .assertEq({::}, Opts# (5.getByte))}
   //>   .check{300/1 .byte .assertEmpty {::}}
-  .byte: Opt[Byte] -> _NumIs.byte this .toOpt {this.softByte};
+  .byte: Opt[Byte];
 
   /// `this.float` returns `.some` of `this` as a `Float` if `this` is exactly representable
   /// as a 64-bit float, `.empty` otherwise.
@@ -218,7 +218,7 @@ Num: Sealed,DataType[Num,Num],SumNumber[Num],_AssertApprox[Num] {
   .clampTo(range: ClosedNumRange): Num -> range.clamp(this);
 
   .hash -> this.str.hash;           /// hash via string
-  .info -> Infos.msg(this.str);      /// info via string
+  .info: Info;      /// info via string
   .close->::; .close->this;         /// fixpoint type closed
   .sumNumber xs ->                  /// summing all numbers starting from `this`
     xs.fold( {this}, {acc,e -> acc + e} );

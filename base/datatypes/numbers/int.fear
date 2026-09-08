@@ -113,7 +113,7 @@ Int: Sealed,DataType[Int,Int],SumNumber[Int] {
   /// ``this.wrapIndex(len)`` returns `.some` of ``this.getWrapIndex(len)`` if ``len != 0``, `.empty` iff ``len == 0``.
   //>   .check{-1 .wrapIndex 7 .assertEq({::}, Opts# 6)}
   //>   .check{+5 .wrapIndex 0 .assertEmpty {::}}
-  .wrapIndex(len: Nat): Opt[Nat] -> len == 0 .toOpt {this.getWrapIndex(len)};
+  .wrapIndex(len: Nat): Opt[Nat];
 
   /// `this.num` converts `this` to a `Num`.
   /// Note: `Num` can exactly represent every `Int` value, so there is no ``soft``/``get`` variant needed for this conversion.
@@ -296,7 +296,7 @@ Int: Sealed,DataType[Int,Int],SumNumber[Int] {
       .return {this};
 
   .hash -> this.str.hash;                   /// hash via str
-  .info -> Infos.msg(this.str);              /// info via str
+  .info: Info;              /// info via str
   .close -> ::; .close -> this;             /// fixpoint type closed
   .sumNumber xs ->                          /// summing all numbers starting from `this`
     xs.fold( {this}, {acc,e -> acc + e} );

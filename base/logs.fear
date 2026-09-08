@@ -71,7 +71,7 @@ InMemoryLog[T]:CaptureFree{
   .log(s: T): Void -> Magic!;
   
   ///Convenience over calling ``sys.readLog(this)``
-  .reader(sys: mut System): mut LogReader[T]->sys.readLog(this);
+  .reader(sys: mut System): mut LogReader[T]->Magic!;
   }
 ///Logs strings to your own text file, instead of the single shared file
 ///base.Log writes to.
