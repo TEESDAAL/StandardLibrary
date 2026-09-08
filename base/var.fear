@@ -56,6 +56,12 @@ IsoPods: {
   //>     .do{pod.isClosed .assertFalse}
   //>     .do{pod.peek{ .some _ -> Error.msg`should be empty`; .empty -> Void}}
   //>     .done}
+  //>   .checkDetErr({_ -> True}, {Block#
+  //>     .let pod={IsoPods#(+5)}
+  //>     .do{Block#(pod.open, Void)}
+  //>     .do{Block#(pod.open, Void)}
+  //>     .return{Void}
+  //>     })
   #[T](val: iso T): mut IsoPod[T] -> Magic!;
   }
 
@@ -66,7 +72,9 @@ IsoPod[T]: {
     .some x -> f#x;
     .empty -> Error.msg `The IsoPod was open`;
     };
-  mut .open: iso T;                ///and makes .isClosed false
+  mut .openRaw: iso T;              ///precondition: this.isClosed -- use .open instead
+  mut .open: iso T ->               ///and makes .isClosed false
+    this.isClosed ? { .then -> this.openRaw; .else -> Error.msg `The IsoPod was open` };
   read .isOpen: Bool -> this.isClosed.not;
   mut .consume[R:**](f: mut IsoConsumer[T, R]): R ->
     this.isClosed ? { .then -> f.some(this.open); .else -> f.empty };
