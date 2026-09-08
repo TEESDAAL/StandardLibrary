@@ -2,26 +2,13 @@ package base;
 
 import static base.Util.*;
 
-import java.util.ArrayList;
-import java.util.List;
-
-public record _LogReader$m8$1(InMemoryLog$2kk$1 o,ArrayList<Object> log) implements LogReader$m8$1{
+public record _LogReader$m8$1(InMemoryLog$2kk$1 o) implements LogReader$m8$1{
   @Override public Object mut$iso$0(){ return this; }
   @Override public Object mut$close$0(){ return this; }
   public _LogReader$m8$1{
-    if (!o.getClass().getSimpleName().endsWith("$0")){ throw nonDetErr("Generic logs can not be read"); }
+    if (isGeneric(o)){ throw nonDetErr("Generic logs can not be read"); }
   }
-  public Object mut$read$0(){
-    if (log.isEmpty()){ return List$o$1.instance; }
-    return new List$o$1Instance(List.copyOf(log));
-  }
-  public Object mut$consume$0(){
-    if (log.isEmpty()){ return List$o$1.instance; }
-    var res= new List$o$1Instance(List.copyOf(log));
-    log.clear(); 
-    return res;
-  }
-  public Object mut$logName$0(){
-    return o.imm$name$0();
-  }
+  public Object mut$read$0(){ return o._readCopy(); }
+  public Object mut$consume$0(){ return o._consumeCopy(); }
+  public Object mut$logName$0(){ return o.imm$name$0(); }
 }

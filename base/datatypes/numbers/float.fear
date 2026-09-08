@@ -305,12 +305,6 @@ Float: Sealed,DataType[Float,Float],SumNumber[Float],_AssertApprox[Float] {
       .regular _ -> True; .posZero -> True; .negZero -> True;
       };
 
-  /// `this.isInfinite` returns `True` iff `this` is `Math.inf` or `Math.negInf`.
-  //>   .check{Math.inf .isInfinite .assertTrue}
-  //>   .check{Math.negInf .isInfinite .assertTrue}
-  //>   .check{1.0 .isInfinite .assertFalse}
-  .isInfinite: Bool -> this == (Math.inf) || {this == (Math.negInf)};
-
   /// ``this.ieeePow(x)`` returns the IEEE 754-2008 ``pow(this, x)``, following the full IEEE special-value rules
   ///  unlike ``**`` - see its docs for how the two differ. Rules apply top down
   ///   - ``x.ieeePow(+/-0.0)`` is ``+1.0`` for any ``x`` including `Math.nan`, ``+/-0.0``, ;
@@ -427,8 +421,8 @@ Float: Sealed,DataType[Float,Float],SumNumber[Float],_AssertApprox[Float] {
   .close->::; .close->this;
 
   /// ``this.sumNumber(xs)`` sums all numbers in `xs` starting from `this`.
-  //>   .check{(0.0 .sumNumber(List#(1.0, 2.0, 3.0))) .assertEq 6.0}
-  //>   .check{(10.0 .sumNumber(List#())) .assertEq 10.0}
+  //>   .check{(0.0 .sumNumber(Flows#(1.0, 2.0, 3.0))) .assertEq 6.0}
+  //>   .check{(10.0 .sumNumber(Flows#[Float])) .assertEq 10.0}
   .sumNumber xs ->
     xs.fold( {this}, {acc,e -> acc + e} );
 
@@ -606,4 +600,3 @@ FloatMatch[R:**]: {
   mut .negInf: R;
   mut .nan: R;
   }
-

@@ -108,6 +108,22 @@ class _Pane extends AContainer implements Pane$o$0{
     frame.markLayoutDirty();
     return this;
   }
+  @Override public Pane$o$0 mut$horizontal$0(){
+    frame.onEdtAndWait(() -> { vertical = false; component.invalidate(); });
+    frame.markLayoutDirty();
+    return this;
+  }
+  @Override public Pane$o$0 mut$vertical$0(){
+    frame.onEdtAndWait(() -> { vertical = true; component.invalidate(); });
+    frame.markLayoutDirty();
+    return this;
+  }
+  @Override public Pane$o$0 mut$chunk$1(Object n){
+    int c = nat(n);
+    frame.onEdtAndWait(() -> { chunk = c; component.invalidate(); });
+    frame.markLayoutDirty();
+    return this;
+  }
 }
 
 class _Border extends AContainer implements Border$2o$0{
@@ -144,6 +160,10 @@ abstract class AWidget implements Widget$2o$1{
   Color$1c$0 foreground = (Color$1c$0) Color$1c$0.instance;
   Color$1c$0 background = (Color$1c$0) Color$1c$0.instance.imm$transparent$0();
   HeightNat$lg$0 textSize = (HeightNat$lg$0) HeightNat$lg$0.instance.read$$hash$1(defText);
+  // Read live by CenteredFlowLayout; only _Pane exposes Fearless methods to
+  // change them, but they live here alongside the other style fields.
+  boolean vertical = false;
+  int chunk = 0;
 
   final _Frame frame;
   final SkComponent component = new SkComponent(this);
@@ -268,8 +288,8 @@ abstract class AContainer extends AWidget{
         frame.elapsed,
         Scopes.w(component.getWidth()),
         Scopes.h(component.getHeight()),
-        XNat$s$0.instance,
-        YNat$s$0.instance,
+        XInt$s$0.instance,
+        YInt$s$0.instance,
         p
       ));
     }
@@ -291,7 +311,7 @@ class _Frame implements Frame$1c$0{
   // by the model (read .elapsed) on the queue thread with no ordering between
   // the two: volatile makes the reference handoff safe. The Time object
   // itself is immutable.
-  volatile Time$o$0 elapsed = time(0);
+  volatile Instant$5c$0 elapsed = time(0);
   AWidget top;
   final int screenW;
   final int screenH;
@@ -302,8 +322,8 @@ class _Frame implements Frame$1c$0{
   private Nat$c$0 modelFpsVal;
   private final List<MF$7$1> modelTickActions = new ArrayList<>();// live, EDT confined
   private Alpha$1c$0 alpha = (Alpha$1c$0) Alpha$1c$0.instance.imm$opaque$0();
-  private XNat$s$0 locationX;
-  private YNat$s$0 locationY;
+  private XInt$s$0 locationX;
+  private YInt$s$0 locationY;
   // Explicit window size, or null to size from the content (pack). Set by
   // .resizable(w,h) and .fixedSize(w,h); resizability is orthogonal and kept
   // in `resizable`. Note an undecorated window can be technically resizable,
@@ -396,7 +416,7 @@ class _Frame implements Frame$1c$0{
 
   void markLayoutDirty(){ layoutDirty.set(true); }
 
-  void tick(Time$o$0 elapsed){
+  void tick(Instant$5c$0 elapsed){
     this.elapsed = elapsed;
     // Never relayout while a mouse button is held or a press/release is
     // already queued behind this tick: moving components mid-gesture would
@@ -474,14 +494,15 @@ class _Frame implements Frame$1c$0{
 
   int width(WidthNat$as$0 v, String what){ return bounded(nat(v.read$get$0()), screenW, what, "screen width"); }
   int height(HeightNat$lg$0 v, String what){ return bounded(nat(v.read$get$0()), screenH, what, "screen height"); }
-  int xPos(XNat$s$0 v, String what){ return bounded(nat(v.read$get$0()), screenW - 1, what, "screen x"); }
-  int yPos(YNat$s$0 v, String what){ return bounded(nat(v.read$get$0()), screenH - 1, what, "screen y"); }
+  int xPos(XInt$s$0 v, String what){ return bounded(Util.intToLong(v.read$get$0()), screenW - 1, what, "screen x"); }
+  int yPos(YInt$s$0 v, String what){ return bounded(Util.intToLong(v.read$get$0()), screenH - 1, what, "screen y"); }
   int size(Nat$c$0 v, String what){ return bounded(nat(v), Math.min(screenW, screenH), what, "screen size"); }
 
   private long nat(Object n){ return Util.natToLong(n); }
 
   private int bounded(long v, int max, String what, String bound){
     if (v > max){ throw Util.detErr(what + " must be <= " + max + " (" + bound + ")"); }
+    if (v < -max){ throw Util.detErr(what + " must be >= " + (-max) + " (" + bound + ")"); }
     return Math.toIntExact(v);
   }
 
@@ -635,10 +656,10 @@ class _Frame implements Frame$1c$0{
     return this;
   }
   @Override public Object mut$location$2(Object x, Object y){
-    int xx = xPos((XNat$s$0) x, "window x location");
-    int yy = yPos((YNat$s$0) y, "window y location");
-    locationX = (XNat$s$0) x;
-    locationY = (YNat$s$0) y;
+    int xx = xPos((XInt$s$0) x, "window x location");
+    int yy = yPos((YInt$s$0) y, "window y location");
+    locationX = (XInt$s$0) x;
+    locationY = (YInt$s$0) y;
     if (started){
       onEdtAndWait(() -> {
         checkWindowLocationFits(xx, yy);
@@ -681,13 +702,11 @@ class _Frame implements Frame$1c$0{
   @Override public Object read$screenSizeH$0(){ return screenSizeH; }
   @Override public Object read$locationX$0(){
     if (!started){ return locationOrErr(locationX); }
-    // The OS may place a window at negative coordinates; XNat cannot express
-    // them, so they are reported as 0.
-    return Scopes.x(Math.max(0, onEdtAndWait(frame::getX)));
+    return Scopes.x(onEdtAndWait(frame::getX));
   }
   @Override public Object read$locationY$0(){
     if (!started){ return locationOrErr(locationY); }
-    return Scopes.y(Math.max(0, onEdtAndWait(frame::getY)));
+    return Scopes.y(onEdtAndWait(frame::getY));
   }
   private Object locationOrErr(Object loc){
     if (loc == null){

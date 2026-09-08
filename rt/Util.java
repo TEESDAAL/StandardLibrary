@@ -51,6 +51,7 @@ public class Util{
   }
   public static Bool$o$0 bool(boolean b){ return b ? True$o$0.instance : False$1c$0.instance; }
   public static boolean isTrue(Object b){ return b == True$o$0.instance; }
+  public static boolean isGeneric(Object o){ return !o.getClass().getInterfaces()[0].getSimpleName().endsWith("$0"); }
   public static Object ord(int i, Object mm){
     var m= (OrderMatch$174$1)mm;
     return i<0?m.mut$lt$0() : i==0? m.mut$eq$0() : m.mut$gt$0();
@@ -85,6 +86,9 @@ public class Util{
   }
   public static long natToLong(Object n){
     return ((Nat$c$0Instance)n).val();
+  }
+  public static long intToLong(Object n){
+    return ((Int$c$0Instance)n).val();
   }
   public static int natToInt(Object n){
     long nat = ((Nat$c$0Instance)n).val();

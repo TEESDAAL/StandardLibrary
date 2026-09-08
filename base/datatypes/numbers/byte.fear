@@ -187,7 +187,7 @@ Byte: Sealed,DataType[Byte,Byte],SumNumber[Byte] {
 
   /// ``this=~~=endInclusive`` returns the inclusive range ``[this, endInclusive]``.
   /// Throws if the range would be empty (``this > endInclusive``).
-  //>   .check{1.getByte=~~=(4.getByte) .assertEq({::}, Lists#(1.getByte, 2.getByte, 3.getByte, 4.getByte))}
+  //>   .check{1.getByte=~~=(4.getByte) .list .assertEq({::}, Lists#(1.getByte, 2.getByte, 3.getByte, 4.getByte))}
   //>   .checkDetErr({_ -> True}, {(4.getByte)=~~=(1.getByte)})
   =~~=(endInclusive: Byte): Range[Byte] -> Block#
     .if {this > endInclusive } .error {

@@ -245,7 +245,7 @@ record Map$c$2Instance(OrderHashBy$2ea$1 keyOh, LinkedHashMap<MapKey,Object> ele
   }
   @Override public Object read$$plus_plus$1(Object p0){ return mut$$plus_plus$1(p0); }
 
-  @Override public Object imm$as$1(Object p0){ return this; }
+  @Override public Object read$as$1(Object p0){ return this; }
   
   @Override public Object mut$flow$0(){
     return Flow$o$1Instance.of(elems.entrySet().stream()

@@ -308,7 +308,7 @@ Nat: Sealed,DataType[Nat,Nat],SumNumber[Nat],InfoKey {
 
 _NatRanges: Sealed {
   #(startInclusive: Nat, endInclusive: Nat, str: Str): Range[Nat] -> {'self
-    .size -> startInclusive - endInclusive; // Performance cost is low enough that this is okay
+    .size -> endInclusive - startInclusive + 1; // Performance cost is low enough that this is okay
     .start -> startInclusive;
     .end -> endInclusive;
     .flow -> _NumFlow.nats(startInclusive, endInclusive);

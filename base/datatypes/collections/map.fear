@@ -19,7 +19,7 @@ Maps: Sealed {
 
 /// Keys are only imm and compared/hashed using the map's stored OrderHashBy[K,...].
 /// The flow order, .str order etc all respect/follow the map insertion order.
-Map[K,E:*]: Sealed,BaseContainer[imm E],DataType[Map[K,E],Map[K,imm E],E,imm E],_AssertEmpty,_AssertSize {
+Map[K,E:*]: Sealed,BaseContainer[E],DataType[Map[K,E],Map[K,imm E],E,imm E],_AssertEmpty,_AssertSize {
 
   read .size: Nat;                 /// number of elements
   read .isEmpty: Bool;             /// `True` iff size == 0
@@ -59,7 +59,7 @@ Map[K,E:*]: Sealed,BaseContainer[imm E],DataType[Map[K,E],Map[K,imm E],E,imm E],
   read .keys: mut Flow[K];               /// keys as a flow (same iteration order as .flow)
   read .elems: mut Flow[read/imm E];     /// values as a flow (same iteration order as .flow)
 
-  imm  .as[T2](f: BaseId[imm E,T2]): Map[K,T2];       /// zero cost retyping, returns `this`
+  read .as[T2](f: BaseId[read/imm E,T2]): Map[K,T2];       /// zero cost retyping, returns `this`
 
   //TODO: for the future, we need to consider the variants of this (update, computeIfAbsent, etc)
   //mut  .update(k: K, f: mut MF[E,E]): mut Map[K,E];        /// replace value at k with f(get(k)); throws iff absent
@@ -77,11 +77,11 @@ Map[K,E:*]: Sealed,BaseContainer[imm E],DataType[Map[K,E],Map[K,imm E],E,imm E],
   .info by->Block#
     .if {this.isEmpty} .return {Info}
     .let map= {this.flow.fold(
-      {Maps#[Str,Str,Info]{::}},
+      {Maps#[Str,Str,Info]{::}.as{::}},
       {acc,ke->Block#
         .let base= {this.keyOh#(ke.key).str}
         .let k= {_InfoFreshKey#(acc, base, 0)}
-        .return{acc.with(k, by#(ke.elem).info)}
+        .return{acc.with(k, by#(ke.elem).info).as{::}}
     })}
   .return{{'i //correct to make the Info object (as for List), calling .info here would go in stack overflow
     .match->::.map map;
