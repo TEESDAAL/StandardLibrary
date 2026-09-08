@@ -212,7 +212,7 @@ Set[E]: Sealed,DataType[Set[E],Set[E],E,E] {
 
   /// ``this.str(by)`` returns a string representation of this set,
   /// using `by` as the ToStr for each element.
-  //>   .check{Sets#({::}, -1, +2, -3).str{::.imm.abs} .assertEq "{1, 2, 3}"}
+  //>   .check{Sets#({::}, -1, +2, -3).str{::.imm.abs} .assertEq "{3, 1, 2}"}
   .str by -> "{"+(this.imm.flow.map{by#:: .str}.join ", ")+"}";
 
   /// `this.str` returns a string representation of this set,
@@ -228,7 +228,12 @@ Set[E]: Sealed,DataType[Set[E],Set[E],E,E] {
   /// ``this.info(by)`` returns an Info representation of this set using `by` to convert each element.
   /// Returns an empty Info if this is empty.
   /// Note: a `by` argument is required as Info.str cannot be used to recover a ToStr from the orderHash.
-  //>   .check{Sets#({::}, 1, 2).info{::} ~ .isList => {l -> l.assertEq({::}, Lists#(1.info, 2.info))}!}
+  //>   .check{Sets#({::}, 1, 2).info{::} .match {
+  //>     .empty -> Error.msg `expected a list Info`;
+  //>     .msg _ -> Error.msg `expected a list Info`;
+  //>     .list l -> l.assertEq({::}, Lists#(1.info, 2.info));
+  //>     .map _ -> Error.msg `expected a list Info`;
+  //>     }}
   .info by -> this.imm.list.info by;
 
   /// ``this.hash(by)`` returns a hash of this set using `by` to hash each element.
@@ -252,7 +257,7 @@ Set[E]: Sealed,DataType[Set[E],Set[E],E,E] {
   /// if you want two sets ignoring their original order, you should use `this.setCmp`
   //>   .let empty={Sets#[Nat,Nat]({::})}
   //>   .check{empty.cmp({::}, Sets#({::}, 1, 2, 3), Sets#({::}, 2, 3, 1), {.eq -> 0; .lt -> 1; .gt -> 2}) .assertEq 0}
-  //>   .check{empty.cmp({::}, Sets#({::}, 3, 1, 2), Sets#({::}, 0, 1, 2, 3),  {.eq -> 0; .lt -> 1; .gt -> 2}) .assertEq 1}
+  //>   .check{empty.cmp({::}, Sets#({::}, 3, 1, 2), Sets#({::}, 0, 1, 2, 3),  {.eq -> 0; .lt -> 1; .gt -> 2}) .assertEq 2}
   //>   .check{empty.cmp({::}, Sets#({::}, 1, 2, 3), Sets#({::}, 1, 2), {.eq -> 0; .lt -> 1; .gt -> 2}) .assertEq 2}
   .cmp by, a, b, m -> List[E].cmp(by, a.imm.list, b.imm.list, m);
 

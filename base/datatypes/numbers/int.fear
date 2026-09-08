@@ -34,14 +34,14 @@ Int: Sealed,DataType[Int,Int],SumNumber[Int] {
   **(x: Nat): Int;
 
   /// ``this / d`` returns the exact rational quotient of `this` and ``d`` as a `Num`. Throws iff ``d == 0``.
-  //>   .check{(+7 / 2) .assertEq 3.5}
+  //>   .check{(+7 / 2) .getFloat .assertEq 3.5}
   //>   .checkDetErr({_ -> True}, {+7 / 0})
   / (d: Nat) : Num;
 
   /// ``this.getTruncDiv(d)`` returns `this` divided by ``d``, truncated toward ``0``. Throws iff ``d == 0``.
   /// Note: negative divisors are not allowed, if you need this use `this.aluDiv`.
   //>   .check{+7 .getTruncDiv 2 .assertEq +3}
-  //>   .check{-7 .getTruncDiv 2 .assertEq +3}
+  //>   .check{-7 .getTruncDiv 2 .assertEq -3}
   //>   .checkDetErr({_ -> True}, {+7 .getTruncDiv 0})
   .getTruncDiv(d: Nat): Int;
 
