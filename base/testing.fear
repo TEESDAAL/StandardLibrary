@@ -105,7 +105,7 @@ TestCap: Sealed {//by making it sealed we can guaranteed the output of the funct
   mut .disabledCheck(Check): mut TestCap; 
   mut .checkWithSys(CheckSys): mut TestCap;
   mut .disabledCheckWithSys(CheckSys): mut TestCap;  
-  mut .checkDetErr[T](errorMatch: F[Info, Bool], f: F[T]): mut TestCap -> this.check{
+  mut .checkDetErr[T:*](errorMatch: F[Info, Bool], f: F[T]): mut TestCap -> this.check{
     Try#(f).run {
      .ok _ -> Error.msg "Expected error but got success";
      .info i -> errorMatch#i .if {
@@ -160,7 +160,7 @@ _TestCaps: {
 
     mut .run: Void ->
       ts.seqFlow.forEach { ci->
-        UnitTestLog.log(_AddToLog#(ci.stackTrace,sys.try#(sys.iso.close,{ t -> ci.check#t })))
+        UnitTestLog.log(_AddToLog#(ci.stackTrace,sys.try#(sys.iso.close,{ t: iso System -> ci.check#t })))
       }
     }
   }
