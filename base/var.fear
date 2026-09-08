@@ -5,11 +5,7 @@ Var[E:imm,mut,read]: {
   mut .set(v: E): Void -> Block#(this.swap(v), Void);
   }
 
-Vars: Sealed{#[E:*](var: E): mut Var[E] -> {
-  read .get  -> Magic![read/imm E];
-  mut .get   -> Magic![E];
-  .swap(v)   -> Magic![E];
-  }}
+Vars:Sealed{#[E:*](var: E): mut Var[E] -> Magic!}
 
 Count[N]: Var[N] {
   mut ++: Void;
