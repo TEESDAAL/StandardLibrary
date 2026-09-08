@@ -72,9 +72,7 @@ IsoPod[T]: {
     .some x -> f#x;
     .empty -> Error.msg `The IsoPod was open`;
     };
-  mut .openRaw: iso T;              ///precondition: this.isClosed -- use .open instead
-  mut .open: iso T ->               ///and makes .isClosed false
-    this.isClosed ? { .then -> this.openRaw; .else -> Error.msg `The IsoPod was open` };
+  mut .open: iso T;                ///and makes .isClosed false; errors (deterministically) if already open
   read .isOpen: Bool -> this.isClosed.not;
   mut .consume[R:**](f: mut IsoConsumer[T, R]): R ->
     this.isClosed ? { .then -> f.some(this.open); .else -> f.empty };
