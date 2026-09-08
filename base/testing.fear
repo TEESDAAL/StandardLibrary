@@ -77,9 +77,11 @@ StackFrames: F[Str,Str,Str,Nat,StackFrame] { fn,tn,mn,ln ->
 ///
 /// Compiling a package with doc comments also generates a `UnitTests` suite from
 /// its ``//>``/``//-`` examples, built with this same `Test`/`UnitTests`/`TestCap`
-/// API. Its generated names - ``_<Type>Check<N>``, ``_<Type>Examples``,
-/// ``_GeneratedExamples`` - all start with an underscore, so they can never
-/// collide with a type you declare public.
+/// API: one ``_<Type>_Examples`` per documented type, aggregated into one
+/// ``AllAutoTests_<pkg>`` per package. Declaring a type of your own named exactly
+/// like a ``_<Type>_Examples`` is reported as an error naming the convention;
+/// declaring one named exactly like ``AllAutoTests_<pkg>`` instead suppresses
+/// generation for that whole package.
 UnitTests: Main {
   .main sys->Block#
     .let[mut RTestCap] ts= {_TestCaps#(sys,ELists#)}
@@ -132,7 +134,7 @@ _TestCaps: {
   #(sys: mut System, ts: mut EList[CheckInfo]): mut RTestCap -> mut RTestCap: TestCap {'self
     .check c -> Block#
       .let[List[StackFrame]] st = {c._fetchTrace {sys.try.currentStackTrace}}
-      .do {UnitTestLog.log(_PlanLine#(`RUN`,st,2))}
+      .do {UnitTestLog.log(_PlanLine#(`RUN`,st))}
       .do {ts.add(CheckInfos#(
         { _ -> c#; ._fetchTrace f -> c._fetchTrace f },
         st))}
@@ -140,25 +142,25 @@ _TestCaps: {
 
     .checkWithSys c -> Block#
       .let[List[StackFrame]] st = {c._fetchTrace {sys.try.currentStackTrace}}
-      .do {UnitTestLog.log(_PlanLine#(`RUN`,st,2))}
+      .do {UnitTestLog.log(_PlanLine#(`RUN`,st))}
       .do {ts.add(CheckInfos#(c,st))}
       .return {self};
 
     .disabledCheck c -> Block#(
-      UnitTestLog.log(_PlanLine#(`DISABLED`,c._fetchTrace {sys.try.currentStackTrace},1)),
+      UnitTestLog.log(_PlanLine#(`DISABLED`,c._fetchTrace {sys.try.currentStackTrace})),
       self);
 
     .disabledCheckWithSys c -> Block#(
-      UnitTestLog.log(_PlanLine#(`DISABLED`,c._fetchTrace {sys.try.currentStackTrace},1)),
+      UnitTestLog.log(_PlanLine#(`DISABLED`,c._fetchTrace {sys.try.currentStackTrace})),
       self);
 
     .disabledTest _ -> Block#(
-      UnitTestLog.log(_PlanLine#(`DISABLED`,sys.try.currentStackTrace,1)),
+      UnitTestLog.log(_PlanLine#(`DISABLED`,sys.try.currentStackTrace)),
       self);
 
     mut .run: Void ->
       ts.seqFlow.forEach { ci->
-        UnitTestLog.log(_AddToLog#(ci.stackTrace,sys.try#(sys.iso.close,{ t -> ci.check#t }),2))
+        UnitTestLog.log(_AddToLog#(ci.stackTrace,sys.try#(sys.iso.close,{ t -> ci.check#t })))
       }
     }
   }
@@ -171,30 +173,41 @@ CheckInfos: F[CheckSys,List[StackFrame],CheckInfo] {c,st->CheckInfo: {
 
 Test: { .tests(t: mut TestCap): mut TestCap; }
 
+//A named type's own .tests call gets its own real stack frame, so st.get(2) used to
+//find it reliably. An anonymous Test{::...} literal's .tests call does not: its frame
+//is simply missing, shifting every fixed index that follows it. Searching past every
+//frame that belongs to this file or blocks.fear (the only frames the test DSL itself
+//ever contributes) finds the real caller either way, named or anonymous.
+_RealFrame: {
+  #(st: List[StackFrame]): StackFrame ->
+    st.flow.filter{f -> f.fileName.startsWith(`testing.fear`).not && {f.fileName.startsWith(`blocks.fear`).not}}.first!
+  }
+
 _AddToLog: {
-  #(st: List[StackFrame], a: mut Action[Void], dept: Nat): Str ->
-    a.run {
+  #(st: List[StackFrame], a: mut Action[Void]): Str -> Block#
+    .let[StackFrame] f = {_RealFrame#st}
+    .return {a.run {
       .ok _ ->
-        `<testcase classname="` + (_XmlEscape#(st.get(dept).typeName))
-        + `" name="` + (_XmlEscape#(st.get(dept).typeName)) + ` at line: ` + (st.get(dept).lineNumber)
-        + `" file="` + (_XmlEscape#(st.get(dept).fileName))
-        + `" line="` + (st.get(dept).lineNumber)
+        `<testcase classname="` + (_XmlEscape#(f.typeName))
+        + `" name="` + (_XmlEscape#(f.typeName)) + ` at line: ` + (f.lineNumber)
+        + `" file="` + (_XmlEscape#(f.fileName))
+        + `" line="` + (f.lineNumber)
         + `"></testcase>` |;
       .info i -> Block#(
         Debug#(`Test failure `
-          + (st.get(dept).typeName) + ` at line: ` 
-          + (st.get(dept).lineNumber) + ` in file: `+ (st.get(dept).fileName)
+          + (f.typeName) + ` at line: `
+          + (f.lineNumber) + ` in file: `+ (f.fileName)
           + ` ` + i
           ),
-        `<testcase classname="` + (_XmlEscape#(st.get(dept).typeName))
-        + `" name="` + (_XmlEscape#(st.get(dept).typeName)) + ` at line: ` + (st.get(dept).lineNumber)
-        + `" file="` + (_XmlEscape#(st.get(dept).fileName))
-        + `" line="` + (st.get(dept).lineNumber)
+        `<testcase classname="` + (_XmlEscape#(f.typeName))
+        + `" name="` + (_XmlEscape#(f.typeName)) + ` at line: ` + (f.lineNumber)
+        + `" file="` + (_XmlEscape#(f.fileName))
+        + `" line="` + (f.lineNumber)
         + `">`
         | (_FormatFailure#i)
         | `</testcase>` |
         );
-    };
+    }};
   }
 
 _FailureMsg: {
@@ -267,17 +280,20 @@ _FailureTrace: { #(i: Info): Str -> Block#
   }
 
 _PlanLine: {
-  #(kind: Str, st: List[StackFrame], dept: Nat): Str ->
-    `PLAN|`
-    + kind
-    + `|`
-    + (st.get(dept).fileName)
-    + `|`
-    + (st.get(dept).typeName)
-    + `|`
-    + (st.get(dept).typeName) + ` at line: ` + (st.get(dept).lineNumber)
-    + `|`
-    + (st.get(dept).lineNumber)|;//| to end in new line
+  #(kind: Str, st: List[StackFrame]): Str -> Block#
+    .let[StackFrame] f = {_RealFrame#st}
+    .return {
+      `PLAN|`
+      + kind
+      + `|`
+      + (f.fileName)
+      + `|`
+      + (f.typeName)
+      + `|`
+      + (f.typeName) + ` at line: ` + (f.lineNumber)
+      + `|`
+      + (f.lineNumber)|//| to end in new line
+      };
   }
 
 _XmlEscape: {
