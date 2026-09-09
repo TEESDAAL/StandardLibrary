@@ -3,7 +3,7 @@ Infos: Sealed {
     .then->{};
     .else->{'i
       .match->::.msg str;
-      .msg -> str;
+      .msg -> Opts# str;
       .imm->i;
       }};
   .list(i1: read ToInfo): Info -> Lists#(i1.info).info {::};
@@ -24,9 +24,19 @@ Info: Sealed,DataType[Info,Info],_AssertImmEmpty {
   .imm->{};
   .hash->this.str.hash;
   .cmp a,b,m -> a.str <=> (b.str, m);
-  .msg: Str->``;
-  .list: List[Info]->{};
-  .map: Map[Str,Info]->Maps#[Str,Str,Info] {::};
+
+  .msg: Opt[Str] -> {};
+  .list: Opt[List[Info]] -> {};
+  .map: Opt[Map[Str,Info]] -> {};
+
+  .getMsg: Str-> this.msg! {"Info.getMsg: Tried an Info that is not a .msg variant to a Str."};
+  .getList: List[Info]->this.list! {"Info.getList: Tried an Info that is not a .list variant to a List[Info]."};
+  .getMap: Map[Str,Info]->this.map! {"Info.getMsg: Tried an Info that is not a .map variant to a Map[Str, Info]."};
+
+  .softMsg: Str-> this.msg.orValue ``;
+  .softList: List[Info]->this.list.orValue {};
+  .softMap: Map[Str,Info]->this.map.orLazy{Maps#[Str,Str,Info] {::}};
+
   .isEmpty: Bool ->this.msg.isEmpty .and (this.list.isEmpty) .and (this.map.isEmpty);
   .match[R:**](m: InfoMatch[R]): R->m.empty;
   .str -> this.imm.match(_InfoToStr);
@@ -46,17 +56,17 @@ Info: Sealed,DataType[Info,Info],_AssertImmEmpty {
       };
     .map(m1) -> other.match {
       .empty   -> this;
-      .msg  s2 -> _InfoMapPlus#(m1, Infos.map(`msg`,s2).map) .info {::};
-      .list l2 -> _InfoMapPlus#(m1, Infos.map(`list`,l2.info {::}).map) .info {::};
+      .msg  s2 -> _InfoMapPlus#(m1, Infos.map(`msg`,s2).getMap) .info {::};
+      .list l2 -> _InfoMapPlus#(m1, Infos.map(`list`,l2.info {::}).getMap) .info {::};
       .map  m2 -> _InfoMapPlus#(m1, m2) .info {::};
       };
     };
 
-  /// ``this &`` returns an `InfoMatches` starting from `this` as the base.
-  &: InfoMatches -> {Opts# this};
-  /// ``this &`` returns an `InfoExtractor` starting from `this` as the base.
-  ~: InfoExtractor -> {Opts# this};
+  .extract[R:*](f: read ExtractionFunction[R]): Opt[R] -> f#{.close -> this; .extractedValue -> Opts# this }#;
+  .validate(f: read F[InfoValidator, InfoValidator]): Bool -> f#(InfoValidators# this)#;
   }
+
+ExtractionFunction[R:*]: F[InfoExtractor, Extractor[R]] {}
 
 /// Allow indexing into an info,
 /// Union of Str (index into map) and Nat (index into list)

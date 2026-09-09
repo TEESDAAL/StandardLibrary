@@ -1,63 +1,85 @@
-_Extractor[T: *]: Sealed {
+Extractor[T:*]: Sealed {
+  .close: Info;
   /// `this.extractedValue` returns the value extracted so far, if there is one.
   .extractedValue: mut Opt[T];
 
-  /// Map the extracted value to some result
-  =>[R: *](mapper: read F[T, R]): mut Opt[R] ->
-    this.extractedValue.mapSome mapper
+  #: mut Opt[T] -> this.extractedValue;
+  }
+
+Extractor[T:*, Self]: Extractor[T] {
+  .where(f: read F[InfoValidator, InfoValidator]): Self;
   }
 
 /// `InfoExtractor` is a utility class to help "fuzzy" extract values from an info.
-/// Similar to `InfoMatches` you can descend into an info with the `>` operator.
-/// You can match against some deep part of an info by combining this with `InfoMatches` using the `&` operator.
+/// Similar to `InfoValidator` you can descend into an info with the `>` operator.
+/// You can match against some deep part of an info by combining this with `InfoValidator` using the `&` operator.
 //>   // info := {"friends": [{"name": "Bob"}, {"name": "Alice"}]}
 //>   .let info={Infos.map("friends", Infos.list(Infos.map("name", "Bob"), Infos.map("name", "Alice")))}
-//>   .check{info ~ => {::}! .assertEq info}
-//>   .check{info ~ > "friends" > 0 > "name" .isMsg => {::.lower}! == "bob"}
+//>   .check{info.extract{::} .assertEq info}
+//>   .check{info.extract{:: > "friends" > 0 > "name" .extractMsg}.map{::.lower}! == "bob"}
+//>   .check{info.extract{:: > "friends" .extractList .where{::
+//>       > 0 > "name" .isMsg{:: == "Bob"}
+//>       & > 1 > "name" .isMsg{:: == "Alice"}
+//>       }
+//>     .map{::.flow.map{:: ~ > "name" .isMsg => {::}!}.join ", "}
+//>     .assertEq(Opts# "Bob, Alice")}}
 //>   .check{info ~ > "friends"
-//>     & > 0 > "name" .msgMatch{:: == "Bob"}
-//>     & > 1 > "name" .msgMatch{:: == "Alice"}
-//>     ~ .isList => {::.flow.map{:: ~ > "name" .isMsg => {::}!}.join ", "} .assertEq(Opts# "Bob, Alice")}
-//>   .check{info ~ > "friends"
-//>     & > 0 > "name" .msgMatch{:: == "Bob"}
-//>     & > 1 > "name" .msgMatch{:: == "David"}
+//>     & > 0 > "name" .isMsg{:: == "Bob"}
+//>     & > 1 > "name" .isMsg{:: == "David"}
 //>     ~ .isList => {::.flow.map{:: ~ > "name" .isMsg => {::}!}.join ", "}.assertEmpty {::}}
-InfoExtractor: _Extractor[Info] {
-  &: InfoMatches -> {.close -> this.extractedValue};
-
+InfoExtractor: Extractor[Info, InfoExtractor] {
   /// Descend one layer deeper into info,
   /// matching against it being a map with a key `key`
   /// or a List with index key: Nat.
   >(key: InfoKey): InfoExtractor -> {
+    .close -> this.close;
     .extractedValue -> this.extractedValue.then{key.indexInto ::}
     };
 
-  .msgMatch(fn: F[Str, Bool]): StrExtractor -> {
-    .extractedValue -> this.extractedValue.then{::.match DefaultInfoMatch[Opt[Str]] {
-      .msg str -> fn# str .toOpt{str};
-      .default -> {};
-      }};
+  .where f -> this.extractedValue.match{
+    .some info -> f#(SuccessfulInfoValidator {.close -> info})#.match {
+      .true -> this;
+      .false -> InfoExtractor {
+        .close -> this.close;
+        .extractedValue -> {}
+        }
+      };
+    .empty -> this;
     };
 
-  .listMatch(fn: F[List[Info], Bool]): ListExtractor -> {
-    .extractedValue -> this.extractedValue.then{::.match DefaultInfoMatch[Opt[List[Info]]] {
+  .extractMsg(fn: F[Str, Bool]): StrExtractor -> {
+    .close -> this.close;
+    .extractedValue -> this.extractedValue.match {
+      .some info -> info.match DefaultInfoMatch[mut Opt[Str]] {
+        .msg str -> fn# str .toOpt{str};
+        .default -> {};
+        };
+      .empty -> {};
+      }
+    };
+
+  .extractList(fn: F[List[Info], Bool]): ListExtractor -> {
+    .close -> this.close;
+    .extractedValue -> this.extractedValue.then{::.match DefaultInfoMatch[mut Opt[List[Info]]] {
       .list l -> fn#(l).toOpt{l};
       .default -> {};
       }}
     };
 
-  .mapMatch(fn: F[Map[Str,Info], Bool]): MapExtractor -> {
-    .extractedValue -> this.extractedValue.then{::.match DefaultInfoMatch[Opt[Map[Str,Info]]] {
+  .extractMap(fn: F[Map[Str,Info], Bool]): MapExtractor -> {
+    .close -> this.close;
+    .extractedValue -> this.extractedValue.then{::.match DefaultInfoMatch[mut Opt[Map[Str,Info]]] {
       .map m -> fn#(m).toOpt{m};
       .default -> {};
       }}
     };
 
-  .isMsg: StrExtractor -> this.msgMatch{_ -> True};
-  .isList: ListExtractor -> this.listMatch{_ -> True};
-  .isMap: MapExtractor -> this.mapMatch{_ -> True};
+  .extractMsg: StrExtractor -> this.extractMsg{_ -> True};
+  .extractList: ListExtractor -> this.extractList{_ -> True};
+  .extractMap: MapExtractor -> this.extractMap{_ -> True};
 
-  .isEmpty: _Extractor[Info] -> {
+  .extractEmpty: InfoExtractor -> {
+    .close -> this.close;
     .extractedValue -> this.extractedValue.match {
       .empty -> {};
       .some i -> i.match {
@@ -68,18 +90,31 @@ InfoExtractor: _Extractor[Info] {
     };
   }
 
-StrExtractor: _Extractor[Str] {
-  .msgMatch(fn: F[Str, Bool]): StrExtractor -> {
+StrExtractor: Extractor[Str, StrExtractor] {
+  .extractMsg(fn: F[Str, Bool]): StrExtractor -> {
+    .close -> this.close;
     .extractedValue -> this.extractedValue.match{
       .empty -> {};
       .some str -> fn#(str).toOpt {str}
       }
-    }
+    };
+
+  .where f ->  this.extractedValue.match{
+    .some str -> f#(SuccessfulInfoValidator {.close -> Infos.msg str})#.match {
+      .true -> this;
+      .false -> StrExtractor {
+        .close -> this.close;
+        .extractedValue -> {}
+        }
+      };
+    .empty -> this;
+    };
   }
 
-MapExtractor: _Extractor[Map[Str,Info]] {
+MapExtractor: Extractor[Map[Str,Info], MapExtractor] {
   /// Descend deeper into the map
    > (key: Str): InfoExtractor -> {
+    .close -> this.close;
     .extractedValue -> this.extractedValue.match{
       .empty -> {};
       .some m -> m.opt key;
@@ -87,26 +122,55 @@ MapExtractor: _Extractor[Map[Str,Info]] {
     };
 
   // Drop the extraction if the map doesn't match the value
-  .mapMatch(fn: F[Map[Str,Info], Bool]): MapExtractor -> {
+  .extractMap(fn: F[Map[Str,Info], Bool]): MapExtractor -> {
+    .close -> this.close;
     .extractedValue -> this.extractedValue.match{
       .empty -> {};
       .some m -> fn#(m).toOpt{m};
       }
     };
+
+  .where f -> this.extractedValue.match{
+    .some map -> f#(SuccessfulInfoValidator {.close -> {'i
+        .match->::.map map;
+        .map -> Opts# map;
+        .imm->i;
+        }})#
+      .match {
+        .true -> this;
+        .false -> MapExtractor {.close -> this.close; .extractedValue -> {}}
+        };
+    .empty -> this;
+    };
   }
 
-ListExtractor: _Extractor[List[Info]] {
+ListExtractor: Extractor[List[Info], ListExtractor] {
   > (index: Nat): InfoExtractor -> {
+    .close -> this.close;
     .extractedValue -> this.extractedValue.match{
       .empty -> {};
       .some l -> l.opt index;
       }
     };
 
-  .listMatch(fn: F[List[Info], Bool]): ListExtractor -> {
+  .extractList(fn: F[List[Info], Bool]): ListExtractor -> {
+    .close -> this.close;
     .extractedValue -> this.extractedValue.match{
       .empty -> {};
       .some l -> fn#(l).toOpt{l};
       }
+    };
+
+  .where f -> this.extractedValue.match{
+    .some list -> f#(SuccessfulInfoValidator {.close -> {'i
+        .match->::.list list;
+        .list -> Opts# list;
+        .imm->i;
+        }})#
+      .match {
+        .true -> this;
+        .false -> ListExtractor {.close -> this.close; .extractedValue -> {};}
+        };
+    .empty -> this;
     };
   }

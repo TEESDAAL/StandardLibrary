@@ -89,6 +89,9 @@ public record Nat$c$0Instance(long val) implements Nat$c$0,Norm$o$1 {
 
   @Override public Object imm$$slash$1(Object p0){
     long d=n(p0);
+    if (d == 0L) {
+      throw err("Nat /: Cannot create a Num with denominator 0.");
+    }
     return Num$c$0Instance.instance(
       unsignedLongToBigInteger(val),
       unsignedLongToBigInteger(d)
@@ -256,4 +259,5 @@ public record Nat$c$0Instance(long val) implements Nat$c$0,Norm$o$1 {
 
   @Override public Object imm$norm$0(){ return this; }
   @Override public Object imm$get$0(){ return this; }
+  @Override public Object read$info$0(){ return Infos$1c$0.instance.imm$msg$1(this.read$str$0());}
 }

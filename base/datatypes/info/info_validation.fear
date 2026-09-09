@@ -1,0 +1,235 @@
+InfoValidators: Sealed, F[Info, InfoValidator] {
+  # info -> SuccessfulInfoValidator { .close -> info }
+  }
+
+/// InfoValidator is a utility class to help "fuzzy" match infos.
+/// you can descend into the option with the `>` operator.
+/// With ``this > str`` matching against a map with a key str and ``this > 0`` matching against the a list with an index 0.
+/// `InfoValidator` can be chained using logical operators `&`, `|`, `.not` by default these will chain,
+/// if you wish for more complex you can chain with the `&&` `||` methods.
+//>   // info := {"friends": [{"name": "Bob"}, {"name": "Alice"}]}
+//>   .let info={Infos.map("friends", Infos.list(Infos.map("name", "Bob"), Infos.map("name", "Alice")))}
+//>   .check{info.validate{::} .assertTrue}
+//>   .check{info.validate{:: > "friends" > 0 > "name" .isMsg{:: == "Bob"}} .assertTrue}
+//>   .check{info.validate{:: // Note you can include the `&` if it reads better
+//>     & > "friends" > 0 > "name" .isMsg{:: == "Bob"}
+//>     & > "friends" > 1 > "name" .isMsg{:: == "Alice"}
+//>     } .assertTrue}
+//>   .check{info.validate{::
+//>     & > "friends" > 0 > "name" .isMsg{:: == "Bob"}
+//>     | > "friends" > 1 > "name" .isMsg{:: == "Alice"}
+//>     & > "friends" > 1 > "name" .isMsg{:: == "David"}} .assertFalse}
+//>   .check{info.validate{:: > "friends" .where{::
+//>     & > 0 > "name" .isMsg{:: == "Bob"}
+//>     | > 1 > "name" .isMsg{:: == "Alice"}
+//>     & > 1 > "name" .isMsg{:: == "David"}} .assertFalse}
+//>   .check{info.validate{::
+//>     & > "friends" > 0 > "name" .isMsg{:: == "Bob"}
+//>     || {:: & > "friends" > 1 > "name" .isMsg{:: == "Alice"}
+//>            & > "friends" > 1 > "name" .isMsg{:: == "David"}}} .assertTrue}
+InfoValidator: Sealed {
+  .close: Info;
+  #: Bool;
+
+  >(key: InfoKey): InfoValidator;
+  .match[R:**](m: mut ValidationMatch[R]): R -> this#.match{
+    .true -> m.valid(this.close);
+    .false -> m.invalid(this.close);
+    };
+
+  .where(f: read F[InfoValidator, InfoValidator]): InfoValidator;
+  .extract[R:*](f: read ExtractionFunction[R]): Opt[R] -> this.match{
+    .valid i -> f#{
+      .close -> this.close;
+      .extractedValue -> Opts#(this.close)
+      }#;
+    .invalid _ -> {}
+  };
+
+  .isMsg(F[Str, Bool]): InfoValidator;
+  .isList(fn: F[List[Info], Bool]): InfoValidator;
+  .isMap(fn: F[Map[Str,Info], Bool]): InfoValidator;
+
+  .isMsg: InfoValidator -> this.isMsg{_ -> True};
+  .isList: InfoValidator -> this.isList{_ -> True};
+  .isMap: InfoValidator -> this.isMap{_ -> True};
+  .isEmpty: InfoValidator;
+
+  .not: InfoValidator;
+
+  &: InfoValidator -> ChainedInfoValidator {
+    .close -> this.close;
+    .left -> this;
+    .right -> InfoValidators#(this.close);
+    .combiner l, r -> l & r;
+    };
+
+  |: InfoValidator -> ChainedInfoValidator {
+    .close -> this.close;
+    .left -> this;
+    .right -> InfoValidators#(this.close);
+    .combiner l, r -> l | r;
+    };
+
+  &&(lazyValidator: LazyInfoValidator): InfoValidator -> ChainedInfoValidator {
+    .close -> this.close;
+    .left -> this;
+    .right -> lazyValidator#(InfoValidators#(this.close));
+    .combiner l, r -> l & r;
+    };
+
+  ||(lazyValidator: LazyInfoValidator): InfoValidator -> ChainedInfoValidator {
+    .close -> this.close;
+    .left -> this;
+    .right -> lazyValidator#(InfoValidators#(this.close));
+    .combiner l, r -> l | r;
+    };
+  }
+
+ChainedInfoValidator: InfoValidator {
+  .close: Info;
+  .left: InfoValidator;
+  .right: InfoValidator;
+  .combiner(Bool, Bool): Bool;
+  #: Bool -> this.combiner(this.left#, this.right#);
+
+  > key -> ChainedInfoValidator {
+    .close -> this.close;
+    .combiner a, b -> this.combiner(a,b);
+    .left -> this.left;
+    .right -> this.right > key
+    };
+
+  .where f -> Block#
+    .let right={this.right.where f}
+    .return{ ChainedInfoValidator {
+      .close -> this.close;
+      .combiner a, b -> this.combiner(a,b);
+      .left -> this.left;
+      .right -> right
+      }};
+
+
+  .isMsg f -> ChainedInfoValidator {
+    .close -> this.close;
+    .combiner a, b -> this.combiner(a,b);
+    .left -> this.left;
+    .right -> this.right.isMsg f
+    };
+
+  .isList f -> ChainedInfoValidator {
+    .close -> this.close;
+    .combiner a, b -> this.combiner(a,b);
+    .left -> this.left;
+    .right -> this.right.isList f
+    };
+
+  .isMap f -> ChainedInfoValidator {
+    .close -> this.close;
+    .combiner a, b -> this.combiner(a,b);
+    .left -> this.left;
+    .right -> this.right.isMap f
+    };
+
+  .isEmpty -> ChainedInfoValidator {
+   .close -> this.close;
+   .combiner a, b -> this.combiner(a,b);
+   .left -> this.left;
+   .right -> this.right.isEmpty
+   };
+
+  .not -> ChainedInfoValidator {
+   .close -> this.close;
+   .combiner a, b -> this.combiner(a,b);
+   .left -> this.left;
+   .right -> this.right.not
+   };
+  }
+
+SuccessfulInfoValidator: InfoValidator {
+  /// The Base level info we are matching on, different from .matchLevel as it is the base we chain on.
+  /// Is an opt as the matchers produced by InfoExtractors may not have an info in them.
+  .close: Info;
+  .match m -> m.valid(this.close);
+
+  #: Bool -> True;
+  /// The info we are matching against - how far we have "descended" into info.
+  .matchLevel: Info -> this.close;
+
+  > key -> key.indexInto(this.matchLevel).match {
+    .some info -> SuccessfulInfoValidator { .close -> this.close; .matchLevel -> info; };
+    .empty -> FailedInfoValidator {this.close};
+    };
+
+  .where f -> f#(SuccessfulInfoValidator {this.matchLevel}) # .match {
+    .true -> this;
+    .false -> FailedInfoValidator {this.close}
+    };
+
+  .isMsg fn -> this.matchLevel.match DefaultInfoMatch[InfoValidator] {
+    .msg m -> fn# m .match {
+      .true -> this;
+      .false -> FailedInfoValidator {this.close};
+      };
+    .default -> FailedInfoValidator {this.close};
+    };
+
+  .isList fn -> this.matchLevel.match DefaultInfoMatch[InfoValidator] {
+    .list l -> fn#(l) .match {
+      .true -> this;
+      .false -> FailedInfoValidator {this.close};
+      };
+    .default -> FailedInfoValidator {this.close}
+    };
+
+  .isMap fn -> this.matchLevel.match DefaultInfoMatch[InfoValidator] {
+    .map m -> fn#(m) .match {
+      .true -> this;
+      .false -> FailedInfoValidator {this.close};
+      };
+    .default -> FailedInfoValidator {this.close}
+    };
+
+  .isEmpty -> this.matchLevel.match DefaultInfoMatch[InfoValidator] {
+    .empty -> this;
+    .default -> FailedInfoValidator {this.close};
+    };
+
+  .not -> FailedInfoValidator {this.close};
+
+  &  -> SuccessfulInfoValidator {this.close};
+  && lazyMatch -> lazyMatch#(SuccessfulInfoValidator {this.close});
+
+  // note this uses the above or's as otherwise you just always ignore this
+  }
+
+FailedInfoValidator: InfoValidator {
+  .close: Info;
+  .match m -> m.invalid(this.close);
+
+  # -> False;
+
+  > _ -> this;
+  .where _ -> this;
+
+  .isMsg _ -> this;
+  .isList _ -> this;
+  .isMap _ -> this;
+  .isEmpty -> this;
+
+  .not -> SuccessfulInfoValidator {this.close};
+
+  & -> this;
+  && _ -> this;
+
+  |: InfoValidator -> SuccessfulInfoValidator {this.close};
+  || lazyMatch -> lazyMatch#(SuccessfulInfoValidator {this.close});
+  }
+
+ValidationMatch[R:**]: {
+  mut .valid(Info): R;
+  mut .invalid(Info): R;
+  }
+
+LazyInfoValidator: F[InfoValidator, InfoValidator] {}
+

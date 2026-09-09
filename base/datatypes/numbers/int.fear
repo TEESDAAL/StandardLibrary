@@ -3,52 +3,52 @@
 Int: Sealed,DataType[Int,Int],SumNumber[Int] {
   /// `this.getSucc` returns ``this + +1``. Throws if `this` is `Math.maxInt` (overflow).
   //>   .check{+5 .getSucc .assertEq +6}
-  //>   .checkDetErr({_ -> True}, {(Math.maxInt) .getSucc})
+  //>   .checkDetErr({::}, {(Math.maxInt) .getSucc})
   .getSucc: Int -> this + +1;
 
   /// `this.getPred` returns ``this - +1``. Throws if `this` is `Math.minInt` (underflow).
   //>   .check{+5 .getPred .assertEq +4}
-  //>   .checkDetErr({_ -> True}, {(Math.minInt) .getPred})
+  //>   .checkDetErr({::}, {(Math.minInt) .getPred})
   .getPred: Int -> this + -1;
 
   /// ``this + x`` returns the checked sum of `this` and ``x``. Throws on overflow/underflow.
   //>   .check{(+2 + +3) .assertEq +5}
-  //>   .checkDetErr({_ -> True}, {(Math.maxInt) + +1})
+  //>   .checkDetErr({::}, {(Math.maxInt) + +1})
   +(x: Int): Int;
 
   /// ``this - x`` returns the checked difference of `this` and ``x``. Throws on overflow/underflow.
   //>   .check{(+5 - +3) .assertEq +2}
-  //>   .checkDetErr({_ -> True}, {(Math.minInt) - +1})
+  //>   .checkDetErr({::}, {(Math.minInt) - +1})
   -(x: Int): Int;
 
   /// ``this * x`` returns the checked product of `this` and ``x``. Throws on overflow/underflow.
   //>   .check{(+6 * +7) .assertEq +42}
-  //>   .checkDetErr({_ -> True}, {(Math.maxInt) * +2})
+  //>   .checkDetErr({::}, {(Math.maxInt) * +2})
   *(x: Int): Int;
 
   /// ``this ** x`` returns the checked power of `this` raised to ``x``.
   /// Note: ``x`` is `Nat` (not `Int`), as negative exponents would produce fractional results.
   /// Throws on overflow/underflow.
   //>   .check{(+2 ** 6) .assertEq +64}
-  //>   .checkDetErr({_ -> True}, {(Math.maxInt) ** 2})
+  //>   .checkDetErr({::}, {(Math.maxInt) ** 2})
   **(x: Nat): Int;
 
   /// ``this / d`` returns the exact rational quotient of `this` and ``d`` as a `Num`. Throws iff ``d == 0``.
   //>   .check{(+7 / 2) .getFloat .assertEq 3.5}
-  //>   .checkDetErr({_ -> True}, {+7 / 0})
+  //>   .checkDetErr({::}, {+7 / 0})
   / (d: Nat) : Num;
 
   /// ``this.getTruncDiv(d)`` returns `this` divided by ``d``, truncated toward ``0``. Throws iff ``d == 0``.
   /// Note: negative divisors are not allowed, if you need this use `this.aluDiv`.
   //>   .check{+7 .getTruncDiv 2 .assertEq +3}
   //>   .check{-7 .getTruncDiv 2 .assertEq -3}
-  //>   .checkDetErr({_ -> True}, {+7 .getTruncDiv 0})
+  //>   .checkDetErr({::}, {+7 .getTruncDiv 0})
   .getTruncDiv(d: Nat): Int;
 
   /// ``this.getDiv(d)`` returns `this` exactly divided by `d`. Throws iff ``d == 0`` or ``this.rem == 1``.
   //>   .check{(+6) .getDiv 2 .assertEq(+3)}
-  //>   .checkDetErr({_ -> True}, {+7 .getDiv 3})
-  //>   .checkDetErr({_ -> True}, {+7 .getDiv 0})
+  //>   .checkDetErr({::}, {+7 .getDiv 3})
+  //>   .checkDetErr({::}, {+7 .getDiv 0})
   .getDiv(d: Nat): Int -> Block#
     .if {d == 0} .error {"Int.getDiv: Cannot divide by 0"}
     .let[Int] rem = {this.getRem d}
@@ -57,7 +57,7 @@ Int: Sealed,DataType[Int,Int],SumNumber[Int] {
 
   /// ``this.getRem(d)`` returns the remainder ``this - (this.getDiv(d)) * d``. Throws iff ``d == 0``.
   //>   .check{+7 .getRem 2 .assertEq +1}
-  //>   .checkDetErr({_ -> True}, {+7 .getRem 0})
+  //>   .checkDetErr({::}, {+7 .getRem 0})
   .getRem(d: Nat): Int;
 
   /// ``this.rem(d)`` returns `.some` of ``this.getRem(d)`` if ``d != 0``, `.empty` iff ``d == 0``.
@@ -107,7 +107,7 @@ Int: Sealed,DataType[Int,Int],SumNumber[Int] {
   /// indexing, e.g. ``(-1).getWrapIndex(7) == 6``). Throws iff ``len == 0``.
   //>   .check{-1 .getWrapIndex 7 .assertEq 6}
   //>   .check{+8 .getWrapIndex 7 .assertEq 1}
-  //>   .checkDetErr({_ -> True}, {+5 .getWrapIndex 0})
+  //>   .checkDetErr({::}, {+5 .getWrapIndex 0})
   .getWrapIndex(len: Nat): Nat;
 
   /// ``this.wrapIndex(len)`` returns `.some` of ``this.getWrapIndex(len)`` if ``len != 0``, `.empty` iff ``len == 0``.
@@ -137,17 +137,17 @@ Int: Sealed,DataType[Int,Int],SumNumber[Int] {
 
   /// `this.getNat` converts `this` to a `Nat`. Throws if ``this < 0``.
   //>   .check{+5 .getNat .assertEq 5}
-  //>   .checkDetErr({_ -> True}, {-5 .getNat})
+  //>   .checkDetErr({::}, {-5 .getNat})
   .getNat: Nat;
 
   /// `this.getByte` converts `this` to a `Byte`. Throws if `this` is not in ``[0, maxByte]``.
   //>   .check{+5 .getByte .assertEq(5.getByte)}
-  //>   .checkDetErr({_ -> True}, {+300 .getByte})
+  //>   .checkDetErr({::}, {+300 .getByte})
   .getByte: Byte;
 
   /// `this.getFloat` converts `this` to a `Float`. Throws if `this` is not exactly representable.
   //>   .check{+5 .getFloat .assertEq 5.0}
-  //>   .checkDetErr({_ -> True}, {Math.minInt + +1 .getFloat})
+  //>   .checkDetErr({::}, {Math.minInt + +1 .getFloat})
   .getFloat: Float;
 
   /// `this.softNat` converts `this` to a `Nat` by flooring negative values to ``0``
@@ -180,13 +180,13 @@ Int: Sealed,DataType[Int,Int],SumNumber[Int] {
   /// ``this.aluDiv(x)`` returns `this` divided by ``x``, truncated toward ``0`` (i64 semantics).
   /// Note: unlike `.getDiv`, ``x`` is a signed `Int`, a negative divisor is allowed. Throws iff ``x == 0``.
   //>   .check{+7 .aluDiv -2 .assertEq -3}
-  //>   .checkDetErr({_ -> True}, {+7 .aluDiv +0})
+  //>   .checkDetErr({::}, {+7 .aluDiv +0})
   .aluDiv(x: Int): Int;
 
   /// ``this.aluRem(x)`` returns the remainder paired with ``this.aluDiv(x)``; the result's sign
   /// follows the dividend (`this`), not the divisor. Throws iff ``x == 0``.
   //>   .check{-7 .aluRem +2 .assertEq -1}
-  //>   .checkDetErr({_ -> True}, {+7 .aluRem +0})
+  //>   .checkDetErr({::}, {+7 .aluRem +0})
   .aluRem(x: Int): Int;
 
   /// ``this.aluShiftLeft(bits)`` returns `this` shifted left by ``bits``, with the effective shift
@@ -222,7 +222,7 @@ Int: Sealed,DataType[Int,Int],SumNumber[Int] {
   /// ``this~~end`` returns the open range ``(this, end)``.
   /// Throws if `this` is `Math.maxInt`, `end` is `Math.minInt`, or the resulting range would be empty.
   //>   .check{(+1~~ +4) .start .assertEq +2}
-  //>   .checkDetErr({_ -> True}, {+1~~ +2})
+  //>   .checkDetErr({::}, {+1~~ +2})
   ~~(end: Int): Range[Int] -> Block#
     .if {this == (Math.maxInt)} .error{"Int ~~: Start of open range cannot be Math.maxInt"}
     .if {end == (Math.minInt)} .error{"Int ~~: End of open range cannot be Math.minInt"}
@@ -236,7 +236,7 @@ Int: Sealed,DataType[Int,Int],SumNumber[Int] {
   /// ``this~~=endInclusive`` returns the range ``(this, endInclusive]``.
   /// Throws if `this` is `Math.maxInt`, or the range would be empty (``this >= endInclusive``).
   //>   .check{(+1~~= +4) .end .assertEq +4}
-  //>   .checkDetErr({_ -> True}, {+1~~= +1})
+  //>   .checkDetErr({::}, {+1~~= +1})
   ~~=(endInclusive: Int): Range[Int] -> Block#
     .if {this == (Math.maxInt)} .error{"Int ~~=: Start of open range cannot be Math.maxInt"}
     .if {this >= endInclusive } .error {
@@ -247,7 +247,7 @@ Int: Sealed,DataType[Int,Int],SumNumber[Int] {
   /// ``this=~~end`` returns the range ``[this, end)``.
   /// Throws if `end` is `Math.minInt`, or the range would be empty (``this >= end``).
   //>   .check{(+1=~~ +4) .start .assertEq +1}
-  //>   .checkDetErr({_ -> True}, {+1=~~ +1})
+  //>   .checkDetErr({::}, {+1=~~ +1})
   =~~(end: Int): Range[Int] -> Block#
     .if {end == (Math.minInt)} .error{
       "Int =~~: End of open range cannot be Math.minInt"
@@ -260,7 +260,7 @@ Int: Sealed,DataType[Int,Int],SumNumber[Int] {
   /// ``this=~~=endInclusive`` returns the inclusive range ``[this, endInclusive]``.
   /// Throws if the range would be empty (``this > endInclusive``).
   //>   .check{(+1=~~= +4) .start .assertEq +1}
-  //>   .checkDetErr({_ -> True}, {+4=~~= +1})
+  //>   .checkDetErr({::}, {+4=~~= +1})
   =~~=(endInclusive: Int): Range[Int] -> Block#
     .if {this > endInclusive } .error {
       "Int =~~=: Tried to produce an empty range, invalid range, start ("+this+") must be <= endInclusive (" + endInclusive + ")"
@@ -274,7 +274,7 @@ Int: Sealed,DataType[Int,Int],SumNumber[Int] {
 
   /// ``this.assertInRange(range)`` asserts ``this.inRange(range)``, using a default empty message.
   //>   .check{+2 .assertInRange(+1=~~= +4)}
-  //>   .checkNonDetErr({_ -> True}, {+5 .assertInRange(+1=~~= +4)})
+  //>   .checkNonDetErr({::}, {+5 .assertInRange(+1=~~= +4)})
   .assertInRange(range: Range[Int]): Void -> this.assertInRange(range, {``});
 
   /// ``this.assertInRange(range, msg)`` asserts ``this.inRange(range)`` with custom error message.
@@ -305,7 +305,7 @@ Int: Sealed,DataType[Int,Int],SumNumber[Int] {
 
 _IntRanges: Sealed {
   #(startInclusive: Int, endInclusive: Int, str: Str): Range[Int] -> {'self
-    .size -> endInclusive - startInclusive .getNat; // Cheap enough that computing everytime is okay
+    .size -> endInclusive - startInclusive .getNat + 1; // Cheap enough that computing everytime is okay
     .start -> startInclusive;
     .end -> endInclusive;
     .flow -> _NumFlow.ints(startInclusive, endInclusive);

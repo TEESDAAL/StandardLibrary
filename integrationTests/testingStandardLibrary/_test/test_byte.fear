@@ -63,9 +63,9 @@ ByteBoundaryAndBoundedVsAluTests: Test {::
 
 ByteRangeTests: Test {::
   .check{0.getByte=~~=(0.getByte).list .assertEq({::},  Lists#(0.getByte))}
-  .checkDetErr({_ -> True}, {0.getByte~~(1.getByte)})
-  .checkDetErr({_ -> True}, {1.getByte~~(2.getByte)})
-  .checkDetErr({_ -> True}, {2.getByte~~(2.getByte)})
+  .checkDetErr({::}, {0.getByte~~(1.getByte)})
+  .checkDetErr({::}, {1.getByte~~(2.getByte)})
+  .checkDetErr({::}, {2.getByte~~(2.getByte)})
   .check{0.getByte~~=(1.getByte).list .assertEq({::},  Lists#(1.getByte))}
   .check{0.getByte~~(2.getByte).list .assertEq({::},  Lists#(1.getByte))}
   .check{0.getByte~~=(5.getByte).list .assertEq({::},  Flows#(1,2,3,4,5).map{::.getByte}.list)}

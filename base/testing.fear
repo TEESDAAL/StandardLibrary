@@ -105,24 +105,24 @@ TestCap: Sealed {//by making it sealed we can guaranteed the output of the funct
   mut .disabledCheck(Check): mut TestCap; 
   mut .checkWithSys(CheckSys): mut TestCap;
   mut .disabledCheckWithSys(CheckSys): mut TestCap;  
-  mut .checkDetErr[T:*](errorMatch: F[Info, Bool], f: F[T]): mut TestCap -> this.check{
+  mut .checkDetErr[T:*](errorMatch: LazyInfoValidator, f: F[T]): mut TestCap -> this.check{
     Try#(f).run {
      .ok _ -> Error.msg "Expected error but got success";
-     .info i -> errorMatch#i .if {
-       .then -> Void;
-       .else -> Error.msg("Error did not match expected: " + (i.str));
+     .info i -> errorMatch#(InfoValidators# i).match {
+       .valid _ -> Void;
+       .invalid _ -> Error.msg("Error did not match expected: " + (i.str));
        }
      }
     };
-  mut .checkNonDetErr[T](errorMatch: F[Info, Bool], f: F[T]): mut TestCap -> this.checkWithSys{
+  mut .checkNonDetErr[T](errorMatch: LazyInfoValidator, f: F[T]): mut TestCap -> this.checkWithSys{
     sys -> sys.try#({Try#(f).run {
       .ok _ -> "Expected error but got success";
       .info i -> "Expected non-deterministic error, but deterministic error was thrown instead:" + (i.str)
     }}).run {
        .ok errMsg -> Error.msg errMsg;
-       .info i -> errorMatch#i .if {
-         .then -> Void;
-         .else -> Error.msg("Error did not match expected: " + (i.str));
+       .info i -> errorMatch#(InfoValidators# i) .match {
+         .valid _ -> Void;
+         .invalid _ -> Error.msg("Error did not match expected: " + (i.str));
          }
        }
      };
@@ -212,42 +212,52 @@ _AddToLog: {
 
 _FailureMsg: {
   #(i: Info): Str ->
-    i.msg.isEmpty ? {
-      .then -> i.map.opt(`msg`).match {
-        .some e -> e.msg;
-        .empty -> i.str;
-      };
-      .else -> i.msg;
-    };
+    i.extract{::.extractMsg}
+    || {i.extract{:: > "msg"}.mapSome{::.str}} // what if the msg is nested in a map, prev implementation just returns `` silently
+    .orLazy{i.str}
+    //i.msg.isEmpty ? {
+    //  .then -> i.softMap.opt(`msg`).match {
+    //    .some e -> e.softMsg;
+    //    .empty -> i.str;
+    //  };
+    //  .else -> i.msg;
+    //};
   }
 
 _FailureExpected: {
   #(i: Info): Str ->
-    i.map.opt(`expected`).match {
+    i.extract{:: > "expected"}.match {
       .some e -> Block#(
-        Debug#(`Expected: `+(e.msg)),
-        `<expected>` + (_XmlEscape#(e.msg)) + `</expected>`
+        Debug#(`Expected: `+(e.str)),
+        `<expected>` + (_XmlEscape#(e.str)) + `</expected>`
         );
       .empty -> ``;
     };
+    //i.map.opt(`expected`).match {
+    //  .some e -> Block#(
+    //    Debug#(`Expected: `+(e.msg)),
+    //    `<expected>` + (_XmlEscape#(e.msg)) + `</expected>`
+    //    );
+    //  .empty -> ``;
+    //};
   }
 
 _FailureActual: {
   #(i: Info): Str ->
-    i.map.opt(`actual`).match {
-      .some e -> Block#(
-        Debug#(`Actual: `+(e.msg)),
-        `<actual>` + (_XmlEscape#(e.msg)) + `</actual>`);
+    i.extract{:: > `actual`}.match {
+      .some i' -> Block#(
+        Debug#(`Actual: `+(i'.str)), // should these be .msg?
+        `<actual>` + (_XmlEscape#(i'.str)) + `</actual>`
+        );
       .empty -> ``;
     };
   }
 
 _FailureList: {
   #(i: Info): Str ->
-    i.map.opt(`list`).match {
-      .some e -> `` | (e.list.flow.map {_FailureTrace#::}.join (`` |));
-      .empty -> ``;
-    };
+    i.extract{:: > "list" .extractList}
+      .mapSome{::.flow.map {_FailureTrace#::}.join (`` |)}
+      .orValue ``
   }
 
 _FormatFailure: {
@@ -261,7 +271,11 @@ _FormatFailure: {
   }
 
 _FrameField: { #(i: Info, k: Str): Str ->
-  i.map.opt(k).orLazy{Error.msg(`Malformed stack frame info, missing key: ` + k)}.msg
+  i.extract{:: > k}
+    .mapSome{::.str}
+    ! {`Malformed stack frame info, missing key: ` + k};
+  // if the key isn't a message you get `` throwing out whatever information existed previously
+  //i.map.opt(k).orLazy{Error.msg(`Malformed stack frame info, missing key: ` + k)}.msg
   }
 
 _FailureTrace: { #(i: Info): Str -> Block#

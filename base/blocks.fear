@@ -15,6 +15,7 @@ Block: Sealed {
 Block[R:*]: Sealed {
   mut .done: Void -> {};
   mut .return(a: mut MF[R]): R -> a#;
+  mut .error(errorInfo: LazyInfo): R -> Error!(errorInfo#.info);
   mut .do(r: mut MF[Void]): mut Block[R] -> 
     Block#(r#,this);
   mut .assert(p: read F[Bool]): mut Block[R] ->

@@ -13,7 +13,9 @@ public final class Set$c$1Instance implements Set$c$1 {
   private final Map<MapKey, Object> set;
   private final List<Object> sortedList;
 
-  static Set$c$1Instance of(OrderHashBy$2ea$2 ordering, Map<MapKey, Object> set) { return new Set$c$1Instance(ordering, set); }
+  static Set$c$1Instance of(OrderHashBy$2ea$2 ordering, Map<MapKey, Object> set) {
+    return new Set$c$1Instance(ordering, set);
+  }
   static Set$c$1Instance fromSortedList(OrderHashBy$2ea$2 ordering, List<Object> sortedList) {return new Set$c$1Instance(ordering, sortedList);}
   static Set$c$1Instance fromUnsortedList(OrderHashBy$2ea$2 ordering, ArrayList<Object> unsortedList) {
     unsortedList.sort(Util.toComparator(ordering));
@@ -22,7 +24,10 @@ public final class Set$c$1Instance implements Set$c$1 {
   public Set$c$1Instance(OrderHashBy$2ea$2 ordering, List<Object> sortedList, Map<MapKey, Object> set) {
     this.ordering = ordering;
     this.set = set;
-    this.sortedList = sortedList;
+    //assert sortedList.stream().sorted(toComparator(ordering)).toList().equals(sortedList)
+    //  : "underlying list is not sorted";
+    //this.sortedList = sortedList;
+    this.sortedList = sortedList.stream().sorted(toComparator(ordering)).toList();
   }
 
   Set$c$1Instance(OrderHashBy$2ea$2 ordering, Map<MapKey, Object> set) {

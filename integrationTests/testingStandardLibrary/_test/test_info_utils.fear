@@ -50,17 +50,19 @@ _Infos: {
         ).info ToInfoBy[ToInfo]{::}
       ).info ToInfoBy[ToInfo]{::.info}
     ).info ToInfoBy[ToInfo]{::.info}
-}
+  }
 
 InfoTests: Test {::
-  .check{_Infos.largeNested & .isMap# .assertTrue}
-  .check{_Infos.largeNested & > "application" > "name".msgMatch{:: == "Example Application"}# .assertTrue}
-  .check{Infos.msg "A" & .msgMatch{::.contains "A"}#.assertTrue}
-  .check{Infos.msg "B" & .msgMatch{::.contains "B"}#.assertTrue}
-  .check{Infos.msg "A" & .msgMatch{::.contains "A"} | .msgMatch{::.contains "B"}#.assertTrue}
-  .check{Infos.msg "B" & .msgMatch{::.contains "A"} | .msgMatch{::.contains "B"}#.assertTrue}
-  .check{Infos.msg "B" & > 0 & > 1 ~ => {_ -> True} .assertEmpty{::}}
-  .check{Infos.msg "B" & > 0 & > 1 ~ => {_ -> True} .assertEmpty{::}}
-  .check{Infos.msg "B" ~ > 0 & > 1 => {_ -> True} .assertEmpty{::}}
+  .check{_Infos.largeNested.validate{::.isMap} .assertTrue}
+  .check{_Infos.largeNested.validate{:: > "application" > "name".isMsg{:: == "Example Application"}} .assertTrue}
+  .check{Infos.msg "A".validate{::.isMsg{::.contains "A"}}.assertTrue}
+  .check{Infos.msg "B".validate{::.isMsg{::.contains "B"}}.assertTrue}
+  .check{Infos.msg "A".validate{::.isMsg{::.contains "B"}}.assertFalse}
+  .check{Infos.msg "A".validate{::.isMsg{::.contains "A"} | .isMsg{::.contains "B"}}.assertTrue}
+  .check{Infos.msg "B".validate{::.isMsg{::.contains "A"} | .isMsg{::.contains "B"}}.assertTrue}
+
+  .check{Infos.msg "A".validate{::.isMsg{::.contains "A"} & .isMsg{::.contains "B"}}.assertFalse}
+  .check{Infos.msg "B".validate{::.isMsg{::.contains "A"}& .isMsg{::.contains "B"}}.assertFalse}
+  .check{Infos.msg "B".extract{:: > 0}.assertEmpty{::}}
   }
 

@@ -85,7 +85,7 @@ Map[K,E:*]: Sealed,BaseContainer[E],DataType[Map[K,E],Map[K,imm E],E,imm E],_Ass
     })}
   .return{{'i //correct to make the Info object (as for List), calling .info here would go in stack overflow
     .match->::.map map;
-    .map -> map;
+    .map -> Opts# map;
     .imm->i;
     }};
   }

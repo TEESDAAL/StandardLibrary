@@ -22,6 +22,11 @@ Action[T:*]: {
   mut !: T -> this.run{.ok(x) -> x; .info(i) -> Error!i};
   mut .ok  : mut Opt[T] -> this.run{.ok x -> Opts#x; .info _ -> {}};
   mut .info: Opt[Info]  -> this.run[Opt[Info]]{.ok _ -> {}; .info i -> Opts#i};
+  mut .context(msg: read LazyInfo): mut Action[T] -> { m -> this.run {
+    .ok x -> m.ok(x);
+    .info i -> m.info(msg#.info + i)
+    }};
+
   mut .assertOk: Void -> this.run{
     .ok _ -> {};
     .info i -> Assert.msg(`Success expected but an Info was thrown:` | i.str);
@@ -31,45 +36,31 @@ Action[T:*]: {
     .info _->{};
     };
 
-  /// ``this.try f`` maps the info variant of this to ``.ok t`` if ``f#info`` returns ``Opts# t``,
-  /// otherwise it returns this unchanged.
-  //> QuadraticFormula: F[Float, Float, Float, Float] {
-  //>   # a, b, c -> Block#
-  //>     .if{a==0} .error {"Expression is not a quadratic equation"}
-  //>     .return {((b**2.0 - 4.0*a*c).getSqrt - b) / (2.0*a)};
-  //>   }
-  //> ToHTTPCode: F[Float, Float, Float, Nat] {
-  //>    # a, b, c -> Try#{QuadraticFormula#(a, b, c)}
-  //>       .map{_ -> 200}
-  //>       .try{:: & .msgMatch{::.startsWith "Float.getSqrt: Cannot take the sqrt of a negative number"} => {_ -> 422}}
-  //>       .try{:: & .msgMatch{::.contains "NaN"}
-  //>               | .msgMatch{:: == "Expression is not a quadratic equation"}
-  //>               => {_ -> 400}}
-  //>       .try{_ -> Opts# 500}!;
-  //>   }
-  //> TryTests: Test {::
-  //>   .check{ToHTTPCode#(1.0, -3.0, 2.0) .assertEq 200}
-  //>   .check{ToHTTPCode#(1.0, 0.0, 1.0) .assertEq 422}
-  //>   .check{ToHTTPCode#(0.0, 2.0, 1.0) .assertEq 400}
-  //>   .check{ToHTTPCode#(Math.nan, 2.0, 1.0) .assertEq 400}
-  //>   }
-  mut .try(errorMapper: F[Info, mut Opt[T]]): mut Action[T] -> this.run {
-    .ok _ -> this;
-    .info i -> errorMapper#(i).match {
-      .some x -> Actions.ok(x);
-      .empty -> this
+  mut .recover(recoveryMechanism: mut MF[Info, mut Opt[T]]): mut Action[T] -> {m -> this.run {
+    .ok x -> m.ok(x);
+    .info i -> recoveryMechanism#i .match {
+       .some x' -> m.ok(x');
+       .empty -> m.info(i);
       }
+    }};
+
+
+  mut .catch(fallback: mut MF[Info, T]): T -> this.run {
+    .ok t -> t;
+    .info i -> fallback#i;
     };
 
-  mut .assertInfo(constraint: LazyInfoMatches): Void -> this.run{
+  /// ``this.assertInfo constraint`` asserts that this action fails and that the failure info satisfies the given constraint.
+  //> .checkNonDetErr({::}, {Try#{1 / 0}.assertInfo{::.isMsg{::.contains "divide by zero"}}});
+  mut .assertInfo(constraint: LazyInfoValidator): Void -> this.run{
     .ok _ -> Assert.msg "Failure expected but nothing was thrown";
     .info info ->
       Assert!(
-        constraint# info #,
+        constraint#(SuccessfulInfoValidator {.close -> info})#,
         {"Failure correctly occurred but error info doesn't match constraint."
         | "Got: "+info}
         )
-    };//TODO: Should InfoMatches implement ToStr so it can be used in this error message?
+    }; // TODO: Should InfoValidator implement ToStr so it can be used in this error message?
   }
 
 ActionMatch[T:*,R:*]: {

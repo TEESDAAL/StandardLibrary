@@ -14,7 +14,7 @@ Opt[E:*]: _Opt[E] {
   .assertSome msg -> Assert.expectedActual(this.isSome, msg, ".some _", ".empty ");
 
   !           -> this.match{.some x -> x; .empty -> Error.msg `Opt was empty`};
-  ! msg       -> this.match{.some x -> x; .empty -> Error.msg msg};
+  ! msg       -> this.match{.some x -> x; .empty -> Error!(msg#.info)};
 
   .or other -> this.match{.some _ -> this; .empty -> other};
   |   other -> this.or(other);
@@ -115,8 +115,8 @@ _Opt[E:*]: BaseContainer[E],DataType[Opt[E],Opt[imm E],E,imm E] {
   mut  !: E;
   read !: read/imm E;
 
-  mut  !(Str): E;
-  read !(Str): read/imm E;
+  mut  !(read LazyInfo): E;
+  read !(read LazyInfo): read/imm E;
 
   mut  .flow: mut Flow[E];
   read .flow: mut Flow[read/imm E];

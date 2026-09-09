@@ -63,9 +63,13 @@ public record Byte$o$0Instance(byte val) implements Byte$o$0,Norm$o$1{
     return Byte$o$0Instance.instance(result);
   }
   @Override public Object imm$$slash$1(Object p0){
+    long d= Nat$c$0Instance.unwrap(p0);
+    if (d == 0L) {
+      throw err("Byte /: Cannot create a Num with denominator 0.");
+    }
     return Num$c$0Instance.instance(
       BigInteger.valueOf(val),
-      unsignedLongToBigInteger(Nat$c$0Instance.unwrap(p0))
+      unsignedLongToBigInteger(d)
     );
   }
   @Override public Object imm$rem$1(Object p0){

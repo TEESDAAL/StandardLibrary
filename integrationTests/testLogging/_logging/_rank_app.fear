@@ -23,5 +23,5 @@ LoggingExample: UnitTests {
     .do{ PkgLog.log(`package-specific log entry`) }
     .do{ Steps.reader(sys).consume.assertEq({::},Lists#(`step 1`,`step 2`,`step 3`)) }
     .done
-    }.checkNonDetErr({_->base.True},{MyLog[Str].log(`should not work`)})
+    }.checkNonDetErr({::},{MyLog[Str].log(`should not work`)})
   }

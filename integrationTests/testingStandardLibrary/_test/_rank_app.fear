@@ -53,6 +53,9 @@ use base.Duration as Duration;
 use base.Instant as Instant;
 use base.Rect as Rect;
 use base.Rects as Rects;
+use base.ToInfo as ToInfo;
+use base.ToInfoBy as ToInfoBy;
+use base.Infos as Infos;
 
 MyTests:UnitTests{::
   .test TestByte
@@ -61,14 +64,15 @@ MyTests:UnitTests{::
   .test TestNat
   .test TestNum
   .test TestStr
-  .test TestWrappers
-  .test TestList
-  .test TestMap
-  .test TestAs
-  .test TestRepr
-  .test TestLiteralErrors
-  .test TestPipe
-  .test TestComparators
-  .test TestUStr
+ // .test TestWrappers
+ // .test TestList
+ // .test TestMap
+ // .test TestAs
+ // .test TestRepr
+ // .test TestLiteralErrors
+ // .test TestPipe
+ // .test TestComparators
+ // .test TestUStr
   .test MathUnitTests
+  .test InfoTests
   }

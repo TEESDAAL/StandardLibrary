@@ -151,7 +151,7 @@ public class Util{
   }
   public static void printInfo(Info$o$0 i, RuntimeException d){
     printInfoMsg("","",i);
-    var map= ((Map$c$2Instance)i.imm$map$0()).elems();
+    var map= ((Map$c$2Instance)i.imm$softMap$0()).elems();
     map.entrySet().stream()
       .filter(e->is(e.getKey(),"msg")).forEach(e->printInfoMsg("","",(Info$o$0)e.getValue()));
     //map.entrySet().stream()
@@ -166,12 +166,12 @@ public class Util{
     return k.key instanceof Str$c$0Instance s && s.val().equals(label);
     }
   public static void printInfoMsg(String prefix, String indent, Info$o$0 i){
-    var msg= ((Str$c$0Instance)i.imm$msg$0()).val();
+    var msg= ((Str$c$0Instance)i.imm$softMsg$0()).val();
     msg = msg.replace("\n","\n"+indent);
     System.err.print(prefix+msg+"\n");
   }
   public static void printInfoList(Info$o$0 i){ 
-    var fList= (List$o$1)i.imm$list$0();
+    var fList= (List$o$1)i.imm$softList$0();
     if (isTrue(fList.read$isEmpty$0())){
       System.err.print("\nEmpty stack trace\n");
       return;

@@ -97,14 +97,13 @@ IntSignTests: Test {::
 
 IntRangeTests: Test {::
   .check{+0=~~=(+0).list .assertEq({::},  Lists#(+0))}
-  .checkDetErr({_ -> True}, {+0~~(+1)})
-  .checkDetErr({_ -> True}, {+1~~(+2)})
-  .checkDetErr({_ -> True}, {+2~~(+2)})
+  .checkDetErr({::}, {+0~~(+1)})
+  .checkDetErr({::}, {+1~~(+2)})
+  .checkDetErr({::}, {+2~~(+2)})
   .check{+0~~=(+1).list .assertEq({::},  Lists#(+1))}
   .check{+0~~(+2).list .assertEq({::},  Lists#(+1))}
   .check{+0~~=(+5).list .assertEq({::},  Lists#(+1,+2,+3,+4,+5))}
   }
-
 
 TestInt: Test {::
   .test IntArithTests

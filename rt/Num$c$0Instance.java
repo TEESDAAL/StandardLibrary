@@ -273,7 +273,6 @@ public record Num$c$0Instance(BigInteger numerator, BigInteger denominator) impl
   @Override public Object read$str$0(){
     return Str$c$0Instance.instance(this.asString());
   }
-  @Override public Object read$info$0(){ return Info$o$0.instance; }
   @Override public Object read$imm$0(){ return this; }
 
   @Override public Object imm$eqDelta$2(Object p0, Object p1){
@@ -289,5 +288,6 @@ public record Num$c$0Instance(BigInteger numerator, BigInteger denominator) impl
     return myCache.computeIfAbsent(this,_->new Norm(this));
   }
   @Override public Object imm$get$0(){ return this; }
-  static java.util.concurrent.ConcurrentHashMap<Object,Object> myCache= new java.util.concurrent.ConcurrentHashMap<>(); 
+  static java.util.concurrent.ConcurrentHashMap<Object,Object> myCache= new java.util.concurrent.ConcurrentHashMap<>();
+  @Override public Object read$info$0(){ return Infos$1c$0.instance.imm$msg$1(this.read$str$0());}
 }

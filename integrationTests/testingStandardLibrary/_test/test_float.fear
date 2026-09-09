@@ -153,15 +153,15 @@ FloatRangeTests: Test {::
   .check{+1.0=~~= +2.0.clamp +3.0.assertEq+2.0}
 
   // Invalid ranges
-  .checkDetErr({_ -> True}, {+2.0=~~= +1.0})
-  .checkDetErr({_ -> True}, {+2.0~~= +1.0})
-  .checkDetErr({_ -> True}, {+2.0=~~ +1.0})
-  .checkDetErr({_ -> True}, {+2.0~~ +1.0})
+  .checkDetErr({::}, {+2.0=~~= +1.0})
+  .checkDetErr({::}, {+2.0~~= +1.0})
+  .checkDetErr({::}, {+2.0=~~ +1.0})
+  .checkDetErr({::}, {+2.0~~ +1.0})
 
   // Bounds
-  .checkDetErr({_ -> True}, {(Math.nan)~~= +1.0})
-  .checkDetErr({_ -> True}, {(Math.nan)~~ +1.0})
-  .checkDetErr({_ -> True}, {+1.0=~~(Math.negInf)})
+  .checkDetErr({::}, {(Math.nan)~~= +1.0})
+  .checkDetErr({::}, {(Math.nan)~~ +1.0})
+  .checkDetErr({::}, {+1.0=~~(Math.negInf)})
   .check{Math.negInf ~~ +1.0 .void}
   }
 

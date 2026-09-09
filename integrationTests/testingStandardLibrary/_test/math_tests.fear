@@ -61,9 +61,9 @@ LnTests: Test {::
   .check{Math.ln(+2.0).assertInRange(+0.69314717soft =~~= +0.6931471805599453soft)}
   .check{Math.ln(Math.e).assertEq(+1.0)}
   .check{Math.ln(+1.0).assertEq(+0.0)}
-  .checkDetErr({i -> True}, {Math.ln(-1.0)})
-  .checkDetErr({i -> True}, {Math.ln(Math.nan)})
-  .checkDetErr({i -> True}, {Math.ln(Math.negInf)})
+  .checkDetErr({::}, {Math.ln(-1.0)})
+  .checkDetErr({::}, {Math.ln(Math.nan)})
+  .checkDetErr({::}, {Math.ln(Math.negInf)})
   }
 
 LogTests: Test {::
@@ -73,9 +73,9 @@ LogTests: Test {::
   .check{Math.log(+10.0).assertEq(+1.0)}
   .check{Math.log(+1.0).assertEq(+0.0)}
   .check{Math.log(+2.0).assertInRange(+0.3010299956soft =~~= +0.3010299958soft)}
-  .checkDetErr({i -> True}, {Math.log(-1.0)})
-  .checkDetErr({i -> True}, {Math.log(Math.nan)})
-  .checkDetErr({i -> True}, {Math.log(Math.negInf)})
+  .checkDetErr({::}, {Math.log(-1.0)})
+  .checkDetErr({::}, {Math.log(Math.nan)})
+  .checkDetErr({::}, {Math.log(Math.negInf)})
   }
 
 LogbTests: Test {::
@@ -85,11 +85,11 @@ LogbTests: Test {::
   .check{Math.logb(+2.0, +1.0).assertEq(+0.0)}
   .check{Math.logb(+2.0, +0.0).assertEq(Math.negInf)}
   .check{Math.logb(+2.0, Math.inf).assertEq(Math.inf)}
-  .checkDetErr({i -> True}, {Math.logb(+2.0, -1.0)})
-  .checkDetErr({i -> True}, {Math.logb(-2.0, +4.0)})
-  .checkDetErr({i -> True}, {Math.logb(+0.0, +4.0)})
-  .checkDetErr({i -> True}, {Math.logb(Math.nan, +1.0)})
-  .checkDetErr({i -> True}, {Math.logb(+3.0, Math.nan)})
+  .checkDetErr({::}, {Math.logb(+2.0, -1.0)})
+  .checkDetErr({::}, {Math.logb(-2.0, +4.0)})
+  .checkDetErr({::}, {Math.logb(+0.0, +4.0)})
+  .checkDetErr({::}, {Math.logb(Math.nan, +1.0)})
+  .checkDetErr({::}, {Math.logb(+3.0, Math.nan)})
   }
 
 Log2Tests: Test {::
@@ -98,8 +98,8 @@ Log2Tests: Test {::
   .check{Math.log2(+7.0).assertInRange(+2.807354921soft =~~= +2.807354923soft)}
   .check{Math.log2(+0.0).assertEq(Math.negInf)}
   .check{Math.log2(Math.inf).assertEq(Math.inf)}
-  .checkDetErr({i -> True}, {Math.log2(-1.0)})
-  .checkDetErr({i -> True}, {Math.log2(Math.nan)})
+  .checkDetErr({::}, {Math.log2(-1.0)})
+  .checkDetErr({::}, {Math.log2(Math.nan)})
   }
 
 AsinTests: Test {::
@@ -107,18 +107,18 @@ AsinTests: Test {::
   .check{Math.asin(-0.0)#.assertEq(-0.0)}
   .check{Math.asin(+1.0)#.assertEq(Math.pi / +2.0)}
   .check{Math.asin(-1.0)#.assertEq(Math.pi / -2.0)}
-  .checkDetErr({i -> True}, {Math.asin(+2.0)})
-  .checkDetErr({i -> True}, {Math.asin(-2.0)})
-  .checkDetErr({i -> True}, {Math.asin(Math.nan)})
+  .checkDetErr({::}, {Math.asin(+2.0)})
+  .checkDetErr({::}, {Math.asin(-2.0)})
+  .checkDetErr({::}, {Math.asin(Math.nan)})
   }
 
 AcosTests: Test {::
   .check{Math.acos(+1.0)#.assertEq(+0.0)}
   .check{Math.acos(-1.0)#.assertEq(Math.pi)}
   .check{Math.acos(+0.0)#.assertEq(Math.pi / +2.0)}
-  .checkDetErr({i -> True}, {Math.acos(+2.0)})
-  .checkDetErr({i -> True}, {Math.acos(-2.0)})
-  .checkDetErr({i -> True}, {Math.acos(Math.nan)})
+  .checkDetErr({::}, {Math.acos(+2.0)})
+  .checkDetErr({::}, {Math.acos(-2.0)})
+  .checkDetErr({::}, {Math.acos(Math.nan)})
   }
 
 AtanTests: Test {::
@@ -128,7 +128,7 @@ AtanTests: Test {::
   .check{Math.atan(-1.0)#.assertEq(Math.pi / -4.0)}
   .check{Math.atan(Math.inf)#.assertEq(Math.pi / +2.0)}
   .check{Math.atan(Math.negInf)#.assertEq(Math.pi / -2.0)}
-  .checkDetErr({i -> True}, {Math.atan(Math.nan)})
+  .checkDetErr({::}, {Math.atan(Math.nan)})
   }
 
 Atan2Tests: Test {::
@@ -136,8 +136,8 @@ Atan2Tests: Test {::
   .check{Math.atan2(-1.0, +0.0)#.assertEq(Math.pi / -2.0)}
   .check{Math.atan2(+0.0, +1.0)#.assertEq(+0.0)}
   .check{Math.atan2(+0.0, -1.0)#.assertEq(Math.pi)}
-  .checkDetErr({i -> True}, {Math.atan2(Math.nan, +1.0)})
-  .checkDetErr({i -> True}, {Math.atan2(+1.0, Math.nan)})
+  .checkDetErr({::}, {Math.atan2(Math.nan, +1.0)})
+  .checkDetErr({::}, {Math.atan2(+1.0, Math.nan)})
   }
 
 EuclideanModTests: Test {::
@@ -153,8 +153,8 @@ HypotTests: Test {::
   .check{Math.hypot(+0.0, +0.0).assertEq(+0.0)}
   .check{Math.hypot(Math.inf, +1.0).assertEq(Math.inf)}
   .check{Math.hypot(+1.0, Math.inf).assertEq(Math.inf)}
-  .checkDetErr({i -> True}, {Math.hypot(Math.nan, +1.0)})
-  .checkDetErr({i -> True}, {Math.hypot(+1.0, Math.nan)})
+  .checkDetErr({::}, {Math.hypot(Math.nan, +1.0)})
+  .checkDetErr({::}, {Math.hypot(+1.0, Math.nan)})
   }
 
 _Persons: F[Str, Nat, _Person] {

@@ -5,8 +5,8 @@ ExtentNatTests: Test {::
   .check{(Width#7) .getTruncDiv 2 .assertEq(Width#3)}
   .check{Width.zero .assertEq(Width#0)}
   .check{(Height#3) + (Height#4) .assertEq(Height#7)}
-  .checkDetErr({_ -> True}, {(Width#3) - (Width#4)})
-  .checkDetErr({_ -> True}, {(Width#2) * (Math.maxNat)})
+  .checkDetErr({::}, {(Width#3) - (Width#4)})
+  .checkDetErr({::}, {(Width#2) * (Math.maxNat)})
   }
 
 ExtentNatGapTests: Test {::
@@ -28,7 +28,7 @@ CoordIntNegativeTests: Test {::
   .check{Rects#(X#(-10), Y#(-10), Width#30, Height#30) .contains(X#(-5), Y#(-5)) .assertTrue}
   .check{Rects#(X#(-10), Y#(-10), Width#30, Height#30) .contains(X#(+21), Y#(+0)) .assertFalse}
   .check{Rects#(X#(-10), Y#(-10), Width#30, Height#30) .right .assertEq(X#(+20))}
-  .checkDetErr({_ -> True}, {(X#(+3)) .to(X#(-7))})
+  .checkDetErr({::}, {(X#(+3)) .to(X#(-7))})
   }
 
 CoordIntTests: Test {::
@@ -47,7 +47,7 @@ CoordIntDiffTests: Test {::
   .check{(X#(+3)) .gap(X#(+10)) .assertEq(Width#7)}
   .check{(X#(+10)) .gap(X#(+3)) .assertEq(Width#7)}
   .check{(X#(+0)) .gap(X#(Math.maxInt)) .assertEq(Width#(Math.maxInt.getNat))}
-  .checkDetErr({_ -> True}, {(X#(+10)) .to(X#(+3))})
+  .checkDetErr({::}, {(X#(+10)) .to(X#(+3))})
   }
 
 CoordIntRoundTripTests: Test {::
@@ -78,8 +78,8 @@ LevelByteTests: Test {::
   .check{Alpha.opaque .assertEq(Alpha.max)}
   .check{Red.min .assertEq(Red#(Math.minByte))}
   .check{Blue.max .assertEq(Blue#(Math.maxByte))}
-  .checkDetErr({_ -> True}, {Red.max + (Red#(1.getByte))})
-  .checkDetErr({_ -> True}, {Red.min - (Red#(1.getByte))})
+  .checkDetErr({::}, {Red.max + (Red#(1.getByte))})
+  .checkDetErr({::}, {Red.min - (Red#(1.getByte))})
   }
 
 LevelFloatTests: Test {::
@@ -91,8 +91,8 @@ LevelFloatTests: Test {::
   .check{Saturation.max .assertEq(Saturation#(+1.0))}
   .check{Brightness.min .assertEq(Brightness#(0.0))}
   .check{Brightness.max .assertEq(Brightness#(+1.0))}
-  .checkNonDetErr({_ -> True}, {Saturation.max + (Saturation#(0.5))})
-  .checkNonDetErr({_ -> True}, {Saturation.min - (Saturation#(0.5))})
+  .checkNonDetErr({::}, {Saturation.max + (Saturation#(0.5))})
+  .checkNonDetErr({::}, {Saturation.min - (Saturation#(0.5))})
   }
 
 CyclicFloatTests: Test {::
@@ -114,7 +114,7 @@ DurationTests: Test {::
   .check{(Duration.seconds 3) * 2 .assertEq(Duration.seconds 6)}
   .check{(Duration.seconds 6) .getTruncDiv 2 .assertEq(Duration.seconds 3)}
   .check{Duration.zero .assertEq(Duration#0)}
-  .checkDetErr({_ -> True}, {(Duration.seconds 1) - (Duration.seconds 2)})
+  .checkDetErr({::}, {(Duration.seconds 1) - (Duration.seconds 2)})
   }
 
 InstantTests: Test {::
@@ -125,8 +125,8 @@ InstantTests: Test {::
   .check{(Instant#1000000) .gap(Instant#4000000) .assertEq(Duration.seconds 3)}
   .check{Instant.origin .assertEq(Instant#0)}
   .check{(Instant#7) + ((Instant#7) .to(Instant#20)) .assertEq(Instant#20)}
-  .checkDetErr({_ -> True}, {(Instant#4000000) .to(Instant#1000000)})
-  .checkDetErr({_ -> True}, {Instant.origin - (Duration.seconds 1)})
+  .checkDetErr({::}, {(Instant#4000000) .to(Instant#1000000)})
+  .checkDetErr({::}, {Instant.origin - (Duration.seconds 1)})
   }
 
 ColorCmpTests: Test {::

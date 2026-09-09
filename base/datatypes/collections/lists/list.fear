@@ -54,9 +54,9 @@ List[E:*]: _List[E],_AssertEmpty,_AssertSize {
     .if {this.isEmpty} .return {Info}
     .let list= {this.flow.map{e->by#e.info}.list.as{::}}
     //.return{list.info{::}};This would go in stack overflow
-    .return{Info{'i
+    .return{Info {'i
       .match->::.list list;
-      .list -> list;
+      .list -> Opts# list;
       .imm->i;
     }};
   .hash by -> Block#
@@ -136,10 +136,10 @@ _List[E:*]: Sealed,BaseContainer[E],DataType[List[E],List[imm E],E,imm E] {
   mut  .seqFlow: mut Flow[E];                /// sequential flow
   read .flow: mut Flow[read/imm E];          /// view as flow
   imm  .flow: mut Flow[imm E];               /// view as flow
-  mut  .flow(mode:FlowMode[E]): mut Flow[E]; /// sequential flow
+  mut  .flow(mode: FlowMode[E]): mut Flow[E]; /// sequential flow
 
   read .as[T2](f: BaseId[read/imm E,T2]): List[T2];        /// zero cost retyping, returns `this`
-  imm .norm[R](mut MF[E,Norm[R]]):Norm[List[Norm[R]]];/// list normalization
+  imm .norm[R](mut MF[E,Norm[R]]): Norm[List[Norm[R]]];/// list normalization
   }
 
 Lists: Sealed {//No need of empty, just use {}

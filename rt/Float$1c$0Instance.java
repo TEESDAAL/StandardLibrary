@@ -190,6 +190,7 @@ public record Float$1c$0Instance(double val) implements Float$1c$0{
     double x= (val == 0.0d) ? 0.0d : val; // merge -0.0
     String s= new java.math.BigDecimal(x).toPlainString(); // exact decimal of this binary64
     if (s.indexOf('.') == -1){ s += ".0"; }                // satisfy SignedFloat shape
+    if (s.charAt(0) != '-'){ s= "+"+s; }                   // Keep the sign information around
     return Str$c$0Instance.instance(s);
   }
   @Override public Object read$imm$0(){ return this; }
@@ -262,4 +263,6 @@ public record Float$1c$0Instance(double val) implements Float$1c$0{
 
 
   @Override public Object read$cmp$3(Object p0, Object p1, Object p2){ return ord(cmpFearless(f(p0),f(p1)),p2); }
+  @Override public Object read$info$0(){ return Infos$1c$0.instance.imm$msg$1(this.read$str$0());}
+
 }
