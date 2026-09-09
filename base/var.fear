@@ -42,7 +42,28 @@ Count: {
       }};
   }
 
-IsoPods: { #[T](val: iso T): mut IsoPod[T] -> Magic!; }
+IsoPods: {
+  /// ``IsoPods#(v)`` wraps a fresh ``iso T`` value into a mutable capsule (``IsoPod[T]``), initially closed:
+  /// it can be peeked or mutated in place any number of times, or opened exactly once to hand the wrapped
+  /// ``iso T`` back out, after which the pod is permanently empty.
+  //>   .check{Block#
+  //>     .let pod={IsoPods#(Count.int +5)}
+  //>     .do{pod.isClosed .assertTrue}
+  //>     .do{pod.peek{ .some c -> c.get .assertEq +5; .empty -> Error.msg`should be closed`}}
+  //>     .do{pod.mutate{ .some c -> c++; .empty -> Error.msg`should be closed`}}
+  //>     .do{pod.peek{ .some c -> c.get .assertEq +6; .empty -> Error.msg`should be closed`}}
+  //>     .do{pod.open.get .assertEq +6}
+  //>     .do{pod.isClosed .assertFalse}
+  //>     .do{pod.peek{ .some _ -> Error.msg`should be empty`; .empty -> Void}}
+  //>     .done}
+  //>   .checkDetErr({_ -> True}, {Block#
+  //>     .let pod={IsoPods#(+5)}
+  //>     .do{Block#(pod.open, Void)}
+  //>     .do{Block#(pod.open, Void)}
+  //>     .return{Void}
+  //>     })
+  #[T](val: iso T): mut IsoPod[T] -> Magic!;
+  }
 
 IsoPod[T]: {
   read .isClosed: Bool;
@@ -51,7 +72,7 @@ IsoPod[T]: {
     .some x -> f#x;
     .empty -> Error.msg `The IsoPod was open`;
     };
-  mut .open: iso T;                ///and makes .isClosed false
+  mut .open: iso T;                ///and makes .isClosed false; errors (deterministically) if already open
   read .isOpen: Bool -> this.isClosed.not;
   mut .consume[R:**](f: mut IsoConsumer[T, R]): R ->
     this.isClosed ? { .then -> f.some(this.open); .else -> f.empty };
@@ -95,5 +116,10 @@ _IdOrErr: {#[R:iso,imm,mut,read](r:R,b:Bool,_:Void):R->Block#(//Needed for the i
   r
   )}
 
-FilterAny: {#[R:**](R,F[R,Bool],F[R]):R->Magic! }//Needed in some cases. Should it be part of the magic?
+FilterAny: {
+  /// ``FilterAny#(r, pred, fallback)`` returns ``r`` if ``pred#(r)`` is ``True``, otherwise calls and returns ``fallback#``.
+  //>   .check{FilterAny#(+5, {n -> n == +5}, {-1}) .assertEq +5}
+  //>   .check{FilterAny#(+3, {n -> n == +5}, {-1}) .assertEq -1}
+  #[R:**](R,F[R,Bool],F[R]):R->Magic!
+  }//Needed in some cases. Should it be part of the magic?
 //TODO: add .repr to block with .invariant?
