@@ -56,7 +56,7 @@ IsoPods: {
   //>     .do{pod.isClosed .assertFalse}
   //>     .do{pod.peek{ .some _ -> Error.msg`should be empty`; .empty -> Void}}
   //>     .done}
-  //>   .checkDetErr({_ -> True}, {Block#
+  //>   .checkDetErr({::}, {Block#
   //>     .let pod={IsoPods#(+5)}
   //>     .do{Block#(pod.open, Void)}
   //>     .do{Block#(pod.open, Void)}
