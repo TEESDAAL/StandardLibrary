@@ -24,10 +24,7 @@ public final class Set$c$1Instance implements Set$c$1 {
   public Set$c$1Instance(OrderHashBy$2ea$2 ordering, List<Object> sortedList, Map<MapKey, Object> set) {
     this.ordering = ordering;
     this.set = set;
-    //assert sortedList.stream().sorted(toComparator(ordering)).toList().equals(sortedList)
-    //  : "underlying list is not sorted";
-    //this.sortedList = sortedList;
-    this.sortedList = sortedList.stream().sorted(toComparator(ordering)).toList();
+    this.sortedList = sortedList;
   }
 
   Set$c$1Instance(OrderHashBy$2ea$2 ordering, Map<MapKey, Object> set) {
