@@ -1,5 +1,5 @@
 
-EList[E:*]: Pipe[EList[E]]{
+EList[E:*]: _EditableList[E, EList[E]] {
   //I was considering if EList should start with a Num current size AND should allow for 'holes', so .get
   //can give exception in the middle of present items.
   mut .add(E): Void;
@@ -19,4 +19,144 @@ EList[E:*]: Pipe[EList[E]]{
   read .size: Nat;
   mut .list: mut List[E]; //consumes the EList and moves the data in the result
   //Should we have some imm method to turn into List in case someone accidentally 'promotes it to imm'?
+  }
+
+ELists: {
+  #[E:*]: mut EList[E] -> Magic!;
+  /// `this# n` creates and returns an empty Elist with the given capacity.
+  /// Note: attempting to create an EList with a capacity equal to or greater than 2^31 as this is backed by java arrays
+  /// which have a maximum capacity of 2^31-1.
+  /// Many array sizes smaller than this may also fail due to running out of memory.
+  #[E:*](capacity: Nat): mut EList[E] -> Magic!;
+  }
+
+EList[E:*]: _EditableList[E, EList[E]] {
+  /// `this.size` returns the number of elements in this collection.
+  /// Note: this is not the same as the capacity of the collection,
+  ///   which is the maximum number of elements that can be stored in
+  ///   this collection before it has to be expanded.
+  //> .check{Block#
+  //>   .let l={ELists#[Nat] 3}
+  //>   .do{l.size .assertEq 0}
+  //>   .do{l.add(1).size .assertEq 1}
+  //>   .done}
+  read .size: Nat;
+  /// `this.isEmpty` returns `True` if this collection has no elements.
+  /// Equivalent to: ``this.size == 0``
+  //> .check{Block#
+  //>   .let l={ELists#[Nat] 3}
+  //>   .do{l.isEmpty .assertTrue}
+  //>   .do{l.add(1).isEmpty .assertFalse}
+  //>   .done}
+
+  read .isEmpty: Bool -> this.size == 0;
+  /// `this.notEmpty` returns `True` if this collection has any elements.
+  /// Equivalent to: ``this.isEmpty.not``
+  //> .check{Block#
+  //>   .let l={ELists#[Nat] 3}
+  //>   .do{l.notEmpty .assertFalse}
+  //>   .do{l.add(1).notEmpty .assertTrue}
+  //>   .done}
+  read .notEmpty: Bool -> this.isEmpty.not;
+
+  /// `this.add e` adds `e` to the end of this collection and returns `this` to allow method chaining.
+  /// Note: this operation mutates `this`.
+  /// Complexity: O(1) amortized, O(n) worst case if the underlying array needs to be expanded.
+  mut .add(E): mut EList[E];
+  /// `this.addAll xs` adds all elements of `xs` to the end of this collection and returns `this` to allow method chaining.
+  /// Note: this operation mutates `this`.
+  /// Complexity: O(m) amortized, O(n+m) worst case if the underlying array needs to be expanded, where m is the size of `xs`.
+  //> .check{Block#
+  //>   .let l={ELists#[Nat] 3}
+  //>   .do{l.addAll(Flows#(1,2,3,4).elist).size .assertEq 4}
+  //>   .do{l.list .assertEq({::}, List#(1,2,3,4))}
+  //>   .done}
+  mut .addAll(mut EList[E]): mut EList[E];
+
+  /// `this.addFirst(e)` adds `e` to the beginning of this collection and returns `this` to allow method chaining.
+  /// Note: this operation mutates `this`.
+  /// Complexity: O(n), as all elements need to be shifted to make room for the new element.
+  //> .check{Block#
+  //>   .let l={Flows#(1,2,3,4).elist}
+  //>   .do{l.addFirst(0).list.assertEq({::}, List#(0,1,2,3,4))}
+  //>   .done}
+  mut .addFirst(e: E): mut EList[E] -> this.insertBefore(0, e);
+
+  /// `this.insertBefore(index, e)` inserts `e` before the element at `index` and returns `this` to allow method chaining.
+  /// Note: this operation mutates `this`.
+  /// Complexity: O(n) worst case, as all elements after `index` need to be shifted to make room for the new element.
+  //> .check{Block#
+  //>   .let l={Flows#(1,2,3,4).elist}
+  //>   .do{l.insertBefore(1, 0).list.assertEq({::}, List#(1,0,2,3,4))}
+  //>   .done}
+  mut .insertBefore(Nat, E):  mut EList[E];
+
+  /// `this.first` returns `.some(first)` if this collection is non-empty, and `.empty` otherwise.
+  /// Equivalent to: ``this.notEmpty .then { this.getFirst }``
+  //> .check{Flows#(1,2,3).elist.first .assertEq .some 1}
+  //> .check{ELists#[Nat] 3 .first .assertEq .empty}
+  read .first: mut Opt[read/imm E] -> this.notEmpty .then { this.getFirst };
+  mut  .first: mut Opt[E] -> this.notEmpty .then { this.getFirst };
+
+
+  /// `this.last` returns `.some(last)` if this collection is non-empty, and `.empty` otherwise.
+  /// Equivalent to: ``this.notEmpty .then { this.getLast }``
+  //> .check{Flows#(1,2,3).elist.last .assertEq .some 3}
+  //> .check{ELists#[Nat] 3 .last .assertEq .empty}
+  read .last: mut Opt[read/imm E] -> this.notEmpty .then { this.getLast };
+  mut  .last: mut Opt[E] -> this.notEmpty .then { this.getLast };
+
+  /// `this.getFirst` returns the first element of this collection.
+  /// Throws if this collection is empty.
+  /// Equivalent to: ``this.get(0)``
+  //> .check{Flows#(1,2,3).elist.getFirst .assertEq 1}
+  //> .checkDetErr({::.isMsg{::.startsWith "EList.getFirst:"}, {ELists#[Nat] 3 .getFirst}});
+  read .getFirst: read/imm E;
+  mut  .getFirst: E;
+
+  /// `this.getLast` returns the last element of this collection.
+  /// Throws if this collection is empty.
+  /// Equivalent to: ``this.get(this.size - 1)``
+  //> .check{Flows#(1,2,3).elist.getFirst .assertEq 3}
+  //> .checkDetErr({::.isMsg{::.startsWith "EList.getLast:"}, {ELists#[Nat] 3 .getLast}});
+  read .getLast: read/imm E;
+  mut  .getLast: E;
+
+  mut .sort[K](by: OrderBy[imm E,K]): mut SortedEList[E, K];
+  mut .distinct[K](by: OrderHashBy[imm E,K]): mut EList[E];
+  mut .sortDistinct[K](by: OrderBy[imm E,K]): mut SortedEList[E, K];
+  mut .trimToSize: EList[E]; //removes any extra capacity, so that .size == capacity
+
+  mut .fold[R:*](acc: iso MF[R], f: mut MF[R, Nat, E, R]): R;
+  mut .foldRight[R:*](acc: iso MF[R], f: mut MF[R, Nat, E, R]): R;
+
+  mut .foldUntil[R:*](
+    acc: iso MF[R],
+    f: mut MF[R, Nat, E, R],
+    pred: mut MF[R, Bool]
+    ): R;
+
+  mut .foldRightUntil[R:*](
+    acc: iso MF[R],
+    f: mut MF[R, Nat, E, R],
+    pred: mut MF[R, Bool]
+    ): R;
+
+  mut .accumulateInPlace(mut MF[E,E,E]): mut EList[E];
+  mut .accumulateRightInPlace(mut MF[E,E,E]): mut EList[E];
+
+  mut .seqFlow: mut SizedFlow[E]; //consumes the EList
+  mut .flow(mode:FlowMode[E]): mut SizedFlow[E]; //consumes the EList
+  imm .flow: mut SizedFlow[imm E]; //safe since imm receiver
+  mut .get(Nat): E; //simpler model with most methods `mut`
+  /// `this.opt(index)` returns `this.get(index)` if `index < this.size`, `.empty` otherwise
+  mut .opt(index: Nat): mut Opt[E] -> index < (this.size) .then { this.get(index) };
+  mut .list: mut List[E]; //consumes the EList and moves the data in the result
+
+
+  /// `this.eView(start, end)` returns a mutable view of this collection containing only the elements
+  /// with indices in the range `[start, end)`.
+  /// Unlike `trimTo`, this does not mutate this collection.
+  /// Note: Allowing this on SortedEList
+  mut .eView(Nat, Nat): mut EList[E] -> Todo!;
   }
