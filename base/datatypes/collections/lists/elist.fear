@@ -116,7 +116,10 @@ EList[E:*]: _EditableList[E, EList[E]] {
   read .getLast: read/imm E;
   mut  .getLast: E;
 
+  /// ``this.sort by`` returns a new ``SortedList`` containing all the elements of this in order.
+  /// Note: this operation drains this
   mut .sort[K](by: OrderBy[imm E,K]): mut SortedEList[E, K];
+  mut .sortInPlace[K](by: OrderBy[imm E, K]): mut EList[E];
   mut .distinct[K](by: OrderHashBy[imm E,K]): mut EList[E];
   mut .sortDistinct[K](by: OrderBy[imm E,K]): mut SortedEList[E, K];
   mut .trimToSize: EList[E]; //removes any extra capacity, so that .size == capacity
