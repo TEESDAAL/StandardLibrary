@@ -55,11 +55,11 @@ EList[E:*]: _EditableList[E, EList[E]] {
 
   /// `this.add e` adds `e` to the end of this collection and returns `this` to allow method chaining.
   /// Note: this operation mutates `this`.
-  /// Complexity: O(1) amortized, O(n) worst case if the underlying array needs to be expanded.
+  /// Time Complexity: O(1) amortized, O(n) worst case if the underlying array needs to be expanded.
   mut .add(E): mut EList[E];
   /// `this.addAll xs` adds all elements of `xs` to the end of this collection and returns `this` to allow method chaining.
   /// Note: this operation mutates `this`.
-  /// Complexity: O(m) amortized, O(n+m) worst case if the underlying array needs to be expanded, where m is the size of `xs`.
+  /// Time Complexity: O(m) amortized, O(n+m) worst case if the underlying array needs to be expanded, where m is the size of `xs`.
   //> .check{Block#
   //>   .let l={ELists#[Nat] 3}
   //>   .do{l.addAll(Flows#(1,2,3,4).elist).size .assertEq 4}
@@ -69,7 +69,7 @@ EList[E:*]: _EditableList[E, EList[E]] {
 
   /// `this.addFirst(e)` adds `e` to the beginning of this collection and returns `this` to allow method chaining.
   /// Note: this operation mutates `this`.
-  /// Complexity: O(n), as all elements need to be shifted to make room for the new element.
+  /// Time Complexity: O(n), as all elements need to be shifted to make room for the new element.
   //> .check{Block#
   //>   .let l={Flows#(1,2,3,4).elist}
   //>   .do{l.addFirst(0).list.assertEq({::}, List#(0,1,2,3,4))}
@@ -78,7 +78,7 @@ EList[E:*]: _EditableList[E, EList[E]] {
 
   /// `this.insertBefore(index, e)` inserts `e` before the element at `index` and returns `this` to allow method chaining.
   /// Note: this operation mutates `this`.
-  /// Complexity: O(n) worst case, as all elements after `index` need to be shifted to make room for the new element.
+  /// Time Complexity: O(n) worst case, as all elements after `index` need to be shifted to make room for the new element.
   //> .check{Block#
   //>   .let l={Flows#(1,2,3,4).elist}
   //>   .do{l.insertBefore(1, 0).list.assertEq({::}, List#(1,0,2,3,4))}
@@ -117,43 +117,137 @@ EList[E:*]: _EditableList[E, EList[E]] {
   mut  .getLast: E;
 
   /// ``this.sort by`` returns a new ``SortedList`` containing all the elements of this in order.
-  /// Note: this operation drains this
+  /// Note: this operation drains this into the sorted list, so this will be empty after this operation.
+  ///   This operation drains the original collection so no old references to this will be able to break the sorted order.
+  /// Time Complexity: O(n log n)
   mut .sort[K](by: OrderBy[imm E,K]): mut SortedEList[E, K];
+
+  /// ``this.sortInPlace by`` sorts this collection in place according to the given ordering.
+  /// Note: this operation mutates this.
+  /// Time Complexity: O(n log n)
+  //> .check{ELists#(1,2,3,4).sortInPlace{::.getInt * -1}.list.assertEq({::}, List#(4,3,2,1))}
   mut .sortInPlace[K](by: OrderBy[imm E, K]): mut EList[E];
+
+  /// ``this.distinct by`` returns a new ``EList`` containing all the distinct elements of this in order.
+  ///    Duplicates are kept in the order they first appear.
+  /// Time Complexity: O(n)
+  //> .check{ELists#(-2,+1,-1,-3,+2,-1).distinct{::.abs}.list.assertEq({::}, List#(-2,+1,-3))}
   mut .distinct[K](by: OrderHashBy[imm E,K]): mut EList[E];
   mut .sortDistinct[K](by: OrderBy[imm E,K]): mut SortedEList[E, K];
+  /// ``this.trimToSize`` removes any extra capacity, so that ``this.size == this.capacity``.
+  /// Time Complexity: O(n) worst case, as a new array needs to be allocated and all elements copied over.
   mut .trimToSize: EList[E]; //removes any extra capacity, so that .size == capacity
 
+  /// `this.fold(seed, f)` folds this collection from left to right,
+  /// starting with the given accumulator and applying the given function to each element and the accumulator.
+  /// Use instead of `this.flow.fold` to avoid draining this.
+  /// Time Complexity: T(`this`, `f`) * O(n), where T(l, f) is the maximum time complexity of `f` applied to any element of `this` and the accumulator.
+  //> .check{Block#
+  //>   .let l={ELists#(1,2,3,4,5)}
+  //>   .check{l.fold(0, {a,b -> a+b}) .assertEq 15}
+  //>   .check{l.fold(1, {a,b -> a*b}) .assertEq 120}
+  //>   .done}
   mut .fold[R:*](acc: iso MF[R], f: mut MF[R, Nat, E, R]): R;
+
+  /// `this.fold(acc, f)` folds this collection from right to left,
+  /// starting with the given accumulator and applying the given function to each element and the accumulator.
+  /// Use instead of `this.reverse.flow.fold` to avoid draining this.
+  //> .check{Block#
+  //>   .let l={ELists#(1,2,3,4,5)}
+  //>   .check{l.fold(Lists#, {a,b -> a +> b}) .assertEq({::}, List#(5,4,3,2,1))}
+  //>   .check{l.fold(1, {a,b -> a*b}) .assertEq 120}
+  //>   .done}
   mut .foldRight[R:*](acc: iso MF[R], f: mut MF[R, Nat, E, R]): R;
 
+  /// `this.foldUntil(acc, f, pred)` folds this collection from left to right,
+  /// starting with the given accumulator and applying the given function to each element and the accumulator,
+  /// until the given predicate returns `True` for the accumulator.
+  /// Use instead of `this.flow.foldUntil` to avoid draining this.
+  /// Time Complexity: T(`this`, `f`) * O(n), where T(l, f) is the maximum time complexity of `f` applied to any element of `this` and the accumulator.
+  //> .check{Block#
+  //>   .let l={ELists#(1,2,3,4,5)}
+  //>   .check{l.foldUntil(0, {a,b -> a+b}, {a -> a >= 10}) .assertEq 10}
+  //>   .check{l.foldUntil(1, {a,b -> a*b}, {a -> a >= 100}) .assertEq 120}
+  //>   .done}
   mut .foldUntil[R:*](
     acc: iso MF[R],
     f: mut MF[R, Nat, E, R],
     pred: mut MF[R, Bool]
     ): R;
 
+  /// `this.foldRightUntil(acc, f, pred)` folds this collection from right to left,
+  /// starting with the given accumulator and applying the given function to each element and the accumulator,
+  /// until the given predicate returns `True` for the accumulator.
+  /// Time Complexity: T(`this`, `f`) * O(n), where T(l, f) is the maximum time complexity of `f` applied to any element of `this` and the accumulator.
   mut .foldRightUntil[R:*](
     acc: iso MF[R],
     f: mut MF[R, Nat, E, R],
     pred: mut MF[R, Bool]
     ): R;
 
+  /// ``this.accumulateInPlace f`` updates each element in this elist to f applied to the previous element, and the current element
+  /// Time Complexity: T(`this`, `f`) * O(n), where T(l, f) is the maximum time complexity of `f` applied to any element of `this` and the accumulator.
+  //> .check{ELists#(1,2,3,4,5).accumulateInPlace{acc, e -> acc + e}.list.assertEq({::}, Lists#(1, 3, 6, 10, 15))}
   mut .accumulateInPlace(mut MF[E,E,E]): mut EList[E];
+  /// ``this.accumulateInPlace f`` updates each element in this elist to f applied to the next element, and the current element (applied right to left).
+  /// Time Complexity: T(`this`, `f`) * O(n), where T(l, f) is the maximum time complexity of `f` applied to any element of `this` and the accumulator.
+  //> .check{ELists#(1,2,3,4,5).accumulateInPlace{acc, e -> acc + e}.list.assertEq({::}, Lists#(5, 9, 12, 14, 15))}
   mut .accumulateRightInPlace(mut MF[E,E,E]): mut EList[E];
 
+  /// ``this.seqFlow`` drains ``this`` returns a sequential `Flow` containing all the elements of this.
+  //> .check{Block#
+  //>   .let elist = ELists#(1,2,3,4)
+  //>   .do{elist.seqFlow.list .assertEq({::}, Lists#(1,2,3,4))}
+  //>   .do{elist.isEmpty.assertTrue}}
   mut .seqFlow: mut SizedFlow[E]; //consumes the EList
+
+  /// ``this.seqFlow proof`` drains ``this`` returns a parallel `Flow` containing all the elements of this.
+  /// Note: the proof is unused, but by being able to construct this, you are able to prove that the elements in the
+  ///   EList are able to be safely operated upon in parallel
+  //> .check{Block#
+  //>   .let[mut EList[Nat]] elist = ELists#(1,2,3,4)
+  //>   .do{elist.flow Par[Nat] .list .assertEq({::}, Lists#(1,2,3,4))}
+  //>   .do{elist.isEmpty.assertTrue}}
   mut .flow(mode:FlowMode[E]): mut SizedFlow[E]; //consumes the EList
+
+  /// ``this.seqFlow`` drains ``this`` returns a parallel `Flow` containing all the elements of this.
+  /// Time Complexity: O(1)
+  //> .check{Block#
+  //>   .let elist = ELists#(1,2,3,4)
+  //>   .do{elist.flow.list .assertEq({::}, Lists#(1,2,3,4))}
+  //>   .do{elist.isEmpty.assertTrue}}
   imm .flow: mut SizedFlow[imm E]; //safe since imm receiver
+
+  /// ``this.get i`` returns the element at index `i` (0-based) in this collection.
+  /// Throws if `i >= this.size`.
+  /// Time Complexity: O(1)
+  //> .check{ELists# 1 .get(0) .assertEq 1}
+  //> .checkDetErr({::.isMsg{::.startsWith "EList.get:"}, {ELists# 1 .get(1)}});
   mut .get(Nat): E; //simpler model with most methods `mut`
-  /// `this.opt(index)` returns `this.get(index)` if `index < this.size`, `.empty` otherwise
+  read .get(Nat): read/imm E; //simpler model with most methods `mut`
+
+  /// ``this.opt(index)` returns `this.get(index)` if `index < this.size`, `.empty` otherwise
+  /// Time Complexity: O(1)
+  //> .check{ELists# 1 .opt(0) .assertEq .some 1}
+  //> .check{ELists# 1 .opt(1) .assertEmpty{::}};
   mut .opt(index: Nat): mut Opt[E] -> index < (this.size) .then { this.get(index) };
+
+  /// ``this.list`` drains ``this`` and returns a `List` containing all the elements of this.
+  /// Time Complexity: O(1)
+  //> .check{Block#
+  //>   .let elist = ELists#(1,2,3,4)
+  //>   .do{elist.list .assertEq({::}, Lists#(1,2,3,4))}
+  //>   .do{elist.isEmpty.assertTrue}}
   mut .list: mut List[E]; //consumes the EList and moves the data in the result
 
 
   /// `this.eView(start, end)` returns a mutable view of this collection containing only the elements
   /// with indices in the range `[start, end)`.
-  /// Unlike `trimTo`, this does not mutate this collection.
-  /// Note: Allowing this on SortedEList
+  /// Note any changes made to the view will be reflected in this collection, and vice versa.
+  /// Time Complexity: O(1) as it just creates a new view object without copying any elements.
+  //> .check{Block#
+  //>   .let elist = ELists#(1,2,3,4,5)}
+  //>   .do{elist.eView(1, 4).list .assertEq({::}, Lists#(2,3,4))}
+  //>   .do{elist.assertEq({::}, Lists#(1,5))}
   mut .eView(Nat, Nat): mut EList[E] -> Todo!;
   }
