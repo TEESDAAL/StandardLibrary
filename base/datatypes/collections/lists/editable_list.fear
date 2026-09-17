@@ -46,6 +46,10 @@ _EditableList[E:*, Self]: Pipe[Self],ToInfo[E] {
   /// Throws if `i` is out of bounds.
   mut .remove(Nat): mut Self;
 
+  /// `this.removeAll indices` removes each element at index `i`.
+  /// Throws if there are any duplicate indices, or if any of the indices are ``>= (this.size)``.
+  mut .removeAll(read EList[Nat]): Self;
+
   /// `this.removeFirstWhere(f)` removes the first element for which `f` returns `True`, returning `this`.
   /// Does nothing if no such element exists.
   mut .removeFirstWhere(mut MF[E, Bool]): mut Self;

@@ -31,11 +31,12 @@ ESparseList[E:*]: _EditableList[E, ESparseList[E]] {
 
   /// The limit of the largest index that can be inserted into this collection.
   /// This also means that the capacity is the maximum number of elements that can be inside this collection.
-  //> .check{ESparseLists.backedWithArray(3).capacity.assertEq 3};
+  //> .check{SparseLists.backedWithArray(3).capacity.assert}
+  //>   };
   read .capacity: Nat;
 
   /// `this.numHoles` returns the number of holes left in this collection.
-  //>
+  //> .backedWithArray[E:*](capacity: Nat)
   read .numHoles: Nat;
 
   /// `this.increaseCapacity(n)` returns `this` after expanding it's capacity, throws if `n <= (this.currentCapacity)`
