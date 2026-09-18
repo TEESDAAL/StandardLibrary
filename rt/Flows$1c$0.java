@@ -30,10 +30,15 @@ public interface Flows$1c$0 extends Sealed$2o$0{
   default Object imm$$hash$15(Object p0,Object p1,Object p2,Object p3, Object p4, Object p5, Object p6, Object p7, Object p8, Object p9, Object p10, Object p11, Object p12, Object p13, Object p14){ return Flow$o$1Instance.of(p0,p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,p11,p12,p13,p14); }
   default Object imm$$hash$16(Object p0,Object p1,Object p2,Object p3, Object p4, Object p5, Object p6, Object p7, Object p8, Object p9, Object p10, Object p11, Object p12, Object p13, Object p14, Object p15){ return Flow$o$1Instance.of(p0,p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,p11,p12,p13,p14,p15); }
 
-  default Object imm$fromMutList$1(Object p0){ return Flow$o$1Instance.of(List$o$1Instance.asJava(p0).stream()); }//sequential
   default Object imm$fromMutList$2(Object p0,Object p1){ return Flow$o$1Instance.of(List$o$1Instance.asJava(p0).stream().parallel()); }//parallel!
   default Object imm$fromReadList$1(Object p0){ return Flow$o$1Instance.of(List$o$1Instance.asJava(p0).stream().parallel()); }//parallel!
   default Object imm$fromImmList$1(Object p0){ return Flow$o$1Instance.of(List$o$1Instance.asJava(p0).stream().parallel()); }//parallel!
+
+
+  default Object imm$seqFromMutList$1(Object p0){ return Flow$o$1Instance.of(List$o$1Instance.asJava(p0).stream()); }//sequential
+  default Object imm$seqFromReadList$1(Object p0){ return Flow$o$1Instance.of(List$o$1Instance.asJava(p0).stream()); }//parallel!
+  default Object imm$seqFromImmList$1(Object p0){ return Flow$o$1Instance.of(List$o$1Instance.asJava(p0).stream()); }//parallel!
+
 
   Flows$1c$0 instance= new Flows$1c$0(){};
 }
@@ -64,7 +69,7 @@ record Flow$o$1Instance(Stream<Object> s) implements Flow$o$1{
     catch(IllegalStateException e){ throw consumed(); }    
   }
   @Override public Object mut$forEach$1(Object p0){
-    try{ s.forEach(e->callMF$2(p0,e)); return Void$o$0.instance; }
+    try{ s.forEachOrdered(e->callMF$2(p0,e)); return Void$o$0.instance; }
     catch(IllegalStateException e){ throw consumed(); }
   }
   @Override public Object mut$list$0(){
@@ -91,7 +96,7 @@ record Flow$o$1Instance(Stream<Object> s) implements Flow$o$1{
     AsImm$1g$2 toImm = (AsImm$1g$2) p0;
     LinkedHashMap<Util.MapKey, Object> map = new LinkedHashMap<>();
     try{
-      s.map(toImm::mut$$hash$1).forEach(e -> map.put(mapKey(ordering, e), e));
+      s.map(toImm::mut$$hash$1).forEachOrdered(e -> map.put(mapKey(ordering, e), e));
       return new ESet$s$1Instance(map, ordering);
     }
     catch(IllegalStateException e){ throw consumed(); }
@@ -110,7 +115,7 @@ record Flow$o$1Instance(Stream<Object> s) implements Flow$o$1{
       var kem= (KeyElemMapper$9wg$3)p1;
       var m= new LinkedHashMap<Util.MapKey,Object>();
       var k= Maps$o$0.toKey(p0);
-      s.forEach(e->m.put(mapKey(k,kem.imm$key$1(e)), kem.imm$elem$1(e)));
+      s.forEachOrdered(e->m.put(mapKey(k,kem.imm$key$1(e)), kem.imm$elem$1(e)));
       return new Map$c$2Instance(k,m);
     }
     catch(IllegalStateException e){ throw consumed(); }
