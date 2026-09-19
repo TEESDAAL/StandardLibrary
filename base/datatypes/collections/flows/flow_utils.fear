@@ -1,7 +1,6 @@
 AsImm[E:*, R]: { mut #(E): R; }
 
 FoldAcc[E:*,R:**]: { mut .result: R; mut .acc(E): mut FoldAcc[E,R] }
-ELists: { #[E:*]: mut EList[E]-> _Magic! }
 
 JoinStr[E:*]: { .joinStr(mut Flow[E]): E }
 SumNumber[E:*]: { .sumNumber(mut Flow[E]): E }
@@ -12,7 +11,7 @@ Par[T:imm,read]: FlowMode[T] {this}
 ParRepr: Sealed {#[T]: ParRepr[T] -> ParRepr[T]}
 ParRepr[T]: FlowMode[mut Repr[T]] {this}
 ParPod: Sealed {#[T]: ParPod[T] -> ParPod[T]}
-ParPod[T]: FlowMode [mut IsoPod[T]] {this}
+ParPod[T]: FlowMode[mut IsoPod[T]] {this}
 
 ActorImpl[S:*,E:*,R]: {
   read #(downstream: mut ActorSink[R], state: S, e: E, m: ActorMatch[R]): R

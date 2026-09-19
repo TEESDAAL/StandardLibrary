@@ -115,7 +115,7 @@ public record Str$c$0Instance(String val) implements Str$c$0,Norm$o$1{
     var res= val.lastIndexOf(text);
     return res==-1? optEmpty(): optSome(Nat$c$0Instance.instance(res));
   }
-  @Override public Object imm$indiciesOf$1(Object p0){
+  @Override public Object imm$indicesOf$1(Object p0){
     var splitToken = unwrap(p0);
     String remaining = val;
     final List<Integer> indices = new ArrayList<>();

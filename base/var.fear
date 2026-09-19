@@ -117,7 +117,7 @@ _IdOrErr: {#[R:iso,imm,mut,read](r:R,b:Bool,_:Void):R->Block#(//Needed for the i
   )}
 
 FilterAny: {
-  /// ``FilterAny#(r, pred, fallback)`` returns ``r`` if ``pred#(r)`` is ``True``, otherwise calls and returns ``fallback#``.
+  /// ``FilterAny#(r, pred, fallback)`` returns ``r`` if ``pred#(r)`` is `True`, otherwise calls and returns ``fallback#``.
   //>   .check{FilterAny#(+5, {n -> n == +5}, {-1}) .assertEq +5}
   //>   .check{FilterAny#(+3, {n -> n == +5}, {-1}) .assertEq -1}
   #[R:**](R,F[R,Bool],F[R]):R->_Magic!
