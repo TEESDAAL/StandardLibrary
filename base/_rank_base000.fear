@@ -1,4 +1,31 @@
 Main: { .main(s: mut System): Void }
+/// A `Main` implementing ``OpenWith[I,E]`` asks the Fearless manager to run it on a double click
+/// on any file with the extension ``E``, and to show those files with the icon ``I``:
+/// ``Foo: Main, OpenWith[IconsFoo,"foo"]{ s -> ... }`` opens every ``.foo`` file.
+/// ``I`` is a type generated for an autoloaded image file, like ``IconsFoo`` for
+/// ``_pkg/icons/foo.png``, or `IconsConflict`; the manager accepts only a square PNG image with a
+/// side from 64 to 1024 pixels. ``E`` is a string literal type holding the extension without its
+/// dot: 1 to 16 characters, each a lowercase letter or a digit; ``"fearless"`` is reserved.
+/// A Fearless extension, ``"ffile"`` followed by three digits, is taken by the manager outright;
+/// any other, a system extension like ``"htm"``, only once the user allowed it in the manager.
+/// ``"fapp"`` followed by three digits names shortcut files and is refused here.
+/// Only a `Main` can implement it, and a `Main` claims each extension at most once across all its
+/// `OpenWith[_,_]` and `Shortcut[_,_]`. The portable Fearless ignores it.
+OpenWith[I,E]: {}
+/// ``OpenWith[I]`` is `OpenWith[_,_]` with an extension chosen by the Fearless manager, like
+/// ``ffile042``: users recognise those files by the icon ``I``, not by their extension.
+OpenWith[I]: {}
+/// A `Main` implementing ``Shortcut[I,E]`` asks the Fearless manager to create a file
+/// ``name.E`` in the top level of its project, showing the icon ``I``, that runs the main on a
+/// double click, also when moved somewhere else: ``Bar: Main, Shortcut[IconsBar,"fapp123"]{ s -> ... }``
+/// gets the file ``bar.fapp123``. ``name`` is the simple name of the main turned into a file name:
+/// ``FooBar`` gives ``foo_bar``. ``I`` is as in `OpenWith[_,_]`. ``E`` is ``"fapp"`` followed by
+/// three digits, like ``"fapp042"``: the shortcut file never looks like a document of another
+/// program or a file of the project. The portable Fearless ignores it.
+Shortcut[I,E]: {}
+/// ``Shortcut[I]`` is `Shortcut[_,_]` with an extension chosen by the Fearless manager, like
+/// ``fapp042``: users recognise the shortcut file by the icon ``I``, not by its extension.
+Shortcut[I]: {}
 Sealed: {}
 Void: Sealed {}
 WidenTo[T]: {}
@@ -26,10 +53,17 @@ Debug: Sealed {
   }
 
 BaseId[T1:*,T2]: CaptureFree{ #(x: T1): T2 }
-BaseContainer[T1:*]: Sealed{ read .as[T2](f: BaseId[read/imm T1,T2]): BaseContainer[T2] }
+BaseContainer[T1:*]: Sealed{
+  read .as[T2](f: BaseId[read/imm T1,T2]): BaseContainer[T2];
+  imm  .as[T2](f: BaseId[imm T1,T2]): BaseContainer[T2];
+  }
 
-Let: { #[A:*,R:**](l: mut Let[A, R]): R -> l.in(l.let); }
-Let[A:*,R:**]: { mut .let: A; mut .in(a: A): R }
+Destruct: Sealed {
+  #[A:**, R:**](a: A, f: mut MF[A, R]): R -> f#a;
+  #[A:**, B:**, R:**](a: A, b: B, f: mut MF[A, B, R]): R -> f#(a, b);
+  #[A:**, B:**, C:**, R:**](a: A, b: B, c: C, f: mut MF[A, B, C, R]): R -> f#(a, b, c);
+  #[A:**, B:**, C:**, D:**, R:**](a: A, b: B, c: C, d: D, f: mut MF[A, B, C, D, R]): R -> f#(a, b, c, d);
+  }
 
 F[R:**]: { read #: R; }
 F[A:**,R:**]: { read #(a: A): R }
@@ -37,7 +71,6 @@ F[A:**, B:**, R:**]: { read #(a: A, b: B): R }
 F[A:**, B:**, C:**, R:**]: { read #(a: A, b: B, c: C): R }
 F[A:**, B:**, C:**, D:**, R:**]: { read #(a: A, b: B, c: C, d: D): R }
 F[A:**, B:**, C:**, D:**, E:**, R:**]: { read #(a: A, b: B, c: C, d: D, e: E): R }
-
 
 MF[R:**]: { mut #: R }
 MF[A:**,R:**]: { mut #(a: A): R }

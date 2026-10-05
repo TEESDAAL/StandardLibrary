@@ -25,7 +25,7 @@ Int: Sealed,DataType[Int,Int],SumNumber[Int] {
   //>   .checkNonDetErr({::}, {(Math.minInt) - +1})
   -(x: Int): Int;
 
-  /// ``this * x`` returns the checked product of `this` and ``x``. Throws on overflow/underflow.
+  /// ``this * x`` returns the checked product of `this` and ``x``.
   /// Overflows if the result would exceed ``9_223_372_036_854_775_807``,
   /// Underflows if the result is less than ``-9_223_372_036_854_775_808``.
   //>   .check{(+6 * +7) .assertEq +42}
@@ -350,6 +350,7 @@ _IntRanges: Sealed {
     .start -> startInclusive;
     .end -> endInclusive;
     .flow -> _NumFlow.ints(startInclusive, endInclusive);
+    .seqFlow -> Flows.fromMutList(_NumFlow.ints(startInclusive, endInclusive).list);
     .flow step -> _NumFlow.ints(startInclusive, endInclusive, step);
     .contains n -> n.inRange(self);
     .clamp n -> n.clampTo(self);

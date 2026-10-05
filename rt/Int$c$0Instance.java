@@ -37,31 +37,26 @@ public record Int$c$0Instance(long val) implements Int$c$0,Norm$o$1{
     return (byte)x;
   }
 
+  private static Error outOfRange(String op, long a, String b, boolean over){
+    var bound= over ? "greater than Math.maxInt ("+MAX_VALUE+")" : "less than Math.minInt ("+MIN_VALUE+")";
+    return nonDetErr("Int"+op+": "+(over ? "overflow, " : "underflow, ")+a+" "+op+" "+b+" is "+bound);
+  }
   private static long mulChecked(long a, long b) {
     try{ return Math.multiplyExact(a, b); }
-    catch(ArithmeticException e){
-      // either both negative or both positive
-      if (a < 0 == b < 0) {
-        throw nonDetErr(overflowMessage("*", a, b));
-      }
-      throw nonDetErr(underflowMessage("*", a, b));
-    }
+    catch(ArithmeticException e){ throw outOfRange("*", a, ""+b, a < 0 == b < 0); }
   }
   static boolean canSafelyConvertToDouble(long val) {
     return val != Long.MAX_VALUE && val == (long) ((double) val);
   }
 
-  @Override public Object imm$succ$0() {
-    if (val != MAX_VALUE) {
-      return Int$c$0Instance.instance(val + 1);
-    }
-    throw nonDetErr("Int.succ: cannot take the successor of "+MAX_VALUE);
+
+  @Override public Object imm$succ$0(){
+    if (val == MAX_VALUE){ throw nonDetErr("Int.succ: cannot take the successor of "+MAX_VALUE); }
+    return instance(val + 1);
   }
-  @Override public Object imm$pred$0() {
-    if (val != MIN_VALUE) {
-      return Int$c$0Instance.instance(val - 1);
-    }
-    throw nonDetErr("Int.pred: cannot take the predecessor of "+MIN_VALUE);
+  @Override public Object imm$pred$0(){
+    if (val == MIN_VALUE){ throw nonDetErr("Int.pred: cannot take the predecessor of "+MIN_VALUE); }
+    return instance(val - 1);
   }
   @Override public Object imm$softNat$0(){ return Nat$c$0Instance.instance(val < 0 ? 0 : val); }
   @Override public Object imm$softByte$0(){ return Byte$o$0Instance.instance(clampByte(val)); }
@@ -125,19 +120,13 @@ public record Int$c$0Instance(long val) implements Int$c$0,Norm$o$1{
         + " is too large to be represented as a Float without loss of precision"
     );
   }
-  private static String overflowMessage(String operator, long a, long b) {
-    return "Int"+operator+": overflow "+a+" "+operator+" "+b+" is greater than "+MAX_VALUE;
-  }
-  private static String underflowMessage(String operator, long a, long b) {
-    return "Int"+operator+": underflow "+a+" "+operator+" "+b+" is greater than "+MAX_VALUE;
-  }
-  @Override public Object imm$$plus$1(Object p0) {
-    try {return instance(Math.addExact(val, unwrap(p0)));}
-    catch (ArithmeticException e) {throw nonDetErr(overflowMessage("+", val, unwrap(p0)));}
+  @Override public Object imm$$plus$1(Object p0){
+    try{ return instance(Math.addExact(val, unwrap(p0))); }
+    catch(ArithmeticException e){ throw outOfRange("+", val, ""+unwrap(p0), unwrap(p0) > 0); }
   }
   @Override public Object imm$$dash$1(Object p0){
     try{ return instance(Math.subtractExact(val, unwrap(p0))); }
-    catch(ArithmeticException e){ throw nonDetErr(underflowMessage("-",  val, unwrap(p0))); }
+    catch(ArithmeticException e){ throw outOfRange("-", val, ""+unwrap(p0), unwrap(p0) < 0); }
   }
   @Override public Object imm$$slash$1(Object p0){
     long d=Nat$c$0Instance.unwrap(p0);
@@ -151,7 +140,7 @@ public record Int$c$0Instance(long val) implements Int$c$0,Norm$o$1{
   }
   @Override public Object imm$$star$1(Object p0){ return instance(mulChecked(val, unwrap(p0))); }
   @Override public Object imm$$star_star$1(Object p0) {
-    long power = Nat$c$0Instance.unwrap(p0);
+    long power = unsignedLongFromNat(p0);
     if (power == 0) { return Int$c$0Instance.instance(1); }
     if (power == 1 || this.val == 1 || this.val == 0) { return this; }
     long result = 1, base = val;
@@ -163,12 +152,7 @@ public record Int$c$0Instance(long val) implements Int$c$0,Norm$o$1{
         base = Math.multiplyExact(base, base);
       }
     }
-    catch(ArithmeticException e){
-      if (Nat$c$0Instance.unwrap(p0) % 2 == 1 && this.val < 0) {
-        throw nonDetErr(underflowMessage("**", val, Nat$c$0Instance.unwrap(p0)));
-      }
-      throw nonDetErr(overflowMessage("**", val, Nat$c$0Instance.unwrap(p0)));
-    }
+    catch(ArithmeticException e){ throw outOfRange("**", val, Long.toUnsignedString(unsignedLongFromNat(p0)), val > 0 || (unsignedLongFromNat(p0) & 1) == 0); }
   }
 
   @Override public Object imm$abs$0(){

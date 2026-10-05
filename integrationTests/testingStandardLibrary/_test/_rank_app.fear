@@ -7,7 +7,8 @@ use base.List as List;
 use base.Lists as Lists;
 use base.Flows as Flows;
 use base.Flow as Flow;
-use base.Par as Par;
+use base.ParRead as ParRead;
+use base.ParImm as ParImm;
 use base.ParRepr as ParRepr;
 use base.Debug as Debug;
 use base.Opt as Opt;
@@ -18,6 +19,8 @@ use base.Int as Int;
 use base.Float as Float;
 use base.Byte as Byte;
 use base.ELists as ELists;
+use base.ESparseLists as ESparseLists;
+use base.ESparseList as ESparseList;
 use base.Vars as Vars;
 use base.Info as Info;
 use base.Map as Map;
@@ -100,6 +103,14 @@ MyTests:UnitTests{::
   .test GuiKeyTests
   .test TestWrappers
   .test TestList
+  .test TestESparseList
+  .test TestMultiFlowFence
+  .test TestMultiFlowTrickle
+  .test TestMultiFlowSizes
+  .test TestMultiFlowSingleUse
+  .test TestMultiFlowChannels
+  .test TestMultiFlowBuild
+  .test TestMultiFlowFoldsAndMapping
   .test TestFlow
   .test TestMap
   .test TestAs

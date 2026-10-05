@@ -6,9 +6,8 @@ Nat: Sealed,DataType[Nat,Nat],SumNumber[Nat],InfoKey {
   //>   .checkNonDetErr({:: > "msg" .isMsg{::.startsWith "Nat.succ"}}, {(Math.maxNat) .succ})
   .succ: Nat;
 
-  /// `this.pred` returns ``this - 1``. Underflows if ``this == 0``
+  /// `this.pred` returns ``this - 1``. Underflows if ``this == 0``.
   //>   .check{5 .pred .assertEq 4}
-  //>   .checkEq(4, {5.pred})
   //>   .checkNonDetErr({:: > "msg" .isMsg{::.startsWith "Nat.pred"}}, {0 .pred})
   .pred: Nat;
 
@@ -32,7 +31,7 @@ Nat: Sealed,DataType[Nat,Nat],SumNumber[Nat],InfoKey {
   //>   .checkNonDetErr({::}, {(Math.maxNat) * 2})
   *(x: Nat): Nat;
 
-  /// ``this ** x`` returns the checked power of `this` raised to ``x``. Throws on overflow.
+  /// ``this ** x`` returns the checked power of `this` raised to ``x``.
   /// Overflows if the result would exceed ``18_446_744_073_709_551_615``.
   //>   .check{(2 ** 6) .assertEq 64}
   //>   .checkNonDetErr({::}, {(Math.maxNat) ** 2})
@@ -345,6 +344,7 @@ _NatRanges: Sealed {
     .start -> startInclusive;
     .end -> endInclusive;
     .flow -> _NumFlow.nats(startInclusive, endInclusive);
+    .seqFlow -> Flows.fromMutList(_NumFlow.nats(startInclusive, endInclusive).list);
     .flow step -> _NumFlow.nats(startInclusive, endInclusive, step);
     .contains n -> n.inRange(self);
     .clamp n -> n.clampTo(self);

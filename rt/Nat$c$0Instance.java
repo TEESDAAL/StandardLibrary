@@ -39,12 +39,10 @@ public record Nat$c$0Instance(long val) implements Nat$c$0,Norm$o$1 {
   }
   private static long n(Object o){ return ((Nat$c$0Instance)o).val; }
   private static long i(Object o){ return ((Int$c$0Instance)o).val(); }
-  private static String overflowMsg(String op, long a, long b) {
-    return "Nat" + op + ": overflow " + Long.toUnsignedString(a) + " " + op + " " + Long.toUnsignedString(b) + " is greater than " + Long.toUnsignedString(MAX_UNSIGNED_VALUE);
+  private static Error overflow(String op, long a, long b){
+    return nonDetErr("Nat"+op+": overflow, "+Long.toUnsignedString(a)+" "+op+" "+Long.toUnsignedString(b)+" is greater than Math.maxNat ("+Long.toUnsignedString(MAX_UNSIGNED_VALUE)+")");
   }
-  private static String underflowMsg(String op, long a, long b) {
-    return "Nat" + op + ": underflow " + Long.toUnsignedString(a) + " " + op + " " + Long.toUnsignedString(b) + " is less than 0";
-  }
+
   /**
    * For a long to overflow a + b has to be greater than Long.MAX_VALUE
    * We don't need to worry about underflow
@@ -54,7 +52,7 @@ public record Nat$c$0Instance(long val) implements Nat$c$0,Norm$o$1 {
    */
   private static long addChecked(long a, long b){
     boolean overflow = Long.compareUnsigned(a, MAX_UNSIGNED_VALUE - b) > 0;
-    if (overflow) { throw nonDetErr(overflowMsg("+", a, b)); }
+    if (overflow) { throw overflow("+", a, b); }
     return a + b;
   }
   /**
@@ -62,7 +60,7 @@ public record Nat$c$0Instance(long val) implements Nat$c$0,Norm$o$1 {
    * since we are working with unsigned numbers
    */
   private static long subChecked(long a, long b){
-    if (Long.compareUnsigned(a, b) < 0){ throw nonDetErr(underflowMsg("-", a, b)); }
+    if (Long.compareUnsigned(a, b) < 0){ throw nonDetErr("Nat-: underflow, "+Long.toUnsignedString(a)+" - "+Long.toUnsignedString(b)+" is less than 0"); }
     return a - b;
   }
 
@@ -73,7 +71,7 @@ public record Nat$c$0Instance(long val) implements Nat$c$0,Norm$o$1 {
   private static long mulChecked(long a, long b){
     if (a == 0 || b == 0) {return 0;}
     boolean overflow = Long.compareUnsigned(a, Long.divideUnsigned(MAX_UNSIGNED_VALUE, b)) > 0;
-    if (overflow){ throw nonDetErr(overflowMsg("*", a, b)); }
+    if (overflow){ throw overflow("*", a, b); }
     return a * b;
   }
 
@@ -92,18 +90,6 @@ public record Nat$c$0Instance(long val) implements Nat$c$0,Norm$o$1 {
     return nat.val;
   }
 
-  @Override public Object imm$succ$0() {
-    if (val != MAX_UNSIGNED_VALUE) {
-      return Nat$c$0Instance.instance(val + 1);
-    }
-    throw nonDetErr("Nat.succ: cannot take the successor of "+Long.toUnsignedString(MAX_UNSIGNED_VALUE));
-  }
-  @Override public Object imm$pred$0() {
-    if (val != 0) {
-      return Nat$c$0Instance.instance(val - 1);
-    }
-    throw nonDetErr("Nat.pred: cannot take the predecessor of "+0);
-  }
   @Override public Object imm$$slash$1(Object p0){
     long d=n(p0);
     if (d == 0L) {
@@ -229,6 +215,14 @@ public record Nat$c$0Instance(long val) implements Nat$c$0,Norm$o$1 {
     }
     return ok(Float$1c$0Instance.instance(unsignedLongToDouble(val)));
   }
+  @Override public Object imm$succ$0(){
+    if (val == MAX_UNSIGNED_VALUE){ throw nonDetErr("Nat.succ: cannot take the successor of "+Long.toUnsignedString(MAX_UNSIGNED_VALUE)); }
+    return instance(val + 1);
+  }
+  @Override public Object imm$pred$0(){
+    if (val == 0){ throw nonDetErr("Nat.pred: cannot take the predecessor of 0"); }
+    return instance(val - 1);
+  }
   @Override public Object imm$$plus$1(Object p0){ return instance(addChecked(val,n(p0))); }
   @Override public Object imm$$dash$1(Object p0){ return instance(subChecked(val,n(p0))); }
   @Override public Object imm$$star$1(Object p0){ return instance(mulChecked(val,n(p0))); }
@@ -237,16 +231,18 @@ public record Nat$c$0Instance(long val) implements Nat$c$0,Norm$o$1 {
     if (power == 0) { return Nat$c$0Instance.instance(1); }
     if (power == 1 || this.val == 1 || this.val == 0) { return this; }
     long result = 1, base = val;
-    String errorMsg = overflowMsg("**", this.val, n(p0));
-    while (true) {
-      if ((power & 1) != 0) { result = powMul(result, base, p0); }
-      power >>>= 1;
-      if (power == 0){ return Nat$c$0Instance.instance(result); }
-      base = powMul(base, base, p0);
+    try{
+      while (true) {
+        if ((power & 1) != 0){ result = powMul(result, base); }
+        power >>>= 1;
+        if (power == 0){ return Nat$c$0Instance.instance(result); }
+        base = powMul(base, base);
+      }
     }
+    catch(ArithmeticException e){ throw overflow("**", val, n(p0)); }
   }
-  long powMul(long a, long b, Object power) {
-    if (Long.compareUnsigned(a, Long.divideUnsigned(MAX_UNSIGNED_VALUE, b)) > 0){ throw nonDetErr(overflowMsg("**", this.val, unwrap(power))); }
+  private static long powMul(long a, long b){
+    if (Long.compareUnsigned(a, Long.divideUnsigned(MAX_UNSIGNED_VALUE, b)) > 0){ throw new ArithmeticException(); }
     return a * b;
   }
   @Override public Object imm$softSqrt$0(){
@@ -278,21 +274,11 @@ public record Nat$c$0Instance(long val) implements Nat$c$0,Norm$o$1 {
   @Override public Object imm$getIndexOffset$1(Object p0){
     long offset = i(p0);
     if (offset <= 0) {
-      if (Long.compareUnsigned(val, -offset) < 0) {
-        throw detErr(
-          "Nat.getIndexOffset: Underflow occurred when offsetting "
-          + Long.toUnsignedString(val)+" by "+offset+", this must be >= delta");
-      }
       // works for Long.MIN_VALUE as well, as Long.MIN_VALUE when read unsigned is LONG.MAX_VALUE + 1
       if (Long.compareUnsigned(val, -offset) < 0){ throw err(offsetErr(val, offset, "less than 0")); }
       return instance(val + offset);
     }
-    if (Long.compareUnsigned(val, MAX_UNSIGNED_VALUE - offset) > 0) {
-      throw detErr(
-        "Nat.getIndexOffset: Overflow occurred when offsetting "
-          + Long.toUnsignedString(val)+" by "+offset+"this+delta must be <= "
-          + Long.toUnsignedString(MAX_UNSIGNED_VALUE));
-    }
+    if (Long.compareUnsigned(val, MAX_UNSIGNED_VALUE - offset) > 0){ throw err(offsetErr(val, offset, "greater than Math.maxNat")); }
     return instance(val + offset);
   }
   @Override public Object imm$tryGetIndexOffset$1(Object p0){

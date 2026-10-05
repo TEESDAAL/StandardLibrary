@@ -15,7 +15,7 @@ Byte: Sealed,DataType[Byte,Byte],SumNumber[Byte] {
   //>   .checkNonDetErr({::}, {(255.getByte) + (1.getByte)})
   +(x: Byte): Byte;
 
-  /// ``this - x`` returns the checked difference of `this` and ``x``. Overflows if the result would go below ``0``.
+  /// ``this - x`` returns the checked difference of `this` and ``x``. Underflows if the result would go below ``0``.
   //>   .check{5.getByte - (3.getByte) .assertEq(2.getByte)}
   //>   .checkNonDetErr({::}, {0.getByte - (1.getByte)})
   -(x: Byte): Byte;
@@ -248,6 +248,7 @@ _ByteRanges: Sealed {
         .start -> startInclusive;
         .end -> endInclusive;
         .flow -> _NumFlow.bytes(startInclusive, endInclusive);
+        .seqFlow -> Flows.fromMutList(_NumFlow.bytes(startInclusive, endInclusive).list);
         .flow step -> _NumFlow.bytes(startInclusive, endInclusive, step);
         .contains n -> n.inRange(self);
         .clamp n -> n.clampTo(self);
