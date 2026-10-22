@@ -64,15 +64,15 @@ public interface _MagicMath$lk$0 extends _base.Sealed$2o$0 {
   }
 
   default Object imm$atan2$2(Object p0, Object p1) {
-    double x = Float$1c$0Instance.unwrap(p0);
-    double y = Float$1c$0Instance.unwrap(p1);
+    double y = Float$1c$0Instance.unwrap(p0);
+    double x = Float$1c$0Instance.unwrap(p1);
     if (Double.isNaN(x)) {
       throw err("Math.atan2: First argument was NaN, cannot take atan2 of NaN");
     }
     if (Double.isNaN(y)) {
       throw err("Math.atan2: Second argument was NaN, cannot take atan2 of NaN");
     }
-    var theta = Float$1c$0Instance.instance(Math.atan2(x, y));
+    var theta = Float$1c$0Instance.instance(Math.atan2(y, x));
     return new Radian$2o$0() {
       public Object read$$hash$0() {
         return theta;

@@ -25,7 +25,7 @@ ELists: {
   #[E:*](E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E): mut EList[E] -> _Magic!;
   }
 
-EList[E:*]: _EditableList[E, EList[E]] {
+EList[E:*]: Sealed, _EditableList[E, EList[E]] {
   /// ``this.size`` returns the number of elements in this collection.
   /// Note: this is not the same as the capacity of the collection,
   ///   which is the maximum number of elements that can be stored in
@@ -318,8 +318,7 @@ EList[E:*]: _EditableList[E, EList[E]] {
   /// ``this.eView(start, end)`` returns a mutable view of this collection containing only the elements
   /// with indices in the range ``[start, end)``.
   /// Throws if ``start > end`` or ``end > this.size``; returns an empty view if ``start == end``.
-  /// Changes made to the view are reflected in this collection.
-  /// Changing the size of this collection other than through the view invalidates the view.
+  /// Note: Changes made to the view are reflected in this collection and vice versa.
   /// Time Complexity: O(1) as it just creates a new view object without copying any elements.
   //> .check{Block#
   //>   .let elist={ELists#(1,2,3,4,5)}

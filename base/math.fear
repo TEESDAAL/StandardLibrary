@@ -29,7 +29,7 @@ _MagicMath: Sealed {
   /// Returns the angle theta from the conversion of rectangular coordinates (x, y) to polar coordinates (r, theta).
   /// This method computes the phase theta by computing an arc tangent of y / x in [-pi to pi]
   /// Throws if either x or y is NaN.
-  .atan2(x: Float, y: Float): Radian -> _Magic!;
+  .atan2(y: Float, x: Float): Radian -> _Magic!;
 
   /// ``this.hypot(x, y)`` returns ``(x** +2.0 + y** +2.0).sqrt``.
   /// Throws if either argument is NaN
@@ -100,7 +100,7 @@ Math: Sealed, _MagicMath {
       .lt -> t0; .eq -> t0; .gt -> t1;
     });
 
-  /// ``Math.clamp(by, lo, hi, t)`` returns `t` clamped between upper and lower.
+  /// ``Math.clamp(by, lo, hi, t)`` returns `t` clamped between upper and lower. Throws if lower > upper.
   /// Note: ``Math.clamp(by, lo, hi, t)`` returns `t` in the case where it is equal to lo or hi
   /// Equivalent to: ``Math.max(by, Math.min(by, t, lower), upper)``
   .clamp[T,K](ordering: OrderBy[T,K], lower: T, upper: T, t: T): T -> Block#

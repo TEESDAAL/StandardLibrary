@@ -67,8 +67,10 @@ Str: Sealed,DataType[Str,Str],JoinStr[Str],_AssertImmEmpty,_AssertImmSize,InfoKe
   | : Str;                          /// appends a newline
   ^ : Str;                          /// appends a double quote
   .isEmpty: Bool;                   /// true iff ``this.size == 0``
+  .notEmpty: Bool -> this.isEmpty.not;
   .size: Nat;                       /// the amount of characters in this string
   .escape: Str;                     /// returns a string representing valid Fearless code which yields this string when evaluated (may use ^ and |, not necessarily a single literal)
+
   .indexOf(Str): Opt[Nat];          /// index of the first occurrence of the parameter. Returns 0 if the parameter is ``
   /// ``this.lastIndexOf s`` returns the index of the last occurrence of ``s`` in `this`, ``this.size`` if ``s`` is ``""``.
   //>   .check{"abab".lastIndexOf "ab" .assertEq({::}, Opts# 2)}
@@ -170,6 +172,9 @@ Str: Sealed,DataType[Str,Str],JoinStr[Str],_AssertImmEmpty,_AssertImmSize,InfoKe
   //>   .check{"abc".split "," .assertEq({::}, Lists#"abc")}
   //>   .checkDetErr({::.isMsg{::.startsWith "Str.split:"}}, {"abc".split ""})
   .split(Str): List[Str];
+
+  .flow: Flow[Str];
+  .reversedFlow: Flow[Str];
 
   .indexInto i -> i.matchWithDefault {
     .map map -> map.opt(this);
